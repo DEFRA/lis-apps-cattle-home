@@ -1,0 +1,28 @@
+{% extends 'layouts/page.njk' %}
+
+{% block content %}
+  {{ appHeading({
+    text: heading,
+    caption: caption
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <div class="govuk-inset-text">
+        Signed in as {{ signedInAs }}.
+      </div>
+
+      <p class="govuk-body">{{ taxonomy.summary }}</p>
+      <p class="govuk-body">{{ species.summary }}</p>
+
+      <h2 class="govuk-heading-m">Microsite details</h2>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>Taxonomy: {{ taxonomy.label }}</li>
+        <li>Species: {{ species.label }}</li>
+        <li>Direct port: {{ directPort }}</li>
+        <li>Hub URL: <a class="govuk-link" href="{{ hubPath }}">{{ hubPath }}</a></li>
+        <li>Fake API endpoint: <a class="govuk-link" href="{{ apiEndpoint }}">{{ apiEndpoint }}</a></li>
+      </ul>
+    </div>
+  </div>
+{% endblock %}
