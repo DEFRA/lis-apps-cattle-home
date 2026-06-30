@@ -1,13 +1,18 @@
 import path from 'node:path'
 import inert from '@hapi/inert'
-import { createSpokeGuard, getHubJwtCookieOptions } from '@livestock/infrastructure/auth'
+import {
+  createSpokeGuard,
+  getHubJwtCookieOptions
+} from '@livestock/ui-services/auth'
+import { createModuleAccessGuard } from '@livestock/ui-services/module-access'
 
 import { home } from '../routes/home/index.js'
 import { health } from '../routes/health/index.js'
 
 import { serveStaticFiles } from './serve-static-files.js'
-import { createBasePathHelpersForConfig } from '@livestock/infrastructure/base-path'
+import { createBasePathHelpersForConfig } from '@livestock/ui-services/base-path'
 import { config } from '#config/config.js'
+import { moduleAccess } from '../../../module-access.js'
 
 const { getAssetPaths } = createBasePathHelpersForConfig(config)
 
@@ -26,6 +31,11 @@ const authGuard = createSpokeGuard({
   audience: config.get('auth.hubJwt.audience')
 })
 
+const moduleAccessGuard = createModuleAccessGuard({
+  assetPath: config.get('assetPath'),
+  moduleAccess
+})
+
 export const router = {
   plugin: {
     name: 'router',
@@ -33,7 +43,11 @@ export const router = {
       await server.register([inert])
 
       await server.register([health])
-      await server.register(authGuard ? [authGuard, home] : [home])
+      await server.register(
+        authGuard
+          ? [authGuard, moduleAccessGuard, home]
+          : [moduleAccessGuard, home]
+      )
 
       if (!config.get('isProduction') && !config.get('isTest')) {
         await (async () => {

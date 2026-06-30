@@ -1,19 +1,20 @@
 import { TextEncoder } from 'node:util'
 
 import { SignJWT } from 'jose'
-import { statusCodes } from '@livestock/infrastructure/status-codes'
+import { statusCodes } from '@livestock/ui-services/status-codes'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
 
 const encoder = new TextEncoder()
 
-async function createHubJwt() {
+async function createHubJwt(permissions = ['lis-perm-cattle-read']) {
   return new SignJWT({
     email: 'test.user@example.com',
     firstName: 'Test',
     lastName: 'User',
     roles: [],
+    permissions,
     serviceId: 'test-service'
   })
     .setProtectedHeader({ alg: 'HS256' })
@@ -48,7 +49,6 @@ describe('#homeController', () => {
       cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
     }
 
-
     const { result, statusCode } = await server.inject(request)
 
     expect(result).toEqual(expect.stringContaining('Home for Cattle |'))
@@ -62,7 +62,22 @@ describe('#homeController', () => {
     })
 
     expect(statusCode).toBe(302)
-    expect(headers.location).toContain('http://localhost:3000/auth/login?returnUrl=')
+    expect(headers.location).toContain(
+      'http://localhost:3000/auth/login?returnUrl='
+    )
   })
 
+  test('Should return forbidden when the user lacks the cattle module permission', async () => {
+    const jwt = await createHubJwt(['lis-perm-cattle-move-read'])
+    const { statusCode, result } = await server.inject({
+      method: 'GET',
+      url: '/',
+      headers: {
+        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
+      }
+    })
+
+    expect(statusCode).toBe(statusCodes.forbidden)
+    expect(result).toEqual({ message: 'Forbidden' })
+  })
 })

@@ -1,5 +1,5 @@
 import hapiPulse from 'hapi-pulse'
-import { getLoggerForConfig } from '@livestock/infrastructure/logging'
+import { getLoggerForConfig } from '@livestock/ui-services/logging'
 
 import { config } from '#config/config.js'
 

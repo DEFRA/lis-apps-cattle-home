@@ -1,4 +1,4 @@
-import { buildMicrositePath } from '@livestock/infrastructure'
+import { buildMicrositePath } from '@livestock/ui-services'
 import { taxonomy } from '@livestock/taxonomy-home'
 import { species } from '@livestock/species-cattle'
 
