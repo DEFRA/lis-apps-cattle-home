@@ -4,7 +4,7 @@ This project is based on the included CDP Node.js frontend template.
 
 Role: Standalone spoke microsite.
 
-Dependencies: @livestock/infrastructure, @livestock/species-cattle, @livestock/index-home
+Dependencies: @livestock/ui-services, @livestock/species-cattle, @livestock/index-home
 
 Port: `3221`
 
