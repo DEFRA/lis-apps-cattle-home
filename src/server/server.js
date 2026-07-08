@@ -1,3 +1,4 @@
+/** @import { Server } from '@hapi/hapi' */
 import path from 'path'
 import hapi from '@hapi/hapi'
 import Scooter from '@hapi/scooter'
@@ -30,6 +31,9 @@ const nunjucksConfig = createNunjucksConfig({
   getRequestBasePath
 })
 
+/**
+ * @returns {Promise<Server>}
+ */
 export async function createServer() {
   setupProxy({
     proxyUrl: config.get('httpProxy'),
