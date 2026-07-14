@@ -63,7 +63,7 @@ describe('#homeController', () => {
 
     expect(statusCode).toBe(302)
     expect(headers.location).toContain(
-      'http://localhost:3000/auth/login?returnUrl='
+      'https://front-office.lis.defra/auth/login?returnUrl=%2Fcattle%2Fhome'
     )
   })
 
@@ -78,6 +78,6 @@ describe('#homeController', () => {
     })
 
     expect(statusCode).toBe(statusCodes.forbidden)
-    expect(result).toEqual({ message: 'Forbidden' })
+    expect(result).toEqual({ message: 'Module access denied' })
   })
 })
