@@ -15,13 +15,28 @@
       <p class="govuk-body">{{ taxonomy.summary }}</p>
       <p class="govuk-body">{{ species.summary }}</p>
 
+      <h2 class="govuk-heading-m">Your holdings</h2>
+      {% if holdings.length %}
+        <ul class="govuk-list govuk-list--spaced">
+          {% for holding in holdings %}
+            <li>
+              <strong>{{ holding.name }}</strong><br>
+              <span>CPH {{ holding.cph }}</span><br>
+              <span class="govuk-hint">{{ holding.cattleCount }} cattle</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="govuk-body">No holdings were found for your account.</p>
+      {% endif %}
+
       <h2 class="govuk-heading-m">Microsite details</h2>
       <ul class="govuk-list govuk-list--bullet">
         <li>Taxonomy: {{ taxonomy.label }}</li>
         <li>Species: {{ species.label }}</li>
         <li>Direct port: {{ directPort }}</li>
         <li>Hub URL: <a class="govuk-link" href="{{ hubPath }}">{{ hubPath }}</a></li>
-        <li>Fake API endpoint: <a class="govuk-link" href="{{ apiEndpoint }}">{{ apiEndpoint }}</a></li>
+        <li>Total cattle: {{ totalCattle }}</li>
       </ul>
     </div>
   </div>

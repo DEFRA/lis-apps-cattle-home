@@ -1,18 +1,15 @@
 import { buildMicrositePath } from '@livestock/ui-services'
 import { taxonomy } from '@livestock/taxonomy-home'
 import { species } from '@livestock/species-cattle'
+import { config } from '#config/config.js'
+import { createCattleHomeApi } from '#server/services/cattle-home-api.js'
+import { buildCattleHomeSummary } from '#server/services/cattle-home-summary.js'
+
+const cattleHomeApi = createCattleHomeApi({ config })
 
 export const homeController = {
-  handler(request, h) {
-    const displayName =
-      [request.app.hubAuth?.firstName, request.app.hubAuth?.lastName]
-        .filter(Boolean)
-        .join(' ') || null
-    const signedInAs =
-      request.app.hubAuth?.email ??
-      displayName ??
-      request.app.hubAuth?.sub ??
-      'Authenticated user'
+  async handler(request, h) {
+    const viewModel = await buildViewModel(request)
 
     return h.view('home/index', {
       pageTitle: 'Home for Cattle',
@@ -20,10 +17,62 @@ export const homeController = {
       caption: 'Spoke microsite',
       taxonomy,
       species,
-      signedInAs,
+      ...viewModel,
       directPort: 3221,
-      hubPath: buildMicrositePath(taxonomy.id, species.id),
-      apiEndpoint: 'http://localhost:3000/api/species/cattle/taxonomies/home'
+      hubPath: buildMicrositePath(taxonomy.id, species.id)
     })
   }
+}
+
+export const summaryController = {
+  async handler(request, h) {
+    const viewModel = await buildViewModel(request)
+
+    return h.view('home/summary', {
+      holdings: viewModel.holdings,
+      totalCattle: viewModel.totalCattle,
+      hubPath: buildMicrositePath(taxonomy.id, species.id)
+    })
+  }
+}
+
+export const summaryDataController = {
+  async handler(request, h) {
+    const viewModel = await buildViewModel(request)
+    const homePath = buildMicrositePath(taxonomy.id, species.id)
+
+    return h.response({
+      species: {
+        id: species.id,
+        label: species.label,
+        url: homePath
+      },
+      holdings: viewModel.holdings.map((holding) => ({
+        farmName: holding.name,
+        cph: holding.cph,
+        postcode: holding.postcode,
+        count: holding.cattleCount,
+        url: homePath
+      })),
+      actions: []
+    })
+  }
+}
+
+async function buildViewModel(request) {
+  const displayName =
+    [request.app.hubAuth?.firstName, request.app.hubAuth?.lastName]
+      .filter(Boolean)
+      .join(' ') || null
+  const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
+  const signedInAs =
+    request.app.hubAuth?.email ?? displayName ?? userId ?? 'Authenticated user'
+  const traceId = request.headers[config.get('tracing.header')]
+  const summary = await buildCattleHomeSummary({
+    cattleHomeApi,
+    userId,
+    traceId
+  })
+
+  return { signedInAs, ...summary }
 }
