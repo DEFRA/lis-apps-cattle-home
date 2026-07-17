@@ -1,4 +1,8 @@
-import { homeController } from './controller.js'
+import {
+  homeController,
+  summaryController,
+  summaryDataController
+} from './controller.js'
 
 export const home = {
   plugin: {
@@ -9,6 +13,22 @@ export const home = {
           method: 'GET',
           path: '/',
           ...homeController
+        },
+        {
+          method: 'GET',
+          path: '/summary',
+          options: {
+            app: { authMode: 'hub-service' }
+          },
+          ...summaryController
+        },
+        {
+          method: 'GET',
+          path: '/summary-data',
+          options: {
+            app: { authMode: 'hub-service' }
+          },
+          ...summaryDataController
         }
       ])
     }

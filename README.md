@@ -8,7 +8,25 @@ Dependencies: @livestock/ui-services, @livestock/species-cattle, @livestock/inde
 
 Port: `3221`
 
+## Cattle home API
+
+The application retrieves holding and cattle JSON from the `be4fe/cattle-home`
+service. For local development, start that API on port `8085` and configure:
+
+```text
+CATTLE_HOME_API_URL=http://localhost:8085
+```
+
+`CATTLE_HOME_API_KEY`, `CATTLE_HOME_API_KEY_HEADER` and
+`CATTLE_HOME_API_TIMEOUT` configure the optional API key and request timeout.
+
 Primary URL path: `/cattle/home`
+
+The root route renders the complete user-facing CPH list and uses the hub session
+cookie. `GET /summary` renders the embeddable CPH cattle-count fragment used by
+front-office and requires a hub-service bearer token. `GET /summary-data`
+returns the structured species, holding-count and action data used by the
+front-office dashboard and has the same hub-service authentication requirement.
 
 Run locally with `npm run dev`.
 Install dependencies locally with `npm install` from this project directory.

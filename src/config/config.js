@@ -220,6 +220,33 @@ export const config = convict({
       env: 'TRACING_HEADER'
     }
   },
+  cattleHomeApi: {
+    url: {
+      doc: 'Base URL for the cattle-home BE4FE API',
+      format: 'url',
+      default: 'http://localhost:8085',
+      env: 'CATTLE_HOME_API_URL'
+    },
+    apiKey: {
+      doc: 'Optional API key sent to the cattle-home BE4FE API',
+      format: String,
+      default: '',
+      env: 'CATTLE_HOME_API_KEY',
+      sensitive: true
+    },
+    apiKeyHeader: {
+      doc: 'Header name used for the cattle-home BE4FE API key',
+      format: String,
+      default: 'x-api-key',
+      env: 'CATTLE_HOME_API_KEY_HEADER'
+    },
+    timeout: {
+      doc: 'Timeout in milliseconds for cattle-home BE4FE API requests',
+      format: 'nat',
+      default: 5000,
+      env: 'CATTLE_HOME_API_TIMEOUT'
+    }
+  },
   profileService: {
     url: {
       doc: 'Profile service endpoint used to enrich hub auth sessions',
