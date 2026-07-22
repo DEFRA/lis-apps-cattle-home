@@ -11,7 +11,9 @@ describe('#buildCattleHomeSummary', () => {
       }),
       getCattleForCph: vi
         .fn()
-        .mockResolvedValueOnce({ data: [{}, {}, {}] })
+        .mockResolvedValueOnce({
+          data: [{ status: 'saved' }, { status: 'draft' }, {}]
+        })
         .mockResolvedValueOnce({ data: [{}] })
     }
 
@@ -23,8 +25,38 @@ describe('#buildCattleHomeSummary', () => {
 
     expect(summary).toEqual({
       holdings: [
-        { name: 'My farm', cph: '10/081/1234', cattleCount: 3 },
-        { name: 'My other farm', cph: '12/091/6278', cattleCount: 1 }
+        {
+          name: 'My farm',
+          cph: '10/081/1234',
+          cattle: [
+            {
+              status: 'saved',
+              statusLabel: 'Validated',
+              statusClass: 'govuk-tag--green'
+            },
+            {
+              status: 'draft',
+              statusLabel: 'Pending',
+              statusClass: 'govuk-tag--blue'
+            },
+            {
+              statusLabel: 'Pending',
+              statusClass: 'govuk-tag--blue'
+            }
+          ],
+          cattleCount: 3
+        },
+        {
+          name: 'My other farm',
+          cph: '12/091/6278',
+          cattle: [
+            {
+              statusLabel: 'Pending',
+              statusClass: 'govuk-tag--blue'
+            }
+          ],
+          cattleCount: 1
+        }
       ],
       totalCattle: 4
     })

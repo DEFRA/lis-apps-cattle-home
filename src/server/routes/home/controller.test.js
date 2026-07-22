@@ -76,12 +76,28 @@ describe('#homeController', () => {
     getCphsForUser.mockResolvedValue({
       source: 'cph-provider',
       cached_until_utc: '2026-07-15T12:00:00Z',
-      data: [{ name: 'My farm', cph: '10/081/1234' }]
+      data: [{ name: 'My farm', cph: '10/081/1234', postcode: 'MK11 1AA' }]
     })
-    getCattleForCph.mockResolvedValue({ data: [{}, {}, {}] })
+    getCattleForCph.mockResolvedValue({
+      data: [
+        {
+          eartag: 'UK123456100001',
+          sex: 'Female',
+          breed: 'HF',
+          status: 'saved'
+        },
+        {
+          eartag: 'UK123456100002',
+          sex: 'Male',
+          breed: 'AA',
+          status: 'draft'
+        },
+        { eartag: 'UK123456100003', sex: 'Female', breed: 'JE' }
+      ]
+    })
     const request = {
       method: 'GET',
-      url: '/',
+      url: '/?cph=10%2F081%2F1234',
       headers: {
         'x-cdp-request-id': 'trace-123'
       }
@@ -96,6 +112,21 @@ describe('#homeController', () => {
     expect(result).toEqual(expect.stringContaining('My farm'))
     expect(result).toEqual(expect.stringContaining('10/081/1234'))
     expect(result).toEqual(expect.stringContaining('3 cattle'))
+    expect(result).toEqual(expect.stringContaining('MK11 1AA'))
+    expect(result).toEqual(
+      expect.stringContaining('href="/cattle/register?cph=10%2F081%2F1234"')
+    )
+    expect(result).toEqual(
+      expect.stringContaining('href="/cattle/move?cph=10%2F081%2F1234"')
+    )
+    expect(result).toEqual(
+      expect.stringContaining('href="/cattle/death?cph=10%2F081%2F1234"')
+    )
+    expect(result).toEqual(expect.stringContaining('UK123456100001'))
+    expect(result).toEqual(expect.stringContaining('Female'))
+    expect(result).toEqual(expect.stringContaining('HF'))
+    expect(result).toEqual(expect.stringContaining('Validated'))
+    expect(result).toEqual(expect.stringContaining('Pending'))
     expect(getCphsForUser).toHaveBeenCalledWith(
       'test.user@example.com',
       'trace-123'
@@ -165,7 +196,7 @@ describe('#homeController', () => {
           cph: '10/081/1234',
           postcode: 'MK11 1AA',
           count: 3,
-          url: '/cattle/home'
+          url: '/cattle/home?cph=10%2F081%2F1234'
         }
       ],
       actions: []

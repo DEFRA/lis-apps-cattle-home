@@ -17,6 +17,7 @@ export async function buildCattleHomeSummary({
 
       return {
         ...holding,
+        cattle: cattleResponse.data.map(addDisplayStatus),
         cattleCount: cattleResponse.data.length
       }
     })
@@ -28,5 +29,15 @@ export async function buildCattleHomeSummary({
       (total, holding) => total + holding.cattleCount,
       0
     )
+  }
+}
+
+function addDisplayStatus(animal) {
+  const isValidated = animal.status === 'saved'
+
+  return {
+    ...animal,
+    statusLabel: isValidated ? 'Validated' : 'Pending',
+    statusClass: isValidated ? 'govuk-tag--green' : 'govuk-tag--blue'
   }
 }

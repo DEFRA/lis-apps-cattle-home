@@ -10,6 +10,13 @@ const cattleHomeApi = createCattleHomeApi({ config })
 export const homeController = {
   async handler(request, h) {
     const viewModel = await buildViewModel(request)
+    const selectedCph = request.query?.cph
+    const selectedHolding = selectedCph
+      ? viewModel.holdings.find((holding) => holding.cph === selectedCph)
+      : viewModel.holdings[0]
+    const actionLinks = selectedHolding
+      ? buildHoldingActionLinks(selectedHolding.cph)
+      : []
 
     return h.view('home/index', {
       pageTitle: 'Home for Cattle',
@@ -18,10 +25,24 @@ export const homeController = {
       taxonomy,
       species,
       ...viewModel,
+      selectedCph,
+      selectedHolding,
+      actionLinks,
       directPort: 3221,
       hubPath: buildMicrositePath(taxonomy.id, species.id)
     })
   }
+}
+
+function buildHoldingActionLinks(cph) {
+  return [
+    { text: 'Register cattle', taxonomyId: 'register' },
+    { text: 'Move cattle', taxonomyId: 'move' },
+    { text: 'Report a cattle death', taxonomyId: 'death' }
+  ].map(({ text, taxonomyId }) => ({
+    text,
+    url: `${buildMicrositePath(taxonomyId, species.id)}?${new URLSearchParams({ cph })}`
+  }))
 }
 
 export const summaryController = {
@@ -52,7 +73,7 @@ export const summaryDataController = {
         cph: holding.cph,
         postcode: holding.postcode,
         count: holding.cattleCount,
-        url: homePath
+        url: `${homePath}?${new URLSearchParams({ cph: holding.cph })}`
       })),
       actions: []
     })
