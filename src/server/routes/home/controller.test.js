@@ -97,7 +97,7 @@ describe('#homeController', () => {
     })
     const request = {
       method: 'GET',
-      url: '/?cph=10%2F081%2F1234',
+      url: '/10/081/1234',
       headers: {
         'x-cdp-request-id': 'trace-123'
       }
@@ -114,13 +114,13 @@ describe('#homeController', () => {
     expect(result).toEqual(expect.stringContaining('3 cattle'))
     expect(result).toEqual(expect.stringContaining('MK11 1AA'))
     expect(result).toEqual(
-      expect.stringContaining('href="/cattle/register?cph=10%2F081%2F1234"')
+      expect.stringContaining('href="/cattle/register/10/081/1234"')
     )
     expect(result).toEqual(
-      expect.stringContaining('href="/cattle/move?cph=10%2F081%2F1234"')
+      expect.stringContaining('href="/cattle/move/10/081/1234"')
     )
     expect(result).toEqual(
-      expect.stringContaining('href="/cattle/death?cph=10%2F081%2F1234"')
+      expect.stringContaining('href="/cattle/death/10/081/1234"')
     )
     expect(result).toEqual(expect.stringContaining('UK123456100001'))
     expect(result).toEqual(expect.stringContaining('Female'))
@@ -196,7 +196,7 @@ describe('#homeController', () => {
           cph: '10/081/1234',
           postcode: 'MK11 1AA',
           count: 3,
-          url: '/cattle/home?cph=10%2F081%2F1234'
+          url: '/cattle/home/10/081/1234'
         }
       ],
       actions: []

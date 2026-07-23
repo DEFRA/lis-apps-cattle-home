@@ -4,19 +4,29 @@ import { species } from '@livestock/species-cattle'
 import { config } from '#config/config.js'
 import { createCattleHomeApi } from '#server/services/cattle-home-api.js'
 import { buildCattleHomeSummary } from '#server/services/cattle-home-summary.js'
+import { statusCodes } from '@livestock/ui-services/status-codes'
 
 const cattleHomeApi = createCattleHomeApi({ config })
 
 export const homeController = {
   async handler(request, h) {
     const viewModel = await buildViewModel(request)
-    const selectedCph = request.query?.cph
+    const selectedCph = cphFromParams(request.params)
     const selectedHolding = selectedCph
       ? viewModel.holdings.find((holding) => holding.cph === selectedCph)
       : viewModel.holdings[0]
+    if (selectedCph && !selectedHolding) {
+      return h.response('Page not found').code(statusCodes.notFound)
+    }
     const actionLinks = selectedHolding
       ? buildHoldingActionLinks(selectedHolding.cph)
       : []
+    const homePath = buildMicrositePath(taxonomy.id, species.id)
+    const holdingLinks = viewModel.holdings.map((holding) => ({
+      ...holding,
+      url: `${homePath}/${cphPath(holding.cph)}`,
+      selected: holding.cph === selectedHolding?.cph
+    }))
 
     return h.view('home/index', {
       pageTitle: 'Home for Cattle',
@@ -27,6 +37,7 @@ export const homeController = {
       ...viewModel,
       selectedCph,
       selectedHolding,
+      holdingLinks,
       actionLinks,
       directPort: 3221,
       hubPath: buildMicrositePath(taxonomy.id, species.id)
@@ -34,14 +45,18 @@ export const homeController = {
   }
 }
 
-function buildHoldingActionLinks(cph) {
+/**
+ * @param {string} cph holding identifier
+ * @returns {{ text: string, url: string }[]} holding-scoped action links
+ */
+export function buildHoldingActionLinks(cph) {
   return [
     { text: 'Register cattle', taxonomyId: 'register' },
     { text: 'Move cattle', taxonomyId: 'move' },
     { text: 'Report a cattle death', taxonomyId: 'death' }
   ].map(({ text, taxonomyId }) => ({
     text,
-    url: `${buildMicrositePath(taxonomyId, species.id)}?${new URLSearchParams({ cph })}`
+    url: `${buildMicrositePath(taxonomyId, species.id)}/${cphPath(cph)}`
   }))
 }
 
@@ -73,11 +88,27 @@ export const summaryDataController = {
         cph: holding.cph,
         postcode: holding.postcode,
         count: holding.cattleCount,
-        url: `${homePath}?${new URLSearchParams({ cph: holding.cph })}`
+        url: `${homePath}/${cphPath(holding.cph)}`
       })),
       actions: []
     })
   }
+}
+
+/**
+ * @param {{ county?: string, parish?: string, holding?: string }} params route parameters
+ * @returns {string|null} slash-separated CPH
+ */
+export function cphFromParams({ county, parish, holding } = {}) {
+  return county && parish && holding ? `${county}/${parish}/${holding}` : null
+}
+
+/**
+ * @param {string} cph holding identifier
+ * @returns {string} encoded CPH path
+ */
+export function cphPath(cph) {
+  return cph.split('/').map(encodeURIComponent).join('/')
 }
 
 async function buildViewModel(request) {

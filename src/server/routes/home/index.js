@@ -16,6 +16,11 @@ export const home = {
         },
         {
           method: 'GET',
+          path: '/{county}/{parish}/{holding}',
+          ...homeController
+        },
+        {
+          method: 'GET',
           path: '/summary',
           options: {
             app: { authMode: 'hub-service' }
