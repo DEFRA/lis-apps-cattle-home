@@ -8,6 +8,21 @@
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
+      {% if holdingLinks.length > 1 %}
+        <h2 class="govuk-heading-m">Your holdings</h2>
+        <ul class="govuk-list">
+          {% for holding in holdingLinks %}
+            <li>
+              {% if holding.selected %}
+                <strong>{{ holding.name }} ({{ holding.cph }})</strong>
+              {% else %}
+                <a class="govuk-link" href="{{ holding.url }}">{{ holding.name }} ({{ holding.cph }})</a>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
       {% if selectedHolding %}
         <section class="govuk-summary-card">
           <div class="govuk-summary-card__title-wrapper">
