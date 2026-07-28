@@ -174,7 +174,18 @@ describe('#homeController', () => {
         }
       ]
     })
-    getCattleForCph.mockResolvedValue({ data: [{}, {}, {}] })
+    getCattleForCph.mockResolvedValue({
+      data: [
+        {
+          cattle_id: 'UK123456100001',
+          eartag: 'UK123456100001',
+          date_of_birth: '2024-01-15',
+          sex: 'Female',
+          breed: 'HF',
+          status: 'saved'
+        }
+      ]
+    })
     const bearerToken = await createHubServiceToken()
 
     const { result, statusCode } = await server.inject({
@@ -195,8 +206,20 @@ describe('#homeController', () => {
           farmName: 'My farm',
           cph: '10/081/1234',
           postcode: 'MK11 1AA',
-          count: 3,
-          url: '/cattle/home/10/081/1234'
+          count: 1,
+          url: '/cattle/home/10/081/1234',
+          animals: [
+            {
+              id: 'UK123456100001',
+              earTag: 'UK123456100001',
+              dateOfBirth: '2024-01-15',
+              dateRegistered: undefined,
+              sex: 'Female',
+              breed: 'HF',
+              status: 'saved',
+              statusLabel: 'Validated'
+            }
+          ]
         }
       ],
       actions: []

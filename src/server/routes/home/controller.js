@@ -88,7 +88,17 @@ export const summaryDataController = {
         cph: holding.cph,
         postcode: holding.postcode,
         count: holding.cattleCount,
-        url: `${homePath}/${cphPath(holding.cph)}`
+        url: `${homePath}/${cphPath(holding.cph)}`,
+        animals: holding.cattle.map((animal) => ({
+          id: animal.cattle_id ?? animal.cattleId ?? animal.eartag,
+          earTag: animal.eartag,
+          dateOfBirth: animal.date_of_birth ?? animal.dateOfBirth,
+          dateRegistered: animal.date_registered ?? animal.dateRegistered,
+          sex: animal.sex,
+          breed: animal.breed,
+          status: animal.status,
+          statusLabel: animal.statusLabel
+        }))
       })),
       actions: []
     })
