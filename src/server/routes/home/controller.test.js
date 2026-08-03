@@ -30,7 +30,7 @@ async function createHubJwt(permissions = ['lis-perm-cattle-read']) {
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject('test-user')
-    .setIssuer(config.get('auth.hubJwt.issuer'))
+    .setIssuer(config.get('auth.hubOrigins')[0])
     .setAudience(config.get('auth.hubJwt.audience'))
     .setIssuedAt()
     .setExpirationTime('1h')
@@ -53,7 +53,7 @@ async function createHubServiceToken() {
     },
     {
       secret: config.get('auth.hubJwt.secret'),
-      issuer: config.get('auth.hubJwt.issuer'),
+      issuer: config.get('auth.hubOrigins')[0],
       audience: config.get('auth.hubJwt.audience'),
       ttlSeconds: config.get('auth.hubJwt.ttlSeconds')
     }
