@@ -31,6 +31,27 @@ function jsonResponse(data, { ok = true, status = 200 } = {}) {
 }
 
 describe('#createCattleHomeApi', () => {
+  test('Creates an API error without optional metadata', () => {
+    const error = new CattleHomeApiError('Failed')
+
+    expect(error).toEqual(
+      expect.objectContaining({
+        name: 'CattleHomeApiError',
+        message: 'Failed',
+        statusCode: undefined
+      })
+    )
+  })
+
+  test('Requires a config object and fetch implementation', () => {
+    expect(() => createCattleHomeApi({})).toThrow(
+      'Cattle home API client requires a config object with a get method'
+    )
+    expect(() => createCattleHomeApi({ config, fetchImpl: null })).toThrow(
+      'Cattle home API client requires a fetch implementation'
+    )
+  })
+
   test('Gets CPHs for an encoded user ID with API and tracing headers', async () => {
     const payload = { source: 'cph-provider', data: [] }
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(payload))
@@ -69,11 +90,40 @@ describe('#createCattleHomeApi', () => {
     )
   })
 
+  test('Omits optional request headers when they are not configured', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ data: [] }))
+    const configWithoutApiKey = {
+      get(key) {
+        return key === 'cattleHomeApi.apiKey' ? '' : configValues[key]
+      }
+    }
+    const client = createCattleHomeApi({
+      config: configWithoutApiKey,
+      fetchImpl
+    })
+
+    await client.getCphsForUser('test-user')
+
+    expect(fetchImpl.mock.calls[0][1].headers).toEqual({
+      accept: 'application/json'
+    })
+  })
+
   test('Rejects malformed CPH values without making a request', async () => {
     const fetchImpl = vi.fn()
     const client = createCattleHomeApi({ config, fetchImpl })
 
     expect(() => client.getCattleForCph('10/081')).toThrow(
+      'CPH must contain county, parish and holding'
+    )
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
+  test('Rejects a CPH containing an empty segment', () => {
+    const fetchImpl = vi.fn()
+    const client = createCattleHomeApi({ config, fetchImpl })
+
+    expect(() => client.getCattleForCph('10//1234')).toThrow(
       'CPH must contain county, parish and holding'
     )
     expect(fetchImpl).not.toHaveBeenCalled()

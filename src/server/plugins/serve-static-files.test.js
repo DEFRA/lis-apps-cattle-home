@@ -1,5 +1,5 @@
 import { startServer } from '#server/common/helpers/start-server.js'
-import { statusCodes } from '@livestock/ui-services/status-codes'
+import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
 describe('#serveStaticFiles', () => {
   let server
