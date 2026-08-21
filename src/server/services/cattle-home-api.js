@@ -1,4 +1,4 @@
-import { getLoggerForConfig } from '@livestock/ui-services/logging'
+import { getLoggerForConfig } from '@defra/lis-infra-ui-services/logging'
 
 const cphSegmentCount = 3
 

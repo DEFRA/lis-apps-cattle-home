@@ -1,12 +1,18 @@
-import { TextEncoder } from 'node:util'
-
 import { vi } from 'vitest'
-import { SignJWT } from 'jose'
-import { statusCodes } from '@livestock/ui-services/status-codes'
-import { createSpokeAuthToken } from '@livestock/hubs-infra-access/auth'
+import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
+import {
+  createSpokeAuthToken,
+  issueHubJwt
+} from '@defra/lis-hubs-infra-access/auth'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
+import {
+  buildHoldingActionLinks,
+  cphFromParams,
+  cphPath,
+  homeController
+} from './controller.js'
 
 const { getCattleForCph, getCphsForUser } = vi.hoisted(() => ({
   getCattleForCph: vi.fn(),
@@ -17,24 +23,23 @@ vi.mock('#server/services/cattle-home-api.js', () => ({
   createCattleHomeApi: () => ({ getCattleForCph, getCphsForUser })
 }))
 
-const encoder = new TextEncoder()
-
-async function createHubJwt(permissions = ['lis-perm-cattle-read']) {
-  return new SignJWT({
-    email: 'test.user@example.com',
-    firstName: 'Test',
-    lastName: 'User',
-    roles: [],
-    permissions,
-    serviceId: 'test-service'
-  })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setSubject('test-user')
-    .setIssuer(config.get('auth.hubOrigins')[0])
-    .setAudience(config.get('auth.hubJwt.audience'))
-    .setIssuedAt()
-    .setExpirationTime('1h')
-    .sign(encoder.encode(config.get('auth.hubJwt.secret')))
+async function createHubJwt(roles = ['lis-role-cattle-read']) {
+  return issueHubJwt(
+    {
+      sub: 'test-user',
+      email: 'test.user@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      roles,
+      serviceId: 'test-service'
+    },
+    {
+      secret: config.get('auth.hubJwt.secret'),
+      issuer: config.get('auth.hubOrigins')[0],
+      audience: config.get('auth.hubJwt.audience'),
+      ttlSeconds: config.get('auth.hubJwt.ttlSeconds')
+    }
+  )
 }
 
 async function createHubServiceToken() {
@@ -47,8 +52,7 @@ async function createHubServiceToken() {
         email: 'test.user@example.com',
         firstName: 'Test',
         lastName: 'User',
-        roles: [],
-        permissions: ['lis-perm-cattle-read']
+        roles: ['lis-role-cattle-read']
       }
     },
     {
@@ -132,6 +136,41 @@ describe('#homeController', () => {
       'trace-123'
     )
     expect(statusCode).toBe(statusCodes.ok)
+  })
+
+  test('Should use the first holding when no CPH is selected', async () => {
+    getCphsForUser.mockResolvedValue({
+      data: [{ name: 'My farm', cph: '10/081/1234' }]
+    })
+    getCattleForCph.mockResolvedValue({ data: [] })
+    const jwt = await createHubJwt()
+
+    const { result, statusCode } = await server.inject({
+      method: 'GET',
+      url: '/',
+      headers: {
+        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
+      }
+    })
+
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toContain('My farm')
+  })
+
+  test('Should return not found for a CPH the user does not hold', async () => {
+    getCphsForUser.mockResolvedValue({ data: [] })
+    const jwt = await createHubJwt()
+
+    const { result, statusCode } = await server.inject({
+      method: 'GET',
+      url: '/10/081/9999',
+      headers: {
+        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
+      }
+    })
+
+    expect(statusCode).toBe(statusCodes.notFound)
+    expect(result).toBe('Page not found')
   })
 
   test('Should provide a summary fragment to the front-office hub', async () => {
@@ -226,6 +265,40 @@ describe('#homeController', () => {
     })
   })
 
+  test('Should map alternate animal property names in summary data', async () => {
+    getCphsForUser.mockResolvedValue({
+      data: [{ name: 'My farm', cph: '10/081/1234' }]
+    })
+    getCattleForCph.mockResolvedValue({
+      data: [
+        {
+          cattleId: 'secondary-id',
+          eartag: 'UK123',
+          dateOfBirth: '2024-02-01',
+          dateRegistered: '2024-02-02'
+        },
+        { eartag: 'fallback-id' }
+      ]
+    })
+    const bearerToken = await createHubServiceToken()
+
+    const { result, statusCode } = await server.inject({
+      method: 'GET',
+      url: '/summary-data',
+      headers: { authorization: bearerToken }
+    })
+
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result.holdings[0].animals).toEqual([
+      expect.objectContaining({
+        id: 'secondary-id',
+        dateOfBirth: '2024-02-01',
+        dateRegistered: '2024-02-02'
+      }),
+      expect.objectContaining({ id: 'fallback-id' })
+    ])
+  })
+
   test('Should redirect to the hub when the JWT is missing', async () => {
     const { headers, statusCode } = await server.inject({
       method: 'GET',
@@ -239,7 +312,7 @@ describe('#homeController', () => {
   })
 
   test('Should return forbidden when the user lacks the cattle module permission', async () => {
-    const jwt = await createHubJwt(['lis-perm-cattle-move-read'])
+    const jwt = await createHubJwt(['lis-role-cattle-move-read'])
     const { statusCode, result } = await server.inject({
       method: 'GET',
       url: '/',
@@ -250,5 +323,57 @@ describe('#homeController', () => {
 
     expect(statusCode).toBe(statusCodes.forbidden)
     expect(result).toEqual({ message: 'Module access denied' })
+  })
+
+  test.each([
+    [
+      { firstName: 'Ada', lastName: 'Lovelace', email: null, sub: 'subject' },
+      'Ada Lovelace',
+      'subject'
+    ],
+    [
+      { firstName: '', lastName: '', email: null, sub: 'subject' },
+      'subject',
+      'subject'
+    ],
+    [
+      { firstName: '', lastName: '', email: null, sub: null },
+      'Authenticated user',
+      null
+    ]
+  ])(
+    'Should use the available authenticated identity',
+    async (hubAuth, signedInAs, expectedUserId) => {
+      getCphsForUser.mockResolvedValue({ data: [] })
+      const view = vi.fn().mockReturnValue('rendered')
+
+      const result = await homeController.handler(
+        {
+          app: { hubAuth },
+          headers: {},
+          params: {}
+        },
+        { view }
+      )
+
+      expect(result).toBe('rendered')
+      expect(getCphsForUser).toHaveBeenCalledWith(expectedUserId, undefined)
+      expect(view).toHaveBeenCalledWith(
+        'home/index',
+        expect.objectContaining({ signedInAs, actionLinks: [] })
+      )
+    }
+  )
+})
+
+describe('home route helpers', () => {
+  test('builds and encodes holding paths', () => {
+    expect(
+      cphFromParams({ county: '10', parish: '081', holding: '1234' })
+    ).toBe('10/081/1234')
+    expect(cphFromParams({ county: '10', parish: '081' })).toBeNull()
+    expect(cphFromParams()).toBeNull()
+    expect(cphPath('10/08 1/12#34')).toBe('10/08%201/12%2334')
+    expect(buildHoldingActionLinks('10/081/1234')).toHaveLength(3)
   })
 })

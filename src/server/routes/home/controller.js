@@ -1,10 +1,10 @@
-import { buildMicrositePath } from '@livestock/ui-services'
-import { taxonomy } from '@livestock/taxonomy-home'
-import { species } from '@livestock/species-cattle'
+import { buildMicrositePath } from '@defra/lis-infra-ui-services'
+import { taxonomy } from '@defra/lis-taxonomy-home'
+import { species } from '@defra/lis-species-cattle'
 import { config } from '#config/config.js'
 import { createCattleHomeApi } from '#server/services/cattle-home-api.js'
 import { buildCattleHomeSummary } from '#server/services/cattle-home-summary.js'
-import { statusCodes } from '@livestock/ui-services/status-codes'
+import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
 const cattleHomeApi = createCattleHomeApi({ config })
 
@@ -39,7 +39,7 @@ export const homeController = {
       selectedHolding,
       holdingLinks,
       actionLinks,
-      directPort: 3221,
+      directPort: 3200,
       hubPath: buildMicrositePath(taxonomy.id, species.id)
     })
   }

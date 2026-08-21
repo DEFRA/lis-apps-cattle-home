@@ -4,9 +4,9 @@ This project is based on the included CDP Node.js frontend template.
 
 Role: Standalone spoke microsite.
 
-Dependencies: @livestock/ui-services, @livestock/species-cattle, @livestock/index-home
+Dependencies: @defra/lis-infra-ui-services, @defra/lis-species-cattle, @defra/lis-taxonomy-home
 
-Port: `3221`
+Port: `3200`
 
 ## Cattle home API
 
@@ -14,7 +14,7 @@ The application retrieves holding and cattle JSON from the `be4fe/cattle-home`
 service. For local development, start that API on port `8085` and configure:
 
 ```text
-CATTLE_HOME_API_URL=http://localhost:8085
+CATTLE_HOME_API_URL=http://localhost:3225
 ```
 
 `CATTLE_HOME_API_KEY`, `CATTLE_HOME_API_KEY_HEADER` and

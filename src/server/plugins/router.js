@@ -3,7 +3,7 @@ import {
   createSpokeGuard,
   getHubJwtCookieOptions,
   createModuleAccessGuard
-} from '@livestock/hubs-infra-access/auth'
+} from '@defra/lis-hubs-infra-access/auth'
 
 import { home } from '../routes/home/index.js'
 import { health } from '../routes/health/index.js'
