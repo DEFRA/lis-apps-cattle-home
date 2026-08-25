@@ -23,14 +23,16 @@ vi.mock('#server/services/cattle-home-api.js', () => ({
   createCattleHomeApi: () => ({ getCattleForCph, getCphsForUser })
 }))
 
-async function createHubJwt(roles = ['lis-role-cattle-read']) {
+async function createHubJwt(
+  statements = [{ role: 'lis-role-cattle-read', cphs: '*' }]
+) {
   return issueHubJwt(
     {
       sub: 'test-user',
       email: 'test.user@example.com',
       firstName: 'Test',
       lastName: 'User',
-      roles,
+      statements,
       serviceId: 'test-service'
     },
     {
@@ -52,7 +54,7 @@ async function createHubServiceToken() {
         email: 'test.user@example.com',
         firstName: 'Test',
         lastName: 'User',
-        roles: ['lis-role-cattle-read']
+        statements: [{ role: 'lis-role-cattle-read', cphs: '*' }]
       }
     },
     {
@@ -312,7 +314,9 @@ describe('#homeController', () => {
   })
 
   test('Should return forbidden when the user lacks the cattle module permission', async () => {
-    const jwt = await createHubJwt(['lis-role-cattle-move-read'])
+    const jwt = await createHubJwt([
+      { role: 'lis-role-cattle-move-read', cphs: '*' }
+    ])
     const { statusCode, result } = await server.inject({
       method: 'GET',
       url: '/',
