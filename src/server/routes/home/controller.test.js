@@ -240,7 +240,7 @@ describe('#homeController', () => {
       species: {
         id: 'cattle',
         label: 'Cattle',
-        url: '/cattle/home'
+        url: '/cattle'
       },
       holdings: [
         {
@@ -248,7 +248,7 @@ describe('#homeController', () => {
           cph: '10/081/1234',
           postcode: 'MK11 1AA',
           count: 1,
-          url: '/cattle/home/10/081/1234',
+          url: '/cattle/10/081/1234',
           animals: [
             {
               id: 'UK123456100001',
@@ -309,7 +309,7 @@ describe('#homeController', () => {
 
     expect(statusCode).toBe(302)
     expect(headers.location).toContain(
-      'https://front-office.lis.defra/auth/login?returnUrl=%2Fcattle%2Fhome'
+      'https://front-office.lis.defra/auth/login?returnUrl=%2Fcattle'
     )
   })
 

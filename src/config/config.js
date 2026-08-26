@@ -42,12 +42,6 @@ export const config = convict({
     default: 3200,
     env: 'PORT'
   },
-  basePath: {
-    doc: 'Optional mount path for the application when it is hosted behind the hub.',
-    format: String,
-    default: '/cattle/home',
-    env: 'BASE_PATH'
-  },
   staticCacheTimeout: {
     doc: 'Static cache timeout in milliseconds',
     format: Number,

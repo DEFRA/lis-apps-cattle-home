@@ -1,4 +1,5 @@
 import { buildMicrositePath } from '@defra/lis-infra-ui-services'
+import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 import { taxonomy } from '@defra/lis-taxonomy-home'
 import { species } from '@defra/lis-species-cattle'
 import { config } from '#config/config.js'
@@ -9,6 +10,7 @@ import { getLoggerForConfig } from '@defra/lis-infra-ui-services/logging'
 
 const cattleHomeApi = createCattleHomeApi({ config })
 const header = 'tracing.header'
+const homeBasePath = getBasePathForModule('cattle-home')
 
 export const homeController = {
   async handler(request, h) {
@@ -31,7 +33,7 @@ export const homeController = {
     const actionLinks = selectedHolding
       ? buildHoldingActionLinks(selectedHolding.cph)
       : []
-    const homePath = buildMicrositePath(taxonomy.id, species.id)
+    const homePath = homeBasePath
     const holdingLinks = viewModel.holdings.map((holding) => ({
       ...holding,
       url: `${homePath}/${cphPath(holding.cph)}`,
@@ -50,7 +52,7 @@ export const homeController = {
       holdingLinks,
       actionLinks,
       directPort: 3200,
-      hubPath: buildMicrositePath(taxonomy.id, species.id)
+      hubPath: homePath
     })
   }
 }
@@ -84,7 +86,7 @@ export const summaryController = {
     return h.view('home/summary', {
       holdings: viewModel.holdings,
       totalCattle: viewModel.totalCattle,
-      hubPath: buildMicrositePath(taxonomy.id, species.id)
+      hubPath: homeBasePath
     })
   }
 }
@@ -98,7 +100,7 @@ export const summaryDataController = {
       `Summary data request received [traceId=${traceId} | userId=${userId} | path=${request.path}]`
     )
     const viewModel = await buildViewModel(request)
-    const homePath = buildMicrositePath(taxonomy.id, species.id)
+    const homePath = homeBasePath
 
     logger.info(
       `Found CPH(s)=${viewModel.holdings.map((holding) => holding.cph).join(', ')}`

@@ -4,6 +4,7 @@ import {
   getHubJwtCookieOptions,
   createModuleAccessGuard
 } from '@defra/lis-hubs-infra-access/auth'
+import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
 import { home } from '../routes/home/index.js'
 import { health } from '../routes/health/index.js'
@@ -22,7 +23,7 @@ const authGuard = createSpokeGuard({
   }),
   assetPath: config.get('assetPath'),
   port: config.get('port'),
-  basePath: config.get('basePath'),
+  basePath: getBasePathForModule('cattle-home'),
   secret: config.get('auth.hubJwt.secret'),
   audience: config.get('auth.hubJwt.audience'),
   allowHubServiceRoutes: true
