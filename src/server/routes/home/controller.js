@@ -5,16 +5,23 @@ import { config } from '#config/config.js'
 import { createCattleHomeApi } from '#server/services/cattle-home-api.js'
 import { buildCattleHomeSummary } from '#server/services/cattle-home-summary.js'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
+import { getLoggerForConfig } from '@defra/lis-infra-ui-services/logging'
 
 const cattleHomeApi = createCattleHomeApi({ config })
 
 export const homeController = {
   async handler(request, h) {
+    const logger = getLoggerForConfig(config)
+    const traceId = request.headers[config.get('tracing.header')]
+    const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
+    logger.info(`Home page request received [traceId=${traceId} | userId=${userId} | path=${request.path}]`)
+
     const viewModel = await buildViewModel(request)
     const selectedCph = cphFromParams(request.params)
     const selectedHolding = selectedCph
       ? viewModel.holdings.find((holding) => holding.cph === selectedCph)
       : viewModel.holdings[0]
+
     if (selectedCph && !selectedHolding) {
       return h.response('Page not found').code(statusCodes.notFound)
     }
@@ -62,6 +69,11 @@ export function buildHoldingActionLinks(cph) {
 
 export const summaryController = {
   async handler(request, h) {
+    const logger = getLoggerForConfig(config)
+    const traceId = request.headers[config.get('tracing.header')]
+    const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
+    logger.info(`Summary page request received [traceId=${traceId} | userId=${userId} | path=${request.path}]`)
+
     const viewModel = await buildViewModel(request)
 
     return h.view('home/summary', {
@@ -74,8 +86,16 @@ export const summaryController = {
 
 export const summaryDataController = {
   async handler(request, h) {
+    const logger = getLoggerForConfig(config)
+    const traceId = request.headers[config.get('tracing.header')]
+    const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
+    logger.info(
+      `Summary data request received [traceId=${traceId} | userId=${userId} | path=${request.path}]`
+    )
     const viewModel = await buildViewModel(request)
     const homePath = buildMicrositePath(taxonomy.id, species.id)
+
+    logger.info(`Found CPH(s)=${viewModel.holdings.map((holding) => holding.cph).join(', ')}`)
 
     return h.response({
       species: {
@@ -122,6 +142,7 @@ export function cphPath(cph) {
 }
 
 async function buildViewModel(request) {
+  const logger = getLoggerForConfig(config)
   const displayName =
     [request.app.hubAuth?.firstName, request.app.hubAuth?.lastName]
       .filter(Boolean)
@@ -133,7 +154,8 @@ async function buildViewModel(request) {
   const summary = await buildCattleHomeSummary({
     cattleHomeApi,
     userId,
-    traceId
+    traceId,
+    logger
   })
 
   return { signedInAs, ...summary }
