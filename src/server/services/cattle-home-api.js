@@ -1,4 +1,4 @@
-import { getLoggerForConfig } from '@defra/lis-infra-ui-services/logging'
+import { logger, requestContext } from '@defra/lis-hubs-infra-core'
 
 const cphSegmentCount = 3
 
@@ -34,7 +34,6 @@ export function createCattleHomeApi({ config, fetchImpl = globalThis.fetch }) {
     )
   }
 
-  const logger = getLoggerForConfig(config)
   const baseUrl = new URL(config.get('cattleHomeApi.url'))
   const apiKey = config.get('cattleHomeApi.apiKey')
   const apiKeyHeader = config.get('cattleHomeApi.apiKeyHeader')
@@ -43,7 +42,10 @@ export function createCattleHomeApi({ config, fetchImpl = globalThis.fetch }) {
 
   async function getJson(path, traceId) {
     const url = new URL(path, ensureTrailingSlash(baseUrl))
-    const headers = { accept: 'application/json' }
+    const headers = {
+      accept: 'application/json',
+      ...requestContext.getHeaders()
+    }
 
     if (apiKey) {
       headers[apiKeyHeader] = apiKey

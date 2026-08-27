@@ -6,7 +6,7 @@ import { config } from '#config/config.js'
 import { createCattleHomeApi } from '#server/services/cattle-home-api.js'
 import { buildCattleHomeSummary } from '#server/services/cattle-home-summary.js'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
-import { getLoggerForConfig } from '@defra/lis-infra-ui-services/logging'
+import { logger } from '@defra/lis-hubs-infra-core'
 
 const cattleHomeApi = createCattleHomeApi({ config })
 const header = 'tracing.header'
@@ -14,7 +14,6 @@ const homeBasePath = getBasePathForModule('cattle-home')
 
 export const homeController = {
   async handler(request, h) {
-    const logger = getLoggerForConfig(config)
     const traceId = request.headers[config.get(header)]
     const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
     logger.info(
@@ -74,7 +73,6 @@ export function buildHoldingActionLinks(cph) {
 
 export const summaryController = {
   async handler(request, h) {
-    const logger = getLoggerForConfig(config)
     const traceId = request.headers[config.get(header)]
     const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
     logger.info(
@@ -93,7 +91,6 @@ export const summaryController = {
 
 export const summaryDataController = {
   async handler(request, h) {
-    const logger = getLoggerForConfig(config)
     const traceId = request.headers[config.get(header)]
     const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
     logger.info(
@@ -151,7 +148,6 @@ export function cphPath(cph) {
 }
 
 async function buildViewModel(request) {
-  const logger = getLoggerForConfig(config)
   const displayName =
     [request.app.hubAuth?.firstName, request.app.hubAuth?.lastName]
       .filter(Boolean)
