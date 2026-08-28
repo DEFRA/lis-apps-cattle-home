@@ -133,10 +133,7 @@ describe('#homeController', () => {
     expect(result).toEqual(expect.stringContaining('HF'))
     expect(result).toEqual(expect.stringContaining('Validated'))
     expect(result).toEqual(expect.stringContaining('Pending'))
-    expect(getCphsForUser).toHaveBeenCalledWith(
-      'test.user@example.com',
-      'trace-123'
-    )
+    expect(getCphsForUser).toHaveBeenCalledWith('test.user@example.com')
     expect(statusCode).toBe(statusCodes.ok)
   })
 
@@ -361,7 +358,7 @@ describe('#homeController', () => {
       )
 
       expect(result).toBe('rendered')
-      expect(getCphsForUser).toHaveBeenCalledWith(expectedUserId, undefined)
+      expect(getCphsForUser).toHaveBeenCalledWith(expectedUserId)
       expect(view).toHaveBeenCalledWith(
         'home/index',
         expect.objectContaining({ signedInAs, actionLinks: [] })

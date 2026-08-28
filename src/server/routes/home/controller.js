@@ -9,15 +9,13 @@ import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { logger } from '@defra/lis-hubs-infra-core'
 
 const cattleHomeApi = createCattleHomeApi({ config })
-const header = 'tracing.header'
 const homeBasePath = getBasePathForModule('cattle-home')
 
 export const homeController = {
   async handler(request, h) {
-    const traceId = request.headers[config.get(header)]
     const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
     logger.info(
-      `Home page request received [traceId=${traceId} | userId=${userId} | path=${request.path}]`
+      `Home page request received [userId=${userId} | path=${request.path}]`
     )
 
     const viewModel = await buildViewModel(request)
@@ -73,10 +71,9 @@ export function buildHoldingActionLinks(cph) {
 
 export const summaryController = {
   async handler(request, h) {
-    const traceId = request.headers[config.get(header)]
     const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
     logger.info(
-      `Summary page request received [traceId=${traceId} | userId=${userId} | path=${request.path}]`
+      `Summary page request received [userId=${userId} | path=${request.path}]`
     )
 
     const viewModel = await buildViewModel(request)
@@ -91,10 +88,9 @@ export const summaryController = {
 
 export const summaryDataController = {
   async handler(request, h) {
-    const traceId = request.headers[config.get(header)]
     const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
     logger.info(
-      `Summary data request received [traceId=${traceId} | userId=${userId} | path=${request.path}]`
+      `Summary data request received [userId=${userId} | path=${request.path}]`
     )
     const viewModel = await buildViewModel(request)
     const homePath = homeBasePath
@@ -155,11 +151,9 @@ async function buildViewModel(request) {
   const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
   const signedInAs =
     request.app.hubAuth?.email ?? displayName ?? userId ?? 'Authenticated user'
-  const traceId = request.headers[config.get(header)]
   const summary = await buildCattleHomeSummary({
     cattleHomeApi,
     userId,
-    traceId,
     logger
   })
 

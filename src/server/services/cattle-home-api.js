@@ -38,9 +38,8 @@ export function createCattleHomeApi({ config, fetchImpl = globalThis.fetch }) {
   const apiKey = config.get('cattleHomeApi.apiKey')
   const apiKeyHeader = config.get('cattleHomeApi.apiKeyHeader')
   const timeout = config.get('cattleHomeApi.timeout')
-  const tracingHeader = config.get('tracing.header')
 
-  async function getJson(path, traceId) {
+  async function getJson(path) {
     const url = new URL(path, ensureTrailingSlash(baseUrl))
     const headers = {
       accept: 'application/json',
@@ -49,10 +48,6 @@ export function createCattleHomeApi({ config, fetchImpl = globalThis.fetch }) {
 
     if (apiKey) {
       headers[apiKeyHeader] = apiKey
-    }
-
-    if (traceId) {
-      headers[tracingHeader] = traceId
     }
 
     logger.info('Getting data from the cattle-home API')
@@ -81,11 +76,11 @@ export function createCattleHomeApi({ config, fetchImpl = globalThis.fetch }) {
   }
 
   return {
-    getCphsForUser(userId, traceId) {
-      return getJson(`api/users/${encodeURIComponent(userId)}/cphs`, traceId)
+    getCphsForUser(userId) {
+      return getJson(`api/users/${encodeURIComponent(userId)}/cphs`)
     },
 
-    getCattleForCph(cph, traceId) {
+    getCattleForCph(cph) {
       const cphSegments = cph.split('/')
 
       if (
@@ -96,11 +91,11 @@ export function createCattleHomeApi({ config, fetchImpl = globalThis.fetch }) {
       }
 
       const encodedCph = cphSegments.map(encodeURIComponent).join('/')
-      return getJson(`api/cphs/${encodedCph}/cattle`, traceId)
+      return getJson(`api/cphs/${encodedCph}/cattle`)
     },
 
-    getCattleDetails(cattleId, traceId) {
-      return getJson(`api/cattle/${encodeURIComponent(cattleId)}`, traceId)
+    getCattleDetails(cattleId) {
+      return getJson(`api/cattle/${encodeURIComponent(cattleId)}`)
     }
   }
 }

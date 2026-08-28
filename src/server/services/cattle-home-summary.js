@@ -1,34 +1,24 @@
 /**
- * @param {{ cattleHomeApi: object, userId: string, traceId?: string, logger?: object }} options
+ * @param {{ cattleHomeApi: object, userId: string, logger?: object }} options
  * @returns {Promise<{ holdings: object[], totalCattle: number }>}
  */
 export async function buildCattleHomeSummary({
   cattleHomeApi,
   userId,
-  traceId,
   logger
 }) {
-  logger?.info?.(
-    `Building cattle home summary [userId=${userId} | traceId=${traceId}]`
-  )
-  const cphResponse = await cattleHomeApi.getCphsForUser(userId, traceId)
-  logger?.info?.(
-    `Retrieved CPH data [holdingCount=${cphResponse.data.length} | traceId=${traceId}]`
-  )
+  logger?.info?.(`Building cattle home summary [userId=${userId}]`)
+  const cphResponse = await cattleHomeApi.getCphsForUser(userId)
+  logger?.info?.(`Retrieved CPH data [holdingCount=${cphResponse.data.length}]`)
 
   const holdings = await Promise.all(
     cphResponse.data.map(async (holding) => {
-      logger?.info?.(
-        `Processing holding [cph=${holding.cph} | traceId=${traceId}]`
-      )
+      logger?.info?.(`Processing holding [cph=${holding.cph}]`)
 
-      const cattleResponse = await cattleHomeApi.getCattleForCph(
-        holding.cph,
-        traceId
-      )
+      const cattleResponse = await cattleHomeApi.getCattleForCph(holding.cph)
 
       logger?.info?.(
-        `Retrieved cattle data for holding [cph=${holding.cph} | cattleCount=${cattleResponse.data.length} | traceId=${traceId}]`
+        `Retrieved cattle data for holding [cph=${holding.cph} | cattleCount=${cattleResponse.data.length}]`
       )
 
       return {
@@ -48,7 +38,7 @@ export async function buildCattleHomeSummary({
   }
 
   logger?.info?.(
-    `Cattle home summary completed [holdingCount=${summary.holdings.length} | totalCattle=${summary.totalCattle} | traceId=${traceId}]`
+    `Cattle home summary completed [holdingCount=${summary.holdings.length} | totalCattle=${summary.totalCattle}]`
   )
 
   return summary
