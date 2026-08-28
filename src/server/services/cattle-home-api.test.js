@@ -5,7 +5,6 @@ const configValues = {
   'cattleHomeApi.apiKey': 'test-api-key',
   'cattleHomeApi.apiKeyHeader': 'x-api-key',
   'cattleHomeApi.timeout': 5000,
-  'tracing.header': 'x-cdp-request-id',
   log: {
     enabled: false,
     level: 'silent',
@@ -52,15 +51,12 @@ describe('#createCattleHomeApi', () => {
     )
   })
 
-  test('Gets CPHs for an encoded user ID with API and tracing headers', async () => {
+  test('Gets CPHs for an encoded user ID with the API key header', async () => {
     const payload = { source: 'cph-provider', data: [] }
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(payload))
     const client = createCattleHomeApi({ config, fetchImpl })
 
-    const result = await client.getCphsForUser(
-      'test.user+home@example.com',
-      'trace-123'
-    )
+    const result = await client.getCphsForUser('test.user+home@example.com')
 
     expect(result).toEqual(payload)
     expect(fetchImpl).toHaveBeenCalledWith(
@@ -71,8 +67,7 @@ describe('#createCattleHomeApi', () => {
         method: 'GET',
         headers: {
           accept: 'application/json',
-          'x-api-key': 'test-api-key',
-          'x-cdp-request-id': 'trace-123'
+          'x-api-key': 'test-api-key'
         },
         signal: expect.any(AbortSignal)
       }

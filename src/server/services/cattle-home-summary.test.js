@@ -19,8 +19,7 @@ describe('#buildCattleHomeSummary', () => {
 
     const summary = await buildCattleHomeSummary({
       cattleHomeApi,
-      userId: 'test.user@example.com',
-      traceId: 'trace-123'
+      userId: 'test.user@example.com'
     })
 
     expect(summary).toEqual({
@@ -61,14 +60,8 @@ describe('#buildCattleHomeSummary', () => {
       totalCattle: 4
     })
     expect(cattleHomeApi.getCattleForCph).toHaveBeenCalledTimes(2)
-    expect(cattleHomeApi.getCattleForCph).toHaveBeenCalledWith(
-      '10/081/1234',
-      'trace-123'
-    )
-    expect(cattleHomeApi.getCattleForCph).toHaveBeenCalledWith(
-      '12/091/6278',
-      'trace-123'
-    )
+    expect(cattleHomeApi.getCattleForCph).toHaveBeenCalledWith('10/081/1234')
+    expect(cattleHomeApi.getCattleForCph).toHaveBeenCalledWith('12/091/6278')
   })
 
   test('Returns an empty summary when the user has no CPHs', async () => {
