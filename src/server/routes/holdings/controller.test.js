@@ -104,7 +104,11 @@ describe('holdingDetailsController', () => {
 
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
-    expect(result).toEqual(expect.stringContaining('Holding details |'))
+    expect(result).toEqual(
+      expect.stringContaining(
+        'Holding details - Cattle - Livestock Information'
+      )
+    )
     expect(result).toEqual(
       expect.stringContaining(
         '<h1 class="govuk-heading-l">Holding details</h1>'

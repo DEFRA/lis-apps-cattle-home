@@ -1,6 +1,5 @@
 import { vi } from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
-import { config } from '#config/config.js'
 import { logger } from '@defra/lis-hubs-infra-core'
 
 import { catchAll } from '@defra/lis-infra-ui-services/errors'
@@ -25,7 +24,7 @@ describe('#errors', () => {
     })
 
     expect(result).toEqual(
-      expect.stringContaining(`Page not found | ${config.get('serviceName')}`)
+      expect.stringContaining('Page not found - Cattle - Livestock Information')
     )
     expect(statusCode).toBe(statusCodes.notFound)
   })
