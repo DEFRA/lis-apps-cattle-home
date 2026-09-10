@@ -114,7 +114,11 @@ describe('#homeController', () => {
 
     const { result, statusCode } = await server.inject(request)
 
-    expect(result).toEqual(expect.stringContaining('Home for Cattle |'))
+    expect(result).toEqual(
+      expect.stringContaining(
+        'Home for Cattle - Cattle - Livestock Information'
+      )
+    )
     expect(result).toEqual(expect.stringContaining('My farm'))
     expect(result).toEqual(expect.stringContaining('10/081/1234'))
     expect(result).toEqual(expect.stringContaining('3 cattle'))

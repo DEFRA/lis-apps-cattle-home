@@ -1,0 +1,40 @@
+{% extends 'layouts/page.njk' %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <span class="govuk-caption-l">{{ holding.holdingName }}</span>
+      <h1 class="govuk-heading-l">Holding details</h1>
+
+      {{ lisSubNavigation({
+        label: "Sub navigation",
+        items: tabs
+      }) }}
+
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: { text: "CPH number" },
+            value: { text: holding.cphNumber }
+          },
+          {
+            key: { text: "Holding name" },
+            value: { text: holding.holdingName }
+          },
+          {
+            key: { text: "Business name" },
+            value: { text: holding.businessName }
+          },
+          {
+            key: { text: "Address" },
+            value: { html: holding.addressLines | join('<br>') }
+          },
+          {
+            key: { text: "Herd mark" },
+            value: { text: holding.herdMark }
+          }
+        ]
+      }) }}
+    </div>
+  </div>
+{% endblock %}

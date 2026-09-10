@@ -7,6 +7,7 @@ import {
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
 import { home } from '../routes/home/index.js'
+import { holdings } from '../routes/holdings/index.js'
 import { health } from '../routes/health/index.js'
 
 import { serveStaticFiles } from './serve-static-files.js'
@@ -43,8 +44,8 @@ export const router = {
       await server.register([health])
       await server.register(
         authGuard
-          ? [authGuard, moduleAccessGuard, home]
-          : [moduleAccessGuard, home]
+          ? [authGuard, moduleAccessGuard, home, holdings]
+          : [moduleAccessGuard, home, holdings]
       )
 
       await server.register(serveStaticFiles)

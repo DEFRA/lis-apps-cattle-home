@@ -1,7 +1,7 @@
 @use "govuk-frontend";
+@use "pkg:@defra/lis-infra-ui-services/components/service-navigation.css";
+@use "pkg:@defra/lis-infra-ui-services/components/sub-navigation.css";
 
-@use "variables";
 @use "helpers";
-@use "core";
 @use "components";
 @use "partials";
