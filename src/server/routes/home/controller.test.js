@@ -11,7 +11,8 @@ import {
   buildHoldingActionLinks,
   cphFromParams,
   cphPath,
-  homeController
+  homeController,
+  landingController
 } from './controller.js'
 
 const { getCattleForCph, getCphsForUser } = vi.hoisted(() => ({
@@ -141,23 +142,79 @@ describe('#homeController', () => {
     expect(statusCode).toBe(statusCodes.ok)
   })
 
-  test('Should use the first holding when no CPH is selected', async () => {
+  test('Should redirect a keeper with one holding to its details page', async () => {
+    // Arrange
     getCphsForUser.mockResolvedValue({
       data: [{ name: 'My farm', cph: '10/081/1234' }]
     })
-    getCattleForCph.mockResolvedValue({ data: [] })
     const jwt = await createHubJwt()
 
-    const { result, statusCode } = await server.inject({
+    // Act
+    const { statusCode, headers } = await server.inject({
       method: 'GET',
       url: '/',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
     })
 
-    expect(statusCode).toBe(statusCodes.ok)
-    expect(result).toContain('My farm')
+    // Assert
+    expect(statusCode).toBe(302)
+    expect(headers.location).toBe('/cattle/holdings/10/081/1234')
+  })
+
+  test('Should redirect a keeper with several holdings to the first', async () => {
+    // Arrange
+    getCphsForUser.mockResolvedValue({
+      data: [
+        { name: 'First farm', cph: '10/081/1234' },
+        { name: 'Second farm', cph: '10/081/5678' }
+      ]
+    })
+    const jwt = await createHubJwt()
+
+    // Act
+    const { statusCode, headers } = await server.inject({
+      method: 'GET',
+      url: '/',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(statusCode).toBe(302)
+    expect(headers.location).toBe('/cattle/holdings/10/081/1234')
+  })
+
+  test('Should return not found when the keeper has no holdings', async () => {
+    // Arrange
+    getCphsForUser.mockResolvedValue({ data: [] })
+    const jwt = await createHubJwt()
+
+    // Act
+    const { statusCode } = await server.inject({
+      method: 'GET',
+      url: '/',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.notFound)
+  })
+
+  test('Should resolve the landing user id from the sub when there is no email', async () => {
+    // Arrange
+    getCphsForUser.mockResolvedValue({
+      data: [{ name: 'Farm', cph: '10/081/1234' }]
+    })
+    const redirect = vi.fn()
+
+    // Act
+    await landingController.handler(
+      { app: { hubAuth: { sub: 'subject-id', email: null } }, headers: {} },
+      { redirect }
+    )
+
+    // Assert
+    expect(getCphsForUser).toHaveBeenCalledWith('subject-id')
+    expect(redirect).toHaveBeenCalledWith('/cattle/holdings/10/081/1234')
   })
 
   test('Should return not found for a CPH the user does not hold', async () => {

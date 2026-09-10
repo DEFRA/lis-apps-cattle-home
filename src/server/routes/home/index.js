@@ -1,5 +1,6 @@
 import {
   homeController,
+  landingController,
   summaryController,
   summaryDataController
 } from './controller.js'
@@ -12,7 +13,7 @@ export const home = {
         {
           method: 'GET',
           path: '/',
-          ...homeController
+          ...landingController
         },
         {
           method: 'GET',
