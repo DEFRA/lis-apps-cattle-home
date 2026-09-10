@@ -25,6 +25,6 @@ describe('#router', () => {
       3,
       expect.not.arrayContaining([null])
     )
-    expect(server.register.mock.calls[2][0]).toHaveLength(2)
+    expect(server.register.mock.calls[2][0]).toHaveLength(3)
   })
 })
