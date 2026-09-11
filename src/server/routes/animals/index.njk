@@ -1,0 +1,27 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "sortable-paginated-table/macro.njk" import sortablePaginatedTable %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <span class="govuk-caption-l">{{ holding.name }}</span>
+      <h1 class="govuk-heading-l">Animals on holding</h1>
+
+      {{ lisSubNavigation({
+        label: "Sub navigation",
+        items: tabs
+      }) }}
+
+      {{ sortablePaginatedTable({
+        caption: "Animals on holding",
+        columns: columns,
+        rows: rows,
+        sort: sort,
+        direction: direction,
+        baseHref: baseHref,
+        pagination: pagination
+      }) }}
+    </div>
+  </div>
+{% endblock %}

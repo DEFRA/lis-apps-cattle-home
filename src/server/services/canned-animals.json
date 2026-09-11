@@ -1,0 +1,276 @@
+{
+  "22/001/0001": [
+    {
+      "cattle_id": "UK200000000001",
+      "eartag": "UK200000000001",
+      "breed_code": "AA",
+      "date_of_birth": "2023-02-01",
+      "date_on_cph": "2023-02-01",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK200000000002",
+      "eartag": "UK200000000002",
+      "breed_code": "HE",
+      "date_of_birth": "2023-02-08",
+      "date_on_cph": "2023-02-08",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK200000000003",
+      "eartag": "UK200000000003",
+      "breed_code": "CH",
+      "date_of_birth": "2023-02-15",
+      "date_on_cph": "2023-02-15",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK200000000004",
+      "eartag": "UK200000000004",
+      "breed_code": "LIM",
+      "date_of_birth": "2023-02-22",
+      "date_on_cph": "2023-02-22",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK200000000005",
+      "eartag": "UK200000000005",
+      "breed_code": "SM",
+      "date_of_birth": "2023-03-01",
+      "date_on_cph": "2023-03-01",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK200000000006",
+      "eartag": "UK200000000006",
+      "breed_code": "GA",
+      "date_of_birth": "2023-03-08",
+      "date_on_cph": "2023-03-08",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK200000000007",
+      "eartag": "UK200000000007",
+      "breed_code": "HI",
+      "date_of_birth": "2023-03-15",
+      "date_on_cph": "2023-03-15",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK200000000008",
+      "eartag": "UK200000000008",
+      "breed_code": "HF",
+      "date_of_birth": "2023-03-22",
+      "date_on_cph": "2023-03-22",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK200000000009",
+      "eartag": "UK200000000009",
+      "breed_code": "HO",
+      "date_of_birth": "2023-04-01",
+      "date_on_cph": "2023-04-01",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK200000000010",
+      "eartag": "UK200000000010",
+      "breed_code": "JE",
+      "date_of_birth": "2023-04-08",
+      "date_on_cph": "2023-04-08",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK200000000011",
+      "eartag": "UK200000000011",
+      "breed_code": "AY",
+      "date_of_birth": "2023-04-15",
+      "date_on_cph": "2023-04-15",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK200000000012",
+      "eartag": "UK200000000012",
+      "breed_code": "GU",
+      "date_of_birth": "2023-04-22",
+      "date_on_cph": "2023-04-22",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000002",
+      "eartag": "UK300000000002",
+      "breed_code": "HF",
+      "date_of_birth": "2020-01-01",
+      "date_on_cph": "2020-01-01",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000003",
+      "eartag": "UK300000000003",
+      "breed_code": "HF",
+      "date_of_birth": "2020-01-01",
+      "date_on_cph": "2020-01-01",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000004",
+      "eartag": "UK300000000004",
+      "breed_code": "HF",
+      "date_of_birth": "2026-06-01",
+      "date_on_cph": "2026-06-01",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000005",
+      "eartag": "UK300000000005",
+      "breed_code": "HF",
+      "date_of_birth": "1990-01-01",
+      "date_on_cph": "1990-01-01",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000006",
+      "eartag": "UK300000000006",
+      "breed_code": "DEX",
+      "date_of_birth": "2022-05-14",
+      "date_on_cph": "2022-05-14",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK300000000007",
+      "eartag": "UK300000000007",
+      "breed_code": "LH",
+      "date_of_birth": "2022-06-02",
+      "date_on_cph": "2022-06-02",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000008",
+      "eartag": "UK300000000008",
+      "breed_code": "WB",
+      "date_of_birth": "2022-07-19",
+      "date_on_cph": "2022-07-19",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK300000000009",
+      "eartag": "UK300000000009",
+      "breed_code": "SU",
+      "date_of_birth": "2022-09-03",
+      "date_on_cph": "2022-09-03",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000010",
+      "eartag": "UK300000000010",
+      "breed_code": "RP",
+      "date_of_birth": "2022-10-21",
+      "date_on_cph": "2022-10-21",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK300000000011",
+      "eartag": "UK300000000011",
+      "breed_code": "SD",
+      "date_of_birth": "2022-12-08",
+      "date_on_cph": "2022-12-08",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000012",
+      "eartag": "UK300000000012",
+      "breed_code": "BSH",
+      "date_of_birth": "2023-01-26",
+      "date_on_cph": "2023-01-26",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK300000000013",
+      "eartag": "UK300000000013",
+      "breed_code": "NO",
+      "date_of_birth": "2023-05-11",
+      "date_on_cph": "2023-05-11",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000014",
+      "eartag": "UK300000000014",
+      "breed_code": "MO",
+      "date_of_birth": "2023-06-29",
+      "date_on_cph": "2023-06-29",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK300000000015",
+      "eartag": "UK300000000015",
+      "breed_code": "BS",
+      "date_of_birth": "2023-08-17",
+      "date_on_cph": "2023-08-17",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000016",
+      "eartag": "UK300000000016",
+      "breed_code": "BRB",
+      "date_of_birth": "2023-11-04",
+      "date_on_cph": "2023-11-04",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK300000000017",
+      "eartag": "UK300000000017",
+      "breed_code": "LR",
+      "date_of_birth": "2024-01-22",
+      "date_on_cph": "2024-01-22",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000018",
+      "eartag": "UK300000000018",
+      "breed_code": "CB",
+      "date_of_birth": "2024-03-09",
+      "date_on_cph": "2024-03-09",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK300000000019",
+      "eartag": "UK300000000019",
+      "breed_code": "CD",
+      "date_of_birth": "2024-05-27",
+      "date_on_cph": "2024-05-27",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000020",
+      "eartag": "UK300000000020",
+      "breed_code": "OD",
+      "date_of_birth": "2024-08-14",
+      "date_on_cph": "2024-08-14",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK300000000021",
+      "eartag": "UK300000000021",
+      "breed_code": "AA",
+      "date_of_birth": "2024-10-02",
+      "date_on_cph": "2024-10-02",
+      "sex": "Female"
+    },
+    {
+      "cattle_id": "UK300000000022",
+      "eartag": "UK300000000022",
+      "breed_code": "CH",
+      "date_of_birth": "2024-12-19",
+      "date_on_cph": "2024-12-19",
+      "sex": "Male"
+    },
+    {
+      "cattle_id": "UK300000000023",
+      "eartag": "UK300000000023",
+      "breed_code": "LIM",
+      "date_of_birth": "2025-02-06",
+      "date_on_cph": "2025-02-06",
+      "sex": "Female"
+    }
+  ]
+}
