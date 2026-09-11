@@ -10,8 +10,10 @@ const { getCphsForUser } = vi.hoisted(() => ({
   getCphsForUser: vi.fn()
 }))
 
-vi.mock('#server/services/cattle-home-api.js', () => ({
-  createCattleHomeApi: () => ({ getCphsForUser })
+vi.mock('#server/services/cattle-home-be4fe.js', () => ({
+  CattleHomeBe4Fe: vi.fn().mockImplementation(function () {
+    return { getCphsForUser }
+  })
 }))
 
 async function createHubJwt(
