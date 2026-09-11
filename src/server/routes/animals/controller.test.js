@@ -128,7 +128,9 @@ describe('animalsOnHoldingController', () => {
     })
 
     // Assert
-    expect(result).toEqual(expect.stringContaining("1 result for <strong>'UK300000000023'</strong>"))
+    expect(result).toEqual(
+      expect.stringContaining("1 result for <strong>'UK300000000023'</strong>")
+    )
     expect(result).toEqual(expect.stringContaining('UK300000000023'))
     expect(result).not.toEqual(expect.stringContaining('UK200000000001'))
   })
@@ -146,7 +148,9 @@ describe('animalsOnHoldingController', () => {
 
     // Assert
     expect(result).toEqual(
-      expect.stringContaining("0 results for <strong>'not-a-real-animal'</strong>")
+      expect.stringContaining(
+        "0 results for <strong>'not-a-real-animal'</strong>"
+      )
     )
     expect(result).toEqual(expect.stringContaining('Clear search'))
     expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))

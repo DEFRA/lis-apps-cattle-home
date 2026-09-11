@@ -36,7 +36,9 @@ function animalMatchesSearch(animal, search) {
     animal.breed_code,
     getBreedName(animal.breed_code)
   ]
-  return fields.some((field) => field.toLowerCase().includes(search.toLowerCase()))
+  return fields.some((field) =>
+    field.toLowerCase().includes(search.toLowerCase())
+  )
 }
 
 function searchAnimals(animals, search) {

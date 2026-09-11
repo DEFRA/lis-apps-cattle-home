@@ -12,9 +12,7 @@ describe('getAnimalsForCph()', () => {
 
   test('it returns an empty page for an unknown CPH', () => {
     // Act
-    const { animals, totalItems, totalPages } = getAnimalsForCph(
-      '99/999/9999'
-    )
+    const { animals, totalItems, totalPages } = getAnimalsForCph('99/999/9999')
 
     // Assert
     expect(animals).toEqual([])
