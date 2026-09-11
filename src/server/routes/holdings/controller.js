@@ -1,21 +1,7 @@
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
+import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
-// Hardcoded to the steel-thread Oakfield Farm holding; there is no backend to
-// call yet. Real data comes from be4fe/cattle-home under LREG-459's follow-up.
-const holding = {
-  cphNumber: '22/001/0001',
-  holdingName: 'Oakfield Farm',
-  businessName: 'Oakfield Livestock Ltd',
-  addressLines: [
-    'Oakfield Farm',
-    'Church Lane',
-    'Shrewsbury',
-    'Shropshire',
-    'SY4 1AB',
-    'England'
-  ],
-  herdMark: 'UK 324537'
-}
+import { getHoldingByCph } from '#server/services/canned-holdings.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 
@@ -32,10 +18,21 @@ export function cphFromParams({ county, parish, holding: holdingNumber } = {}) {
 export const holdingDetailsController = {
   handler(request, h) {
     const cph = cphFromParams(request.params)
+    const holding = getHoldingByCph(cph)
+
+    if (!holding) {
+      return h.response('Page not found').code(statusCodes.notFound)
+    }
 
     return h.view('holdings/details', {
       pageTitle: 'Holding details',
-      holding,
+      holding: {
+        cphNumber: holding.cph,
+        holdingName: holding.name,
+        businessName: holding.business_name,
+        addressLines: holding.address,
+        herdMark: holding.herd_marks.join(', ')
+      },
       tabs: [
         {
           text: 'Holding details',
