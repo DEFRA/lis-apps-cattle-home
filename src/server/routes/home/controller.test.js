@@ -10,8 +10,10 @@ const { getCphsForUser } = vi.hoisted(() => ({
   getCphsForUser: vi.fn()
 }))
 
-vi.mock('#server/services/cattle-home-api.js', () => ({
-  createCattleHomeApi: () => ({ getCphsForUser })
+vi.mock('#server/services/cattle-home-be4fe-client.js', () => ({
+  CattleHomeBe4FeClient: vi.fn().mockImplementation(function () {
+    return { getCphsForUser }
+  })
 }))
 
 async function createHubJwt(
@@ -49,9 +51,7 @@ describe('#landingController', () => {
 
   test('Should redirect a keeper with one holding to its details page', async () => {
     // Arrange
-    getCphsForUser.mockResolvedValue({
-      data: [{ name: 'My farm', cph: '10/081/1234' }]
-    })
+    getCphsForUser.mockResolvedValue([{ name: 'My farm', cph: '10/081/1234' }])
     const jwt = await createHubJwt()
 
     // Act
@@ -68,12 +68,10 @@ describe('#landingController', () => {
 
   test('Should redirect a keeper with several holdings to the first', async () => {
     // Arrange
-    getCphsForUser.mockResolvedValue({
-      data: [
-        { name: 'First farm', cph: '10/081/1234' },
-        { name: 'Second farm', cph: '10/081/5678' }
-      ]
-    })
+    getCphsForUser.mockResolvedValue([
+      { name: 'First farm', cph: '10/081/1234' },
+      { name: 'Second farm', cph: '10/081/5678' }
+    ])
     const jwt = await createHubJwt()
 
     // Act
@@ -90,7 +88,7 @@ describe('#landingController', () => {
 
   test('Should return not found when the keeper has no holdings', async () => {
     // Arrange
-    getCphsForUser.mockResolvedValue({ data: [] })
+    getCphsForUser.mockResolvedValue([])
     const jwt = await createHubJwt()
 
     // Act
@@ -106,9 +104,7 @@ describe('#landingController', () => {
 
   test('Should resolve the user id from the sub when there is no email', async () => {
     // Arrange
-    getCphsForUser.mockResolvedValue({
-      data: [{ name: 'Farm', cph: '10/081/1234' }]
-    })
+    getCphsForUser.mockResolvedValue([{ name: 'Farm', cph: '10/081/1234' }])
     const redirect = vi.fn()
 
     // Act

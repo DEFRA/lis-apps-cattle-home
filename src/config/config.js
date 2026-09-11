@@ -30,6 +30,20 @@ export const config = convict({
     default: null,
     env: 'SERVICE_VERSION'
   },
+  environment: {
+    doc: 'The current environment',
+    format: [
+      'local',
+      'docker_compose',
+      'dev',
+      'test',
+      'ext-test',
+      'perf-test',
+      'prod'
+    ],
+    default: 'local',
+    env: 'ENVIRONMENT'
+  },
   host: {
     doc: 'The IP address to bind',
     format: 'ipaddress',
@@ -215,12 +229,6 @@ export const config = convict({
     }
   },
   cattleHomeApi: {
-    url: {
-      doc: 'Base URL for the cattle-home BE4FE API',
-      format: 'url',
-      default: 'http://localhost:3225',
-      env: 'CATTLE_HOME_API_URL'
-    },
     apiKey: {
       doc: 'Optional API key sent to the cattle-home BE4FE API',
       format: String,
