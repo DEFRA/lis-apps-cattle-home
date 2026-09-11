@@ -38,6 +38,10 @@ export const holdingDetailsController = {
           text: 'Holding details',
           href: `${holdingsBasePath}/${cph}`,
           active: true
+        },
+        {
+          text: 'Animals on holding',
+          href: `${holdingsBasePath}/${cph}/animals`
         }
       ]
     })
