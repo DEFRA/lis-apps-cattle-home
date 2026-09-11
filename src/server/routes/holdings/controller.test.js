@@ -88,7 +88,7 @@ describe('holdingDetailsController', () => {
     await server.stop({ timeout: 0 })
   })
 
-  test('it renders the hardcoded Oakfield Farm holding for an authenticated user', async () => {
+  test('it renders the Oakfield Farm holding for an authenticated user', async () => {
     // Arrange
     const jwt = await createHubJwt()
     const request = {
@@ -138,5 +138,23 @@ describe('holdingDetailsController', () => {
     // Assert
     expect(statusCode).toBe(302)
     expect(headers.location).toBeDefined()
+  })
+
+  test('it returns not found for a CPH with no canned holding', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+    const request = {
+      method: 'GET',
+      url: '/holdings/99/999/9999',
+      headers: {
+        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
+      }
+    }
+
+    // Act
+    const { statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.notFound)
   })
 })
