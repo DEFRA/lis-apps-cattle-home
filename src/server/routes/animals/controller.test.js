@@ -116,6 +116,42 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
+  test('it filters by the search term', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK300000000023',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(expect.stringContaining("1 result for <strong>'UK300000000023'</strong>"))
+    expect(result).toEqual(expect.stringContaining('UK300000000023'))
+    expect(result).not.toEqual(expect.stringContaining('UK200000000001'))
+  })
+
+  test('it shows no table and a "Clear search" link when nothing matches', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=not-a-real-animal',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining("0 results for <strong>'not-a-real-animal'</strong>")
+    )
+    expect(result).toEqual(expect.stringContaining('Clear search'))
+    expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
+  })
+
   test('it returns not found for a CPH with no canned holding', async () => {
     // Arrange
     const jwt = await createHubJwt()

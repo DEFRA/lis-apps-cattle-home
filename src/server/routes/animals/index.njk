@@ -1,6 +1,7 @@
 {% extends 'layouts/page.njk' %}
 
 {% from "sortable-paginated-table/macro.njk" import sortablePaginatedTable %}
+{% from "search-form/macro.njk" import searchForm %}
 
 {% block content %}
   <div class="govuk-grid-row">
@@ -13,15 +14,38 @@
         items: tabs
       }) }}
 
-      {{ sortablePaginatedTable({
-        caption: "Animals on holding",
-        columns: columns,
-        rows: rows,
-        sort: sort,
-        direction: direction,
-        baseHref: baseHref,
-        pagination: pagination
-      }) }}
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          {{ searchForm({
+            label: "Search animals on your holding",
+            hint: "You can use all or part of the animal ear tag number, or search by sex or breed.",
+            value: search,
+            insetText: "Recent changes such as new registrations may take up to 24 hours to appear in your list."
+          }) }}
+        </div>
+      </div>
+
+      {% if search %}
+        <p class="govuk-body" aria-live="polite">
+          {{ totalItems }} result{{ "s" if totalItems != 1 else "" }} for <strong>'{{ search }}'</strong>
+        </p>
+        <p class="govuk-body">
+          <a class="govuk-link" href="{{ baseHref }}">Clear search</a>
+        </p>
+      {% endif %}
+
+      {% if totalItems > 0 %}
+        {{ sortablePaginatedTable({
+          caption: "Animals on holding",
+          columns: columns,
+          rows: rows,
+          sort: sort,
+          direction: direction,
+          baseHref: baseHref,
+          pagination: pagination,
+          query: { search: search }
+        }) }}
+      {% endif %}
     </div>
   </div>
 {% endblock %}

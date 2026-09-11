@@ -20,6 +20,7 @@ export const animalsOnHoldingController = {
       return h.response('Page not found').code(statusCodes.notFound)
     }
 
+    const search = request.query.search?.trim() || ''
     const sort = request.query.sort || 'ear_tag'
     const direction = request.query.direction === 'desc' ? 'desc' : 'asc'
     const {
@@ -29,6 +30,7 @@ export const animalsOnHoldingController = {
       currentPage,
       itemsPerPage
     } = getAnimalsForCph(cph, {
+      search,
       sort,
       direction,
       page: Number(request.query.page) || 1
@@ -60,6 +62,8 @@ export const animalsOnHoldingController = {
           }
         ]
       }),
+      search,
+      totalItems,
       sort,
       direction,
       baseHref: `${holdingsBasePath}/${cph}/animals`,

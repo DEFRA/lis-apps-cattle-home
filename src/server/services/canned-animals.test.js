@@ -108,4 +108,54 @@ describe('getAnimalsForCph()', () => {
     expect(currentPage).toBe(2)
     expect(animals).toHaveLength(9)
   })
+
+  test('it searches by ear tag', () => {
+    // Act
+    const { animals, totalItems } = getAnimalsForCph('22/001/0001', {
+      search: 'UK300000000023'
+    })
+
+    // Assert
+    expect(totalItems).toBe(1)
+    expect(animals[0].eartag).toBe('UK300000000023')
+  })
+
+  test('it searches by sex, case-insensitively', () => {
+    // Act
+    const { totalItems } = getAnimalsForCph('22/001/0001', {
+      search: 'FEMALE'
+    })
+
+    // Assert
+    expect(totalItems).toBe(19)
+  })
+
+  test('it searches by breed code', () => {
+    // Act
+    const { totalItems } = getAnimalsForCph('22/001/0001', { search: 'hf' })
+
+    // Assert
+    expect(totalItems).toBe(5)
+  })
+
+  test('it searches by full breed name', () => {
+    // Act
+    const { totalItems } = getAnimalsForCph('22/001/0001', {
+      search: 'Holstein Friesian'
+    })
+
+    // Assert
+    expect(totalItems).toBe(5)
+  })
+
+  test('it returns no animals when nothing matches the search term', () => {
+    // Act
+    const { animals, totalItems } = getAnimalsForCph('22/001/0001', {
+      search: 'not-a-real-animal'
+    })
+
+    // Assert
+    expect(animals).toEqual([])
+    expect(totalItems).toBe(0)
+  })
 })
