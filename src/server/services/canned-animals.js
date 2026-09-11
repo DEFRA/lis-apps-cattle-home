@@ -27,13 +27,16 @@ function sortAnimals(animals, sort, direction) {
 }
 
 function animalMatchesSearch(animal, search) {
+  if (['male', 'female'].includes(search.toLowerCase())) {
+    return animal.sex.toLowerCase() === search.toLowerCase()
+  }
+
   const fields = [
     animal.eartag,
-    animal.sex,
     animal.breed_code,
     getBreedName(animal.breed_code)
   ]
-  return fields.some((field) => field.toLowerCase().includes(search))
+  return fields.some((field) => field.toLowerCase().includes(search.toLowerCase()))
 }
 
 function searchAnimals(animals, search) {

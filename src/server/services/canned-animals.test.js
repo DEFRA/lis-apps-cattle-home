@@ -130,6 +130,18 @@ describe('getAnimalsForCph()', () => {
     expect(totalItems).toBe(19)
   })
 
+  test('it matches "male" exactly, rather than as a substring of "female"', () => {
+    // Act
+    const { totalItems, animals } = getAnimalsForCph('22/001/0001', {
+      search: 'male',
+      itemsPerPage: 34
+    })
+
+    // Assert
+    expect(totalItems).toBe(15)
+    expect(animals.every((animal) => animal.sex === 'Male')).toBe(true)
+  })
+
   test('it searches by breed code', () => {
     // Act
     const { totalItems } = getAnimalsForCph('22/001/0001', { search: 'hf' })
