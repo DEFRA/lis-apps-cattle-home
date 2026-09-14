@@ -20,9 +20,18 @@ const sortFields = new Map([
   ['breed', 'breed_code']
 ])
 
+const dateSortFields = new Set(['date_of_birth', 'date_on_cph'])
+
+function compareValues(field, a, b) {
+  if (dateSortFields.has(field)) {
+    return new Date(a[field]) - new Date(b[field])
+  }
+  return a[field].localeCompare(b[field])
+}
+
 function sortAnimals(animals, sort, direction) {
   const field = sortFields.get(sort) ?? sortFields.get('ear_tag')
-  const sorted = [...animals].sort((a, b) => a[field].localeCompare(b[field]))
+  const sorted = [...animals].sort((a, b) => compareValues(field, a, b))
   return direction === 'desc' ? sorted.reverse() : sorted
 }
 
