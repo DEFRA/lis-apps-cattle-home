@@ -26,18 +26,25 @@ function sortAnimals(animals, sort, direction) {
   return direction === 'desc' ? sorted.reverse() : sorted
 }
 
+function stripSpaces(value) {
+  return value.replace(/\s+/g, '')
+}
+
 function animalMatchesSearch(animal, search) {
   if (['male', 'female'].includes(search.toLowerCase())) {
     return animal.sex.toLowerCase() === search.toLowerCase()
   }
 
-  const fields = [
-    animal.eartag,
-    animal.breed_code,
-    getBreedName(animal.breed_code)
-  ]
-  return fields.some((field) =>
-    field.toLowerCase().includes(search.toLowerCase())
+  // Ear tags are matched ignoring spaces - "UK 324537 113234",
+  // "UK324537113234" and "uk 324537 113234" all match the same animal.
+  const eartagMatches = stripSpaces(animal.eartag)
+    .toLowerCase()
+    .includes(stripSpaces(search).toLowerCase())
+
+  const otherFields = [animal.breed_code, getBreedName(animal.breed_code)]
+  return (
+    eartagMatches ||
+    otherFields.some((field) => field.toLowerCase().includes(search))
   )
 }
 
