@@ -34,8 +34,13 @@ export const animalsOnHoldingController = {
       page: Number(request.query.page) || 1
     })
 
+    const pageTitle =
+      totalPages > 1
+        ? `Animals on holding (page ${currentPage} of ${totalPages})`
+        : 'Animals on holding'
+
     return h.view('animals/index', {
-      pageTitle: 'Animals on holding',
+      pageTitle,
       holding,
       columns: [
         { text: 'Ear tag number', sortKey: 'ear_tag' },
