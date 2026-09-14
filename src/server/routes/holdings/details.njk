@@ -1,37 +1,49 @@
 {% extends 'layouts/page.njk' %}
 
+{% set notSuppliedHtml = '<strong class="govuk-tag govuk-tag--red">Not supplied</strong>' %}
+
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
-      <span class="govuk-caption-l">{{ holding.holdingName }}</span>
-      <h1 class="govuk-heading-l">Holding details</h1>
+      {% if holding.holdingName %}
+        <span class="govuk-caption-l">{{ holding.holdingName }}</span>
+        <h1 class="govuk-heading-l">Holding details</h1>
+      {% else %}
+        <h1 class="govuk-heading-l">CPH number: {{ holding.cphNumber }}</h1>
+      {% endif %}
 
       {{ lisSubNavigation({
         label: "Sub navigation",
         items: tabs
       }) }}
 
+      {%- set addressHtml -%}
+        {%- for line in holding.addressLines -%}
+          {{ line }}{% if not loop.last %}<br>{% endif %}
+        {%- endfor -%}
+      {%- endset -%}
+
       {{ govukSummaryList({
         rows: [
           {
             key: { text: "CPH number" },
-            value: { text: holding.cphNumber }
+            value: { text: holding.cphNumber } if holding.cphNumber else { html: notSuppliedHtml }
           },
           {
             key: { text: "Holding name" },
-            value: { text: holding.holdingName }
+            value: { text: holding.holdingName } if holding.holdingName else { html: notSuppliedHtml }
           },
           {
             key: { text: "Business name" },
-            value: { text: holding.businessName }
+            value: { text: holding.businessName } if holding.businessName else { html: notSuppliedHtml }
           },
           {
             key: { text: "Address" },
-            value: { html: holding.addressLines | join('<br>') }
+            value: { html: addressHtml } if holding.addressLines.length else { html: notSuppliedHtml }
           },
           {
             key: { text: "Herd mark" },
-            value: { text: holding.herdMark }
+            value: { text: holding.herdMark } if holding.herdMark else { html: notSuppliedHtml }
           }
         ]
       }) }}
