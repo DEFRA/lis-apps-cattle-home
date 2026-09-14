@@ -118,6 +118,17 @@ describe('getAnimalsForCph()', () => {
     expect(animals[0].eartag).toBe('UK300000000023')
   })
 
+  test('it searches by ear tag ignoring spaces in the term entered', () => {
+    // Act
+    const { animals, totalItems } = getAnimalsForCph('22/001/0001', {
+      search: 'UK 300 000 000 023'
+    })
+
+    // Assert
+    expect(totalItems).toBe(1)
+    expect(animals[0].eartag).toBe('UK300000000023')
+  })
+
   test('it searches by sex, case-insensitively', () => {
     // Act
     const { totalItems } = getAnimalsForCph('22/001/0001', {

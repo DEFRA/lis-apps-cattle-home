@@ -17,11 +17,19 @@ describe('computeAge()', () => {
     expect(age).toBe('1 year, 1 month')
   })
 
-  test('it shows 0 months rather than "undefined" when the birthday just passed', () => {
+  test('it omits the months when the age is a whole number of years', () => {
     // Act
     const age = computeAge('2023-08-19', new Date('2026-09-11'))
 
     // Assert
-    expect(age).toBe('3 years, 0 months')
+    expect(age).toBe('3 years')
+  })
+
+  test('it uses the singular "year" for a whole number of exactly 1 year', () => {
+    // Act
+    const age = computeAge('2025-08-19', new Date('2026-09-11'))
+
+    // Assert
+    expect(age).toBe('1 year')
   })
 })

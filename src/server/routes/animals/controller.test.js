@@ -75,6 +75,9 @@ describe('animalsOnHoldingController', () => {
       expect.stringContaining('Showing 1 to 25 of 34 results')
     )
     expect(result).toEqual(expect.stringContaining('aria-sort="ascending"'))
+    expect(result).toEqual(
+      expect.stringContaining('Animals on holding (page 1 of 2)')
+    )
   })
 
   test('it shows the remaining results on page 2', async () => {
@@ -92,6 +95,9 @@ describe('animalsOnHoldingController', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(
       expect.stringContaining('Showing 26 to 34 of 34 results')
+    )
+    expect(result).toEqual(
+      expect.stringContaining('Animals on holding (page 2 of 2)')
     )
   })
 
@@ -154,6 +160,56 @@ describe('animalsOnHoldingController', () => {
     )
     expect(result).toEqual(expect.stringContaining('Clear search'))
     expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
+  })
+
+  test('it shows the no-animals empty state when the holding has none recorded', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/095/0095/animals',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        'There are no animals currently registered on your holding.'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'href="https://www.gov.uk/government/organisations/british-cattle-movement-service'
+      )
+    )
+    expect(result).not.toEqual(
+      expect.stringContaining('Search animals on your holding')
+    )
+    expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
+  })
+
+  test('it shows "Not supplied", styled as an error, for missing animal fields', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/096/0096/animals',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    const notSuppliedCount = (
+      result.match(
+        /<strong class="govuk-tag govuk-tag--red">Not supplied<\/strong>/g
+      ) ?? []
+    ).length
+    expect(notSuppliedCount).toBe(3)
+    expect(result).toEqual(expect.stringContaining('UK400000000001'))
+    expect(result).not.toEqual(expect.stringContaining('page 1 of'))
   })
 
   test('it returns not found for a CPH with no canned holding', async () => {
