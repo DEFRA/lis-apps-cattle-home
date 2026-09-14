@@ -3,7 +3,8 @@ import { intervalToDuration } from 'date-fns'
 /**
  * @param {string} dateOfBirth ISO date string
  * @param {Date} [now]
- * @returns {string} e.g. "3 years, 6 months"
+ * @returns {string} e.g. "3 years, 6 months", or "3 years" for a whole
+ *   number of years
  */
 export function computeAge(dateOfBirth, now = new Date()) {
   // intervalToDuration omits a unit entirely (rather than returning 0) when
@@ -13,5 +14,11 @@ export function computeAge(dateOfBirth, now = new Date()) {
     end: now
   })
 
-  return `${years} year${years === 1 ? '' : 's'}, ${months} month${months === 1 ? '' : 's'}`
+  const yearsText = `${years} year${years === 1 ? '' : 's'}`
+
+  if (months === 0) {
+    return yearsText
+  }
+
+  return `${yearsText}, ${months} month${months === 1 ? '' : 's'}`
 }
