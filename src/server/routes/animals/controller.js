@@ -1,5 +1,3 @@
-import escapeHtml from 'lodash/escape.js'
-
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
@@ -47,21 +45,15 @@ export const animalsOnHoldingController = {
         { text: 'Sex', sortKey: 'sex' },
         { text: 'Breed', sortKey: 'breed' }
       ],
-      rows: pageAnimals.map((animal) => {
-        const breedCode = escapeHtml(animal.breed_code)
-        const breedName = escapeHtml(getBreedName(animal.breed_code))
-
-        return [
-          { text: animal.eartag },
-          { text: animal.date_of_birth },
-          { text: computeAge(animal.date_of_birth) },
-          { text: animal.date_on_cph },
-          { text: animal.sex },
-          {
-            html: `<abbr title="${breedName}">${breedCode}</abbr><span class="govuk-visually-hidden">, ${breedName}</span>`
-          }
-        ]
-      }),
+      animals: pageAnimals.map((animal) => ({
+        eartag: animal.eartag,
+        dateOfBirth: animal.date_of_birth,
+        age: animal.date_of_birth ? computeAge(animal.date_of_birth) : null,
+        dateOnCph: animal.date_on_cph,
+        sex: animal.sex,
+        breedCode: animal.breed_code,
+        breedName: getBreedName(animal.breed_code)
+      })),
       search,
       totalItems,
       sort,

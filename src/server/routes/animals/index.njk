@@ -35,6 +35,23 @@
       {% endif %}
 
       {% if totalItems > 0 %}
+        {% set notSuppliedHtml = '<strong class="govuk-tag govuk-tag--red">Not supplied</strong>' %}
+
+        {%- set rows = [] -%}
+        {%- for animal in animals -%}
+          {%- set breedHtml -%}
+            <abbr title="{{ animal.breedName }}">{{ animal.breedCode }}</abbr><span class="govuk-visually-hidden">, {{ animal.breedName }}</span>
+          {%- endset -%}
+          {%- set _ = rows.push([
+            { text: animal.eartag } if animal.eartag else { html: notSuppliedHtml },
+            { text: animal.dateOfBirth } if animal.dateOfBirth else { html: notSuppliedHtml },
+            { text: animal.age } if animal.age else { html: notSuppliedHtml },
+            { text: animal.dateOnCph } if animal.dateOnCph else { html: notSuppliedHtml },
+            { text: animal.sex } if animal.sex else { html: notSuppliedHtml },
+            { html: breedHtml } if animal.breedCode else { html: notSuppliedHtml }
+          ]) -%}
+        {%- endfor -%}
+
         {{ sortablePaginatedTable({
           caption: "Animals on holding",
           columns: columns,

@@ -272,5 +272,15 @@
       "date_on_cph": "2025-02-06",
       "sex": "Female"
     }
+  ],
+  "22/096/0096": [
+    {
+      "cattle_id": "UK400000000001",
+      "eartag": "UK400000000001",
+      "breed_code": null,
+      "date_of_birth": "2023-06-15",
+      "date_on_cph": null,
+      "sex": null
+    }
   ]
 }

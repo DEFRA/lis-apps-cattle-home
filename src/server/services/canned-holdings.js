@@ -95,6 +95,18 @@ const holdingsByUserId = {
       allowed_species: ['ctt'],
       herd_marks: ['UK 999999']
     }
+  ],
+  'gapfield.farmer@example.com': [
+    buildHolding({
+      cph: '22/096/0096',
+      name: 'Gapfield Farm',
+      businessName: 'Gapfield Ltd',
+      addressLine2: 'Long Lane',
+      town: 'Lavendon',
+      county: 'Buckinghamshire',
+      postcode: 'MK1 1AY',
+      herdMark: 'UK 999998'
+    })
   ]
 }
 

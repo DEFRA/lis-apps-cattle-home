@@ -156,6 +156,27 @@ describe('animalsOnHoldingController', () => {
     expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
   })
 
+  test('it shows "Not supplied", styled as an error, for missing animal fields', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/096/0096/animals',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    const notSuppliedCount = (
+      result.match(
+        /<strong class="govuk-tag govuk-tag--red">Not supplied<\/strong>/g
+      ) ?? []
+    ).length
+    expect(notSuppliedCount).toBe(3)
+    expect(result).toEqual(expect.stringContaining('UK400000000001'))
+  })
+
   test('it returns not found for a CPH with no canned holding', async () => {
     // Arrange
     const jwt = await createHubJwt()
