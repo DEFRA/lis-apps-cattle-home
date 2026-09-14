@@ -66,7 +66,25 @@ const holdingsByUserId = {
         postcode,
         herdMark
       })
-  )
+  ),
+  // A holding with no name and no herd mark on record - both are legitimate
+  // "where available" fields per LREG-186, unlike the others below.
+  'noname.farmer@example.com': [
+    {
+      cph: '22/098/0098',
+      name: null,
+      business_name: 'Unnamed Holding Ltd',
+      address: [
+        'Long Lane',
+        'Lavendon',
+        'Buckinghamshire',
+        'MK1 1AZ',
+        'England'
+      ],
+      allowed_species: ['ctt'],
+      herd_marks: []
+    }
+  ]
 }
 
 /**

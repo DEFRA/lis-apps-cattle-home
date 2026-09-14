@@ -157,4 +157,32 @@ describe('holdingDetailsController', () => {
     // Assert
     expect(statusCode).toBe(statusCodes.notFound)
   })
+
+  test('it shows the CPH as the heading, with no caption, when the holding has no name', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+    const request = {
+      method: 'GET',
+      url: '/holdings/22/098/0098',
+      headers: {
+        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
+      }
+    }
+
+    // Act
+    const { result } = await server.inject(request)
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<h1 class="govuk-heading-l">CPH number: 22/098/0098</h1>'
+      )
+    )
+    expect(result).not.toEqual(expect.stringContaining('govuk-caption-l'))
+    expect(result).not.toEqual(
+      expect.stringContaining(
+        '<h1 class="govuk-heading-l">Holding details</h1>'
+      )
+    )
+  })
 })
