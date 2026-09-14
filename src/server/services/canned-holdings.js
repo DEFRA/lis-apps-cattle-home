@@ -84,6 +84,17 @@ const holdingsByUserId = {
       allowed_species: ['ctt'],
       herd_marks: []
     }
+  ],
+  // A holding with no address recorded at all.
+  'noaddress.farmer@example.com': [
+    {
+      cph: '22/097/0097',
+      name: 'No Address Farm',
+      business_name: 'No Address Ltd',
+      address: [],
+      allowed_species: ['ctt'],
+      herd_marks: ['UK 999999']
+    }
   ]
 }
 

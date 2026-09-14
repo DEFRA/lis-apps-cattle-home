@@ -30,7 +30,7 @@ export const holdingDetailsController = {
         cphNumber: holding.cph,
         holdingName: holding.name,
         businessName: holding.business_name,
-        addressLines: holding.address,
+        addressLines: holding.address.filter(Boolean),
         herdMark: holding.herd_marks.join(', ')
       },
       tabs: [

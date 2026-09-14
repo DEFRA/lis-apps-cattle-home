@@ -185,4 +185,53 @@ describe('holdingDetailsController', () => {
       )
     )
   })
+
+  test('it shows "Not supplied", styled as an error, for a missing holding name and herd mark', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+    const request = {
+      method: 'GET',
+      url: '/holdings/22/098/0098',
+      headers: {
+        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
+      }
+    }
+
+    // Act
+    const { result } = await server.inject(request)
+
+    // Assert
+    const notSuppliedCount = (
+      result.match(
+        /<strong class="govuk-tag govuk-tag--red">Not supplied<\/strong>/g
+      ) ?? []
+    ).length
+    expect(notSuppliedCount).toBe(2)
+    expect(result).toEqual(expect.stringContaining('Unnamed Holding Ltd'))
+    expect(result).toEqual(expect.stringContaining('Long Lane'))
+  })
+
+  test('it shows "Not supplied" for the address when none is recorded', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+    const request = {
+      method: 'GET',
+      url: '/holdings/22/097/0097',
+      headers: {
+        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
+      }
+    }
+
+    // Act
+    const { result } = await server.inject(request)
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<strong class="govuk-tag govuk-tag--red">Not supplied</strong>'
+      )
+    )
+    expect(result).toEqual(expect.stringContaining('No Address Farm'))
+    expect(result).toEqual(expect.stringContaining('UK 999999'))
+  })
 })
