@@ -14,54 +14,61 @@
         items: tabs
       }) }}
 
-      <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-          {{ searchForm({
-            label: "Search animals on your holding",
-            hint: "You can use all or part of the animal ear tag number, or search by sex or breed.",
-            value: search,
-            insetText: "Recent changes such as new registrations may take up to 24 hours to appear in your list."
-          }) }}
-        </div>
-      </div>
-
-      {% if search %}
-        <p class="govuk-body" aria-live="polite">
-          {{ totalItems }} result{{ "s" if totalItems != 1 else "" }} for <strong>'{{ search }}'</strong>
-        </p>
+      {% if not search and totalItems == 0 %}
+        <p class="govuk-body">There are no animals currently registered on your holding.</p>
         <p class="govuk-body">
-          <a class="govuk-link" href="{{ baseHref }}">Clear search</a>
+          If you believe this is incorrect, contact the <a class="govuk-link" href="https://www.gov.uk/government/organisations/british-cattle-movement-service#:~:text=guidance%20and%20regulation-,Contact%20BCMS,-British%20Cattle%20Movement">British Cattle Movement Service (BCMS)</a>.
         </p>
-      {% endif %}
+      {% else %}
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+            {{ searchForm({
+              label: "Search animals on your holding",
+              hint: "You can use all or part of the animal ear tag number, or search by sex or breed.",
+              value: search,
+              insetText: "Recent changes such as new registrations may take up to 24 hours to appear in your list."
+            }) }}
+          </div>
+        </div>
 
-      {% if totalItems > 0 %}
-        {% set notSuppliedHtml = '<strong class="govuk-tag govuk-tag--red">Not supplied</strong>' %}
+        {% if search %}
+          <p class="govuk-body" aria-live="polite">
+            {{ totalItems }} result{{ "s" if totalItems != 1 else "" }} for <strong>'{{ search }}'</strong>
+          </p>
+          <p class="govuk-body">
+            <a class="govuk-link" href="{{ baseHref }}">Clear search</a>
+          </p>
+        {% endif %}
 
-        {%- set rows = [] -%}
-        {%- for animal in animals -%}
-          {%- set breedHtml -%}
-            <abbr title="{{ animal.breedName }}">{{ animal.breedCode }}</abbr><span class="govuk-visually-hidden">, {{ animal.breedName }}</span>
-          {%- endset -%}
-          {%- set _ = rows.push([
-            { text: animal.eartag } if animal.eartag else { html: notSuppliedHtml },
-            { text: animal.dateOfBirth } if animal.dateOfBirth else { html: notSuppliedHtml },
-            { text: animal.age } if animal.age else { html: notSuppliedHtml },
-            { text: animal.dateOnCph } if animal.dateOnCph else { html: notSuppliedHtml },
-            { text: animal.sex } if animal.sex else { html: notSuppliedHtml },
-            { html: breedHtml } if animal.breedCode else { html: notSuppliedHtml }
-          ]) -%}
-        {%- endfor -%}
+        {% if totalItems > 0 %}
+          {% set notSuppliedHtml = '<strong class="govuk-tag govuk-tag--red">Not supplied</strong>' %}
 
-        {{ sortablePaginatedTable({
-          caption: "Animals on holding",
-          columns: columns,
-          rows: rows,
-          sort: sort,
-          direction: direction,
-          baseHref: baseHref,
-          pagination: pagination,
-          query: { search: search }
-        }) }}
+          {%- set rows = [] -%}
+          {%- for animal in animals -%}
+            {%- set breedHtml -%}
+              <abbr title="{{ animal.breedName }}">{{ animal.breedCode }}</abbr><span class="govuk-visually-hidden">, {{ animal.breedName }}</span>
+            {%- endset -%}
+            {%- set _ = rows.push([
+              { text: animal.eartag } if animal.eartag else { html: notSuppliedHtml },
+              { text: animal.dateOfBirth } if animal.dateOfBirth else { html: notSuppliedHtml },
+              { text: animal.age } if animal.age else { html: notSuppliedHtml },
+              { text: animal.dateOnCph } if animal.dateOnCph else { html: notSuppliedHtml },
+              { text: animal.sex } if animal.sex else { html: notSuppliedHtml },
+              { html: breedHtml } if animal.breedCode else { html: notSuppliedHtml }
+            ]) -%}
+          {%- endfor -%}
+
+          {{ sortablePaginatedTable({
+            caption: "Animals on holding",
+            columns: columns,
+            rows: rows,
+            sort: sort,
+            direction: direction,
+            baseHref: baseHref,
+            pagination: pagination,
+            query: { search: search }
+          }) }}
+        {% endif %}
       {% endif %}
     </div>
   </div>

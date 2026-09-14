@@ -107,6 +107,21 @@ const holdingsByUserId = {
       postcode: 'MK1 1AY',
       herdMark: 'UK 999998'
     })
+  ],
+  // No animals recorded against this holding at all - unlike a search that
+  // returns zero results, this is the CPH's actual state with no search
+  // applied.
+  'emptyfield.farmer@example.com': [
+    buildHolding({
+      cph: '22/095/0095',
+      name: 'Emptyfield Farm',
+      businessName: 'Emptyfield Ltd',
+      addressLine2: 'Mill Lane',
+      town: 'Lavendon',
+      county: 'Buckinghamshire',
+      postcode: 'MK1 1AX',
+      herdMark: 'UK 999997'
+    })
   ]
 }
 

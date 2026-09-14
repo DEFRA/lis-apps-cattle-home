@@ -156,6 +156,34 @@ describe('animalsOnHoldingController', () => {
     expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
   })
 
+  test('it shows the no-animals empty state when the holding has none recorded', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/095/0095/animals',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        'There are no animals currently registered on your holding.'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'href="https://www.gov.uk/government/organisations/british-cattle-movement-service'
+      )
+    )
+    expect(result).not.toEqual(
+      expect.stringContaining('Search animals on your holding')
+    )
+    expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
+  })
+
   test('it shows "Not supplied", styled as an error, for missing animal fields', async () => {
     // Arrange
     const jwt = await createHubJwt()
