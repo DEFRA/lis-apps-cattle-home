@@ -6,7 +6,7 @@
 // display fields not modelled in fake/service are invented.
 
 /**
- * @param {{ cph: string, name: string, businessName: string, addressLine2: string, town: string, county: string, postcode: string, herdMark: string }} fields
+ * @param {{ cph: string, name: string, businessName?: string, addressLine2: string, town: string, county: string, postcode: string, herdMark: string }} fields
  * @returns {object} a UserCph-shaped holding
  */
 function buildHolding({
@@ -22,14 +22,12 @@ function buildHolding({
   return {
     cph,
     name,
-    business_name: businessName,
+    business_name: businessName ?? null,
     address: [name, addressLine2, town, county, postcode, 'England'],
     allowed_species: ['ctt'],
     herd_marks: [herdMark]
   }
 }
-
-const fairfieldLivestockLtd = 'Fairfield Livestock Ltd'
 
 // [cph, name, addressLine2, postcode, herdMark] - all in Lavendon, Buckinghamshire
 const fairfieldHoldingRows = [
@@ -46,7 +44,6 @@ const holdingsByUserId = {
     buildHolding({
       cph: '22/001/0001',
       name: 'Oakfield Farm',
-      businessName: 'Oakfield Livestock Ltd',
       addressLine2: 'Church Lane',
       town: 'Shrewsbury',
       county: 'Shropshire',
@@ -54,12 +51,15 @@ const holdingsByUserId = {
       herdMark: 'UK 324537'
     })
   ],
+  // fake/service's krds fixture only models an individual keeper per
+  // holding (see data/fixtures/locations/), not a separate business entity,
+  // so business_name is legitimately unsupplied here - unlike the synthetic
+  // edge-case holdings below, which invent one.
   'fairfield.farmer@fairfield-farms.co.uk': fairfieldHoldingRows.map(
     ([cph, name, addressLine2, postcode, herdMark]) =>
       buildHolding({
         cph,
         name,
-        businessName: fairfieldLivestockLtd,
         addressLine2,
         town: 'Lavendon',
         county: 'Buckinghamshire',

@@ -117,7 +117,11 @@ describe('holdingDetailsController', () => {
     expect(result).toEqual(expect.stringContaining('govuk-grid-column-full'))
     expect(result).toEqual(expect.stringContaining('Oakfield Farm'))
     expect(result).toEqual(expect.stringContaining('22/001/0001'))
-    expect(result).toEqual(expect.stringContaining('Oakfield Livestock Ltd'))
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<strong class="govuk-tag govuk-tag--red">Not supplied</strong>'
+      )
+    )
     expect(result).toEqual(expect.stringContaining('UK 324537'))
     expect(result).not.toEqual(expect.stringContaining('Registered keeper'))
     expect(result).toEqual(
