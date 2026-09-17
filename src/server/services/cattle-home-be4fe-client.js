@@ -1,5 +1,7 @@
 import { BaseClient } from '@defra/lis-hubs-infra-core'
 
+import { config } from '#config/config.js'
+
 /**
  * @typedef {object} UserCph
  * @property {string} cph
@@ -64,7 +66,7 @@ const localPort = 8087
 
 const cphPattern = /^(\d{2})\/(\d{3})\/(\d{4})$/
 
-export class CattleHomeBe4FeClient extends BaseClient {
+class CattleHomeBe4FeClient extends BaseClient {
   /**
    * @param {object} options
    * @param {string} options.environment 'local' | 'docker_compose' | 'dev' | 'test' | 'ext-test' | 'perf-test' | 'prod'
@@ -149,3 +151,8 @@ export class CattleHomeBe4FeClient extends BaseClient {
     return payload.data
   }
 }
+
+export const cattleHomeBe4FeClient = new CattleHomeBe4FeClient({
+  environment: config.get('environment'),
+  apiKey: config.get('cattleHomeApi.apiKey')
+})
