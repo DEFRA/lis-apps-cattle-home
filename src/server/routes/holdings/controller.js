@@ -1,4 +1,3 @@
-import Boom from '@hapi/boom'
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
@@ -18,15 +17,7 @@ export function cphFromParams({ county, parish, holding: holdingNumber } = {}) {
 export const holdingDetailsController = {
   async handler(request, h) {
     const cph = cphFromParams(request.params)
-    let holding
-
-    try {
-      holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)
-    } catch (error) {
-      throw error.statusCode
-        ? Boom.boomify(error, { statusCode: error.statusCode })
-        : error
-    }
+    const holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)
 
     return h.view('holdings/details', {
       pageTitle: 'Holding details',
