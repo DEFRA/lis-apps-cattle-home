@@ -1,7 +1,7 @@
+import Boom from '@hapi/boom'
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
-import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
-import { getHoldingByCph } from '#server/services/canned-holdings.js'
+import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 
@@ -16,12 +16,16 @@ export function cphFromParams({ county, parish, holding: holdingNumber } = {}) {
 }
 
 export const holdingDetailsController = {
-  handler(request, h) {
+  async handler(request, h) {
     const cph = cphFromParams(request.params)
-    const holding = getHoldingByCph(cph)
+    let holding
 
-    if (!holding) {
-      return h.response('Page not found').code(statusCodes.notFound)
+    try {
+      holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)
+    } catch (error) {
+      throw error.statusCode
+        ? Boom.boomify(error, { statusCode: error.statusCode })
+        : error
     }
 
     return h.view('holdings/details', {

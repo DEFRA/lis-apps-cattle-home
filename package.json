@@ -52,6 +52,7 @@
     "@defra/lis-infra-ui-services": "^0.11.0",
     "@defra/lis-species-cattle": "0.2.0",
     "@defra/lis-taxonomy-home": "0.5.0",
+    "@hapi/boom": "10.0.1",
     "@hapi/catbox-memory": "6.0.2",
     "@hapi/catbox-redis": "7.0.2",
     "@hapi/hapi": "21.4.10",
