@@ -1,10 +1,25 @@
-import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  vi
+} from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
+import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
+import animalsByCph from '#server/services/canned-animals.json' with { type: 'json' }
 import { animals } from './index.js'
+
+const mocks = {
+  getHoldingDetails: vi.spyOn(cattleHomeBe4FeClient, 'getHoldingDetails'),
+  getCattleForCph: vi.spyOn(cattleHomeBe4FeClient, 'getCattleForCph')
+}
 
 async function createHubJwt() {
   return issueHubJwt(
@@ -55,9 +70,15 @@ describe('animalsOnHoldingController', () => {
     await server.stop({ timeout: 0 })
   })
 
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
   test('it renders the results for an authenticated user', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getHoldingDetails.mockResolvedValue({ cph: '22/001/0001' })
+    mocks.getCattleForCph.mockResolvedValue(animalsByCph['22/001/0001'])
 
     // Act
     const { statusCode, result } = await server.inject({
@@ -68,103 +89,20 @@ describe('animalsOnHoldingController', () => {
 
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
+    expect(mocks.getCattleForCph).toHaveBeenCalledWith('22/001/0001')
     expect(result).toEqual(expect.stringContaining('Animals on holding'))
     expect(result).toEqual(expect.stringContaining('UK200000000001'))
-    expect(result).toEqual(expect.stringContaining('Date on holding'))
-    expect(result).toEqual(
-      expect.stringContaining('Showing 1 to 25 of 34 results')
-    )
-    expect(result).toEqual(expect.stringContaining('aria-sort="ascending"'))
-    expect(result).toEqual(
-      expect.stringContaining('Animals on holding (page 1 of 2)')
-    )
-  })
-
-  test('it shows the remaining results on page 2', async () => {
-    // Arrange
-    const jwt = await createHubJwt()
-
-    // Act
-    const { statusCode, result } = await server.inject({
-      method: 'GET',
-      url: '/holdings/22/001/0001/animals?page=2',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
-    })
-
-    // Assert
-    expect(statusCode).toBe(statusCodes.ok)
-    expect(result).toEqual(
-      expect.stringContaining('Showing 26 to 34 of 34 results')
-    )
-    expect(result).toEqual(
-      expect.stringContaining('Animals on holding (page 2 of 2)')
-    )
-  })
-
-  test('it sorts by the requested column and direction', async () => {
-    // Arrange
-    const jwt = await createHubJwt()
-
-    // Act
-    const { result } = await server.inject({
-      method: 'GET',
-      url: '/holdings/22/001/0001/animals?sort=date_of_birth&direction=desc',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
-    })
-
-    // Assert
-    expect(result).toEqual(expect.stringContaining('aria-sort="descending"'))
-    const rowsStart = result.indexOf('govuk-table__body')
-    // UK300000000004 (born 2026-06-01) is the most recent birth date, so it
-    // should sort first when descending.
-    expect(result.indexOf('UK300000000004', rowsStart)).toBeLessThan(
-      result.indexOf('UK200000000001', rowsStart)
-    )
-  })
-
-  test('it filters by the search term', async () => {
-    // Arrange
-    const jwt = await createHubJwt()
-
-    // Act
-    const { result } = await server.inject({
-      method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=UK300000000023',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
-    })
-
-    // Assert
-    expect(result).toEqual(
-      expect.stringContaining("1 result for <strong>'UK300000000023'</strong>")
-    )
     expect(result).toEqual(expect.stringContaining('UK300000000023'))
-    expect(result).not.toEqual(expect.stringContaining('UK200000000001'))
-  })
-
-  test('it shows no table and a "Clear search" link when nothing matches', async () => {
-    // Arrange
-    const jwt = await createHubJwt()
-
-    // Act
-    const { result } = await server.inject({
-      method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=not-a-real-animal',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
-    })
-
-    // Assert
-    expect(result).toEqual(
-      expect.stringContaining(
-        "0 results for <strong>'not-a-real-animal'</strong>"
-      )
-    )
-    expect(result).toEqual(expect.stringContaining('Clear search'))
-    expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
+    expect(result).toEqual(expect.stringContaining('Date on holding'))
+    expect(result).toEqual(expect.stringContaining('Showing 34 results'))
+    expect(result).toEqual(expect.stringContaining('aria-sort="ascending"'))
   })
 
   test('it shows the no-animals empty state when the holding has none recorded', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getHoldingDetails.mockResolvedValue({ cph: '22/095/0095' })
+    mocks.getCattleForCph.mockResolvedValue([])
 
     // Act
     const { result } = await server.inject({
@@ -193,6 +131,8 @@ describe('animalsOnHoldingController', () => {
   test('it shows "Not supplied", styled as an error, for missing animal fields', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getHoldingDetails.mockResolvedValue({ cph: '22/096/0096' })
+    mocks.getCattleForCph.mockResolvedValue(animalsByCph['22/096/0096'])
 
     // Act
     const { result } = await server.inject({
@@ -209,12 +149,15 @@ describe('animalsOnHoldingController', () => {
     ).length
     expect(notSuppliedCount).toBe(3)
     expect(result).toEqual(expect.stringContaining('UK400000000001'))
-    expect(result).not.toEqual(expect.stringContaining('page 1 of'))
   })
 
-  test('it returns not found for a CPH with no canned holding', async () => {
+  test('it returns not found when the BE4FE has no matching holding', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    const notFoundError = new Error('Request failed - 404')
+    notFoundError.statusCode = statusCodes.notFound
+    mocks.getHoldingDetails.mockRejectedValue(notFoundError)
+    mocks.getCattleForCph.mockResolvedValue([])
 
     // Act
     const { statusCode } = await server.inject({

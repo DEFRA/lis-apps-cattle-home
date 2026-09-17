@@ -1,16 +1,14 @@
-import { vi } from 'vitest'
+import { afterEach, vi } from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
-import { getHoldingsForUser } from '#server/services/canned-holdings.js'
+import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 import { cphPath, landingController } from './controller.js'
 
-vi.mock('#server/services/canned-holdings.js')
-
 const mocks = {
-  getHoldingsForUser: vi.mocked(getHoldingsForUser)
+  getCphsForUser: vi.spyOn(cattleHomeBe4FeClient, 'getCphsForUser')
 }
 
 async function createHubJwt(
@@ -46,9 +44,13 @@ describe('#landingController', () => {
     await server.stop({ timeout: 0 })
   })
 
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
   test('Should redirect a keeper with one holding to its details page', async () => {
     // Arrange
-    mocks.getHoldingsForUser.mockReturnValue([
+    mocks.getCphsForUser.mockResolvedValue([
       { name: 'My farm', cph: '10/081/1234' }
     ])
     const jwt = await createHubJwt()
@@ -67,7 +69,7 @@ describe('#landingController', () => {
 
   test('Should redirect a keeper with several holdings to the first', async () => {
     // Arrange
-    mocks.getHoldingsForUser.mockReturnValue([
+    mocks.getCphsForUser.mockResolvedValue([
       { name: 'First farm', cph: '10/081/1234' },
       { name: 'Second farm', cph: '10/081/5678' }
     ])
@@ -87,7 +89,7 @@ describe('#landingController', () => {
 
   test('Should return not found when the keeper has no holdings', async () => {
     // Arrange
-    mocks.getHoldingsForUser.mockReturnValue([])
+    mocks.getCphsForUser.mockResolvedValue([])
     const jwt = await createHubJwt()
 
     // Act
@@ -103,19 +105,19 @@ describe('#landingController', () => {
 
   test('Should resolve the user id from the sub when there is no email', async () => {
     // Arrange
-    mocks.getHoldingsForUser.mockReturnValue([
+    mocks.getCphsForUser.mockResolvedValue([
       { name: 'Farm', cph: '10/081/1234' }
     ])
     const redirect = vi.fn()
 
     // Act
-    landingController.handler(
+    await landingController.handler(
       { app: { hubAuth: { sub: 'subject-id', email: null } }, headers: {} },
       { redirect }
     )
 
     // Assert
-    expect(mocks.getHoldingsForUser).toHaveBeenCalledWith('subject-id')
+    expect(mocks.getCphsForUser).toHaveBeenCalledWith('subject-id')
     expect(redirect).toHaveBeenCalledWith('/cattle/holdings/10/081/1234')
   })
 

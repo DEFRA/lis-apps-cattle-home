@@ -2,7 +2,7 @@ import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { logger } from '@defra/lis-hubs-infra-core'
 
-import { getHoldingsForUser } from '#server/services/canned-holdings.js'
+import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
 const holdingDetailsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 
@@ -10,11 +10,11 @@ const holdingDetailsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 // holding goes straight to it, a keeper with several goes to their first.
 // A keeper with none has nothing to land on.
 export const landingController = {
-  handler(request, h) {
+  async handler(request, h) {
     const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
     logger.info(`Cattle home landing request received [userId=${userId}]`)
 
-    const holdings = getHoldingsForUser(userId)
+    const holdings = await cattleHomeBe4FeClient.getCphsForUser(userId)
 
     if (holdings.length === 0) {
       return h.response('Page not found').code(statusCodes.notFound)
