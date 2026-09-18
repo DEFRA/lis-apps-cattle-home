@@ -1,0 +1,144 @@
+// Steel-thread placeholder holding data, standing in for be4fe/cattle-home
+// until it's wired to lis-fake-service (LREG-457/458). CPHs match
+// fake/service's user fixtures (fake/service/data/fixtures/users.json) so
+// holding access lines up with login. Each holding matches the shape of
+// be4fe/cattle-home's UserCph response model (see cattle-home-be4fe-client.js);
+// display fields not modelled in fake/service are invented.
+
+/**
+ * @param {{ cph: string, name: string, businessName?: string, addressLine2: string, town: string, county: string, postcode: string, herdMark: string }} fields
+ * @returns {object} a UserCph-shaped holding
+ */
+function buildHolding({
+  cph,
+  name,
+  businessName,
+  addressLine2,
+  town,
+  county,
+  postcode,
+  herdMark
+}) {
+  return {
+    cph,
+    name,
+    business_name: businessName ?? null,
+    address: [name, addressLine2, town, county, postcode, 'England'],
+    allowed_species: ['ctt'],
+    herd_marks: [herdMark]
+  }
+}
+
+// [cph, name, addressLine2, postcode, herdMark] - all in Lavendon, Buckinghamshire
+const fairfieldHoldingRows = [
+  ['22/002/0002', 'Fairfield Farm', 'Manor Road', 'MK1 1AA', 'UK 324787'],
+  ['22/003/0003', 'Meadow View Farm', 'Mill Lane', 'MK1 1AB', 'UK 324788'],
+  ['22/004/0004', 'Hilltop Farm', 'Ridge Road', 'MK1 1AC', 'UK 324789'],
+  ['22/005/0005', 'Riverside Farm', 'Riverbank Lane', 'MK1 1AD', 'UK 324790'],
+  ['22/006/0006', 'Long Acre Farm', 'Long Lane', 'MK1 1AE', 'UK 324791'],
+  ['22/007/0007', 'Orchard Farm', 'Orchard Road', 'MK1 1AF', 'UK 324792']
+]
+
+const holdingsByUserId = {
+  'oakfield.farmer@oakhill-farms.co.uk': [
+    buildHolding({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      addressLine2: 'Church Lane',
+      town: 'Shrewsbury',
+      county: 'Shropshire',
+      postcode: 'SY4 1AB',
+      herdMark: 'UK 324537'
+    })
+  ],
+  // fake/service's krds fixture only models an individual keeper per
+  // holding (see data/fixtures/locations/), not a separate business entity,
+  // so business_name is legitimately unsupplied here - unlike the synthetic
+  // edge-case holdings below, which invent one.
+  'fairfield.farmer@fairfield-farms.co.uk': fairfieldHoldingRows.map(
+    ([cph, name, addressLine2, postcode, herdMark]) =>
+      buildHolding({
+        cph,
+        name,
+        addressLine2,
+        town: 'Lavendon',
+        county: 'Buckinghamshire',
+        postcode,
+        herdMark
+      })
+  ),
+  // A holding with no name and no herd mark on record - both are legitimate
+  // "where available" fields per LREG-186, unlike the others below.
+  'noname.farmer@example.com': [
+    {
+      cph: '22/098/0098',
+      name: null,
+      business_name: 'Unnamed Holding Ltd',
+      address: [
+        'Long Lane',
+        'Lavendon',
+        'Buckinghamshire',
+        'MK1 1AZ',
+        'England'
+      ],
+      allowed_species: ['ctt'],
+      herd_marks: []
+    }
+  ],
+  // A holding with no address recorded at all.
+  'noaddress.farmer@example.com': [
+    {
+      cph: '22/097/0097',
+      name: 'No Address Farm',
+      business_name: 'No Address Ltd',
+      address: [],
+      allowed_species: ['ctt'],
+      herd_marks: ['UK 999999']
+    }
+  ],
+  'gapfield.farmer@example.com': [
+    buildHolding({
+      cph: '22/096/0096',
+      name: 'Gapfield Farm',
+      businessName: 'Gapfield Ltd',
+      addressLine2: 'Long Lane',
+      town: 'Lavendon',
+      county: 'Buckinghamshire',
+      postcode: 'MK1 1AY',
+      herdMark: 'UK 999998'
+    })
+  ],
+  // No animals recorded against this holding at all - unlike a search that
+  // returns zero results, this is the CPH's actual state with no search
+  // applied.
+  'emptyfield.farmer@example.com': [
+    buildHolding({
+      cph: '22/095/0095',
+      name: 'Emptyfield Farm',
+      businessName: 'Emptyfield Ltd',
+      addressLine2: 'Mill Lane',
+      town: 'Lavendon',
+      county: 'Buckinghamshire',
+      postcode: 'MK1 1AX',
+      herdMark: 'UK 999997'
+    })
+  ]
+}
+
+/**
+ * @param {string} userId
+ * @returns {object[]} the holdings this user keeps
+ */
+export function getHoldingsForUser(userId) {
+  return holdingsByUserId[userId] ?? []
+}
+
+/**
+ * @param {string} cph holding identifier
+ * @returns {object|undefined} the holding with this CPH, if any
+ */
+export function getHoldingByCph(cph) {
+  return Object.values(holdingsByUserId)
+    .flat()
+    .find((holding) => holding.cph === cph)
+}

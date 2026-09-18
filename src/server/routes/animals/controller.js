@@ -1,28 +1,46 @@
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
+import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
-import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
+import { getAnimalsForCph } from '#server/services/canned-animals.js'
+import { getHoldingByCph } from '#server/services/canned-holdings.js'
 import { computeAge } from '#server/services/animal-age.js'
 import { getBreedName } from '#server/services/breed-names.js'
 import { cphFromParams } from '../holdings/controller.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 
-// The BE4FE returns every animal on a CPH in one unsorted, unfiltered
-// list - it doesn't support search, sorting or pagination yet - so this
-// renders that list as-is, as a single page.
 export const animalsOnHoldingController = {
-  async handler(request, h) {
+  handler(request, h) {
     const cph = cphFromParams(request.params)
-    const [holding, animals] = await Promise.all([
-      cattleHomeBe4FeClient.getHoldingDetails(cph),
-      cattleHomeBe4FeClient.getCattleForCph(cph)
-    ])
+    const holding = getHoldingByCph(cph)
 
-    const totalItems = animals.length
-    const baseHref = `${holdingsBasePath}/${cph}/animals`
+    if (!holding) {
+      return h.response('Page not found').code(statusCodes.notFound)
+    }
+
+    const search = request.query.search?.trim() || ''
+    const sort = request.query.sort || 'ear_tag'
+    const direction = request.query.direction === 'desc' ? 'desc' : 'asc'
+    const {
+      animals: pageAnimals,
+      totalItems,
+      totalPages,
+      currentPage,
+      itemsPerPage
+    } = getAnimalsForCph(cph, {
+      search,
+      sort,
+      direction,
+      page: Number(request.query.page) || 1
+    })
+
+    const pageTitle =
+      totalPages > 1
+        ? `Animals on holding (page ${currentPage} of ${totalPages})`
+        : 'Animals on holding'
 
     return h.view('animals/index', {
-      pageTitle: 'Animals on holding',
+      pageTitle,
       holding,
       columns: [
         { text: 'Ear tag number', sortKey: 'ear_tag' },
@@ -32,7 +50,7 @@ export const animalsOnHoldingController = {
         { text: 'Sex', sortKey: 'sex' },
         { text: 'Breed', sortKey: 'breed' }
       ],
-      animals: animals.map((animal) => ({
+      animals: pageAnimals.map((animal) => ({
         eartag: animal.eartag,
         dateOfBirth: animal.date_of_birth,
         age: animal.date_of_birth ? computeAge(animal.date_of_birth) : null,
@@ -41,16 +59,16 @@ export const animalsOnHoldingController = {
         breedCode: animal.breed_code,
         breedName: getBreedName(animal.breed_code)
       })),
-      search: '',
+      search,
       totalItems,
-      sort: 'ear_tag',
-      direction: 'asc',
-      baseHref,
+      sort,
+      direction,
+      baseHref: `${holdingsBasePath}/${cph}/animals`,
       pagination: {
-        currentPage: 1,
-        totalPages: 1,
+        currentPage,
+        totalPages,
         totalItems,
-        itemsPerPage: totalItems
+        itemsPerPage
       },
       tabs: [
         {
@@ -59,7 +77,7 @@ export const animalsOnHoldingController = {
         },
         {
           text: 'Animals on holding',
-          href: baseHref,
+          href: `${holdingsBasePath}/${cph}/animals`,
           active: true
         }
       ]
