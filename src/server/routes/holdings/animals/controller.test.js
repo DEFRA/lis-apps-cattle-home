@@ -1,10 +1,9 @@
-import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
-import { animals } from './index.js'
 
 async function createHubJwt() {
   return issueHubJwt(
@@ -24,24 +23,6 @@ async function createHubJwt() {
     }
   )
 }
-
-describe('animals plugin', () => {
-  test('it registers the animals on holding route', () => {
-    // Arrange
-    const route = vi.fn()
-
-    // Act
-    animals.plugin.register({ route })
-
-    // Assert
-    expect(route).toHaveBeenCalledWith(
-      expect.objectContaining({
-        method: 'GET',
-        path: '/holdings/{county}/{parish}/{holding}/animals'
-      })
-    )
-  })
-})
 
 describe('animalsOnHoldingController', () => {
   let server

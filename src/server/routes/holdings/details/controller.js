@@ -19,7 +19,7 @@ export const holdingDetailsController = {
     const cph = cphFromParams(request.params)
     const holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)
 
-    return h.view('holdings/details', {
+    return h.view('holdings/details/index', {
       pageTitle: 'Holding details',
       holding: {
         cphNumber: holding.cph,

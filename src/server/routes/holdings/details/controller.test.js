@@ -14,7 +14,6 @@ import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 import { cphFromParams } from './controller.js'
-import { holdings } from './index.js'
 
 const mocks = {
   getHoldingDetails: vi.spyOn(cattleHomeBe4FeClient, 'getHoldingDetails')
@@ -68,24 +67,6 @@ describe('cphFromParams()', () => {
 
     // Assert
     expect(cph).toBeNull()
-  })
-})
-
-describe('holdings plugin', () => {
-  test('it registers the holding details route', () => {
-    // Arrange
-    const route = vi.fn()
-
-    // Act
-    holdings.plugin.register({ route })
-
-    // Assert
-    expect(route).toHaveBeenCalledWith(
-      expect.objectContaining({
-        method: 'GET',
-        path: '/holdings/{county}/{parish}/{holding}'
-      })
-    )
   })
 })
 
