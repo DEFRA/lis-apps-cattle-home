@@ -1,19 +1,15 @@
-import { afterEach, vi } from 'vitest'
+import { vi } from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
-import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 import { cphPath, landingController } from './controller.js'
 
-const mocks = {
-  getCphsForUser: vi.spyOn(cattleHomeBe4FeClient, 'getCphsForUser')
-}
-
-async function createHubJwt(
-  statements = [{ role: 'lis-role-cattle-read', cphs: '*' }]
-) {
+async function createHubJwt({
+  statements = [{ role: 'lis-role-cattle-read', cphs: '*' }],
+  holdings = []
+} = {}) {
   return issueHubJwt(
     {
       sub: 'test-user',
@@ -21,6 +17,7 @@ async function createHubJwt(
       firstName: 'Test',
       lastName: 'User',
       statements,
+      holdings,
       serviceId: 'test-service'
     },
     {
@@ -44,16 +41,11 @@ describe('#landingController', () => {
     await server.stop({ timeout: 0 })
   })
 
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
   test('Should redirect a keeper with one holding to its details page', async () => {
     // Arrange
-    mocks.getCphsForUser.mockResolvedValue([
-      { name: 'My farm', cph: '10/081/1234' }
-    ])
-    const jwt = await createHubJwt()
+    const jwt = await createHubJwt({
+      holdings: [{ countyParishHoldingNumber: '10/081/1234' }]
+    })
 
     // Act
     const { statusCode, headers } = await server.inject({
@@ -69,11 +61,12 @@ describe('#landingController', () => {
 
   test('Should redirect a keeper with several holdings to the first', async () => {
     // Arrange
-    mocks.getCphsForUser.mockResolvedValue([
-      { name: 'First farm', cph: '10/081/1234' },
-      { name: 'Second farm', cph: '10/081/5678' }
-    ])
-    const jwt = await createHubJwt()
+    const jwt = await createHubJwt({
+      holdings: [
+        { countyParishHoldingNumber: '10/081/1234' },
+        { countyParishHoldingNumber: '10/081/5678' }
+      ]
+    })
 
     // Act
     const { statusCode, headers } = await server.inject({
@@ -89,7 +82,6 @@ describe('#landingController', () => {
 
   test('Should return not found when the keeper has no holdings', async () => {
     // Arrange
-    mocks.getCphsForUser.mockResolvedValue([])
     const jwt = await createHubJwt()
 
     // Act
@@ -105,19 +97,22 @@ describe('#landingController', () => {
 
   test('Should resolve the user id from the sub when there is no email', async () => {
     // Arrange
-    mocks.getCphsForUser.mockResolvedValue([
-      { name: 'Farm', cph: '10/081/1234' }
-    ])
     const redirect = vi.fn()
+    const request = {
+      app: {
+        hubAuth: {
+          sub: 'subject-id',
+          email: null,
+          holdings: [{ countyParishHoldingNumber: '10/081/1234' }]
+        }
+      },
+      headers: {}
+    }
 
     // Act
-    await landingController.handler(
-      { app: { hubAuth: { sub: 'subject-id', email: null } }, headers: {} },
-      { redirect }
-    )
+    landingController.handler(request, { redirect })
 
     // Assert
-    expect(mocks.getCphsForUser).toHaveBeenCalledWith('subject-id')
     expect(redirect).toHaveBeenCalledWith('/cattle/holdings/10/081/1234')
   })
 
@@ -137,9 +132,9 @@ describe('#landingController', () => {
 
   test('Should return forbidden when the user lacks the cattle module permission', async () => {
     // Arrange
-    const jwt = await createHubJwt([
-      { role: 'lis-role-cattle-move-read', cphs: '*' }
-    ])
+    const jwt = await createHubJwt({
+      statements: [{ role: 'lis-role-cattle-move-read', cphs: '*' }]
+    })
 
     // Act
     const { statusCode, result } = await server.inject({
