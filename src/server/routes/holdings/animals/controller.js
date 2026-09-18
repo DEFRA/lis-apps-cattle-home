@@ -5,7 +5,7 @@ import { getAnimalsForCph } from '#server/services/canned-animals.js'
 import { getHoldingByCph } from '#server/services/canned-holdings.js'
 import { computeAge } from '#server/services/animal-age.js'
 import { getBreedName } from '#server/services/breed-names.js'
-import { cphFromParams } from '../holdings/controller.js'
+import { cphFromParams } from '../details/controller.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 
@@ -39,7 +39,7 @@ export const animalsOnHoldingController = {
         ? `Animals on holding (page ${currentPage} of ${totalPages})`
         : 'Animals on holding'
 
-    return h.view('animals/index', {
+    return h.view('holdings/animals/index', {
       pageTitle,
       holding,
       columns: [

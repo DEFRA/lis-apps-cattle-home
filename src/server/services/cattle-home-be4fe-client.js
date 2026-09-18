@@ -1,5 +1,7 @@
 import { BaseClient } from '@defra/lis-hubs-infra-core'
 
+import { config } from '#config/config.js'
+
 /**
  * @typedef {object} UserCph
  * @property {string} cph
@@ -16,11 +18,26 @@ import { BaseClient } from '@defra/lis-hubs-infra-core'
  */
 
 /**
+ * @typedef {object} HoldingDetails
+ * @property {string} cph
+ * @property {string} [name]
+ * @property {string} [business_name]
+ * @property {string[]} address
+ * @property {string} [holding_type]
+ * @property {string} [registered_keeper]
+ * @property {string[]} herd_marks
+ * @property {string[]} allowed_species
+ */
+
+/**
  * @typedef {object} CattleSummary
  * @property {string} cattle_id
  * @property {string} eartag
  * @property {string} breed
+ * @property {string} [breed_code]
+ * @property {string} [breed_name]
  * @property {string} date_of_birth
+ * @property {string} [date_on_cph]
  * @property {string} sex
  * @property {string} status
  */
@@ -47,14 +64,15 @@ import { BaseClient } from '@defra/lis-hubs-infra-core'
 // project's local dev workflow) is always reached via its published port.
 const localPort = 8087
 
-const cphSegmentCount = 3
+const cphPattern = /^(\d{2})\/(\d{3})\/(\d{4})$/
 
-export class CattleHomeBe4FeClient extends BaseClient {
+class CattleHomeBe4FeClient extends BaseClient {
   /**
-   * @param {string} environment 'local' | 'docker_compose' | 'dev' | 'test' | 'ext-test' | 'perf-test' | 'prod'
-   * @param {string} [apiKey] Optional API key sent to the cattle-home BE4FE API
+   * @param {object} options
+   * @param {string} options.environment 'local' | 'docker_compose' | 'dev' | 'test' | 'ext-test' | 'perf-test' | 'prod'
+   * @param {string} [options.apiKey] Optional API key sent to the cattle-home BE4FE API
    */
-  constructor(environment, apiKey) {
+  constructor({ environment, apiKey }) {
     super({
       environment,
       serviceName: 'lis-be4fe-cattle-home',
@@ -77,20 +95,48 @@ export class CattleHomeBe4FeClient extends BaseClient {
 
   /**
    * @param {string} cph holding identifier, e.g. '10/081/1234'
-   * @returns {Promise<CattleSummary[]>} the cattle on this CPH
+   * @returns {string} the CPH re-encoded as three URL path segments
    */
-  async getCattleForCph(cph) {
-    const cphSegments = cph.split('/')
-
-    if (
-      cphSegments.length !== cphSegmentCount ||
-      cphSegments.some((part) => !part)
-    ) {
+  #encodeCphSegments(cph) {
+    if (!cphPattern.test(cph)) {
       throw new TypeError('CPH must contain county, parish and holding')
     }
 
-    const encodedCph = cphSegments.map(encodeURIComponent).join('/')
-    const { payload } = await this._get(`api/cphs/${encodedCph}/cattle`)
+    return cph
+  }
+
+  /**
+   * @param {string} cph holding identifier, e.g. '10/081/1234'
+   * @returns {Promise<HoldingDetails>} the holding's details
+   */
+  async getHoldingDetails(cph) {
+    const encodedCph = this.#encodeCphSegments(cph)
+    const { payload } = await this._get(`api/cphs/${encodedCph}`)
+    return payload.data
+  }
+
+  /**
+   * @param {string} cph holding identifier, e.g. '10/081/1234'
+   * @param {{ eartag?: string, breed?: string, sex?: string }} [query] optional search filters, passed through to the cattle API
+   * @returns {Promise<CattleSummary[]>} the cattle on this CPH
+   */
+  async getCattleForCph(cph, query = {}) {
+    const encodedCph = this.#encodeCphSegments(cph)
+    const searchParams = new URLSearchParams()
+
+    for (const [name, value] of Object.entries(query)) {
+      if (value) {
+        searchParams.set(name, value)
+      }
+    }
+
+    let path = `api/cphs/${encodedCph}/cattle`
+
+    if (searchParams.size) {
+      path += `?${searchParams.toString()}`
+    }
+
+    const { payload } = await this._get(path)
     return payload.data
   }
 
@@ -105,3 +151,8 @@ export class CattleHomeBe4FeClient extends BaseClient {
     return payload.data
   }
 }
+
+export const cattleHomeBe4FeClient = new CattleHomeBe4FeClient({
+  environment: config.get('environment'),
+  apiKey: config.get('cattleHomeApi.apiKey')
+})

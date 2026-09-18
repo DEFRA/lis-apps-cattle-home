@@ -4,18 +4,12 @@ import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
-import { getHoldingsForUser } from '#server/services/canned-holdings.js'
 import { cphPath, landingController } from './controller.js'
 
-vi.mock('#server/services/canned-holdings.js')
-
-const mocks = {
-  getHoldingsForUser: vi.mocked(getHoldingsForUser)
-}
-
-async function createHubJwt(
-  statements = [{ role: 'lis-role-cattle-read', cphs: '*' }]
-) {
+async function createHubJwt({
+  statements = [{ role: 'lis-role-cattle-read', cphs: '*' }],
+  holdings = []
+} = {}) {
   return issueHubJwt(
     {
       sub: 'test-user',
@@ -23,6 +17,7 @@ async function createHubJwt(
       firstName: 'Test',
       lastName: 'User',
       statements,
+      holdings,
       serviceId: 'test-service'
     },
     {
@@ -48,10 +43,9 @@ describe('#landingController', () => {
 
   test('Should redirect a keeper with one holding to its details page', async () => {
     // Arrange
-    mocks.getHoldingsForUser.mockReturnValue([
-      { name: 'My farm', cph: '10/081/1234' }
-    ])
-    const jwt = await createHubJwt()
+    const jwt = await createHubJwt({
+      holdings: [{ countyParishHoldingNumber: '10/081/1234' }]
+    })
 
     // Act
     const { statusCode, headers } = await server.inject({
@@ -67,11 +61,12 @@ describe('#landingController', () => {
 
   test('Should redirect a keeper with several holdings to the first', async () => {
     // Arrange
-    mocks.getHoldingsForUser.mockReturnValue([
-      { name: 'First farm', cph: '10/081/1234' },
-      { name: 'Second farm', cph: '10/081/5678' }
-    ])
-    const jwt = await createHubJwt()
+    const jwt = await createHubJwt({
+      holdings: [
+        { countyParishHoldingNumber: '10/081/1234' },
+        { countyParishHoldingNumber: '10/081/5678' }
+      ]
+    })
 
     // Act
     const { statusCode, headers } = await server.inject({
@@ -87,7 +82,6 @@ describe('#landingController', () => {
 
   test('Should return not found when the keeper has no holdings', async () => {
     // Arrange
-    mocks.getHoldingsForUser.mockReturnValue([])
     const jwt = await createHubJwt()
 
     // Act
@@ -103,19 +97,22 @@ describe('#landingController', () => {
 
   test('Should resolve the user id from the sub when there is no email', async () => {
     // Arrange
-    mocks.getHoldingsForUser.mockReturnValue([
-      { name: 'Farm', cph: '10/081/1234' }
-    ])
     const redirect = vi.fn()
+    const request = {
+      app: {
+        hubAuth: {
+          sub: 'subject-id',
+          email: null,
+          holdings: [{ countyParishHoldingNumber: '10/081/1234' }]
+        }
+      },
+      headers: {}
+    }
 
     // Act
-    landingController.handler(
-      { app: { hubAuth: { sub: 'subject-id', email: null } }, headers: {} },
-      { redirect }
-    )
+    landingController.handler(request, { redirect })
 
     // Assert
-    expect(mocks.getHoldingsForUser).toHaveBeenCalledWith('subject-id')
     expect(redirect).toHaveBeenCalledWith('/cattle/holdings/10/081/1234')
   })
 
@@ -135,9 +132,9 @@ describe('#landingController', () => {
 
   test('Should return forbidden when the user lacks the cattle module permission', async () => {
     // Arrange
-    const jwt = await createHubJwt([
-      { role: 'lis-role-cattle-move-read', cphs: '*' }
-    ])
+    const jwt = await createHubJwt({
+      statements: [{ role: 'lis-role-cattle-move-read', cphs: '*' }]
+    })
 
     // Act
     const { statusCode, result } = await server.inject({

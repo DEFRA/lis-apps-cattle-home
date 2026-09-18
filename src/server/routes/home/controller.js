@@ -2,25 +2,28 @@ import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { logger } from '@defra/lis-hubs-infra-core'
 
-import { getHoldingsForUser } from '#server/services/canned-holdings.js'
-
 const holdingDetailsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 
 // The cattle spoke has no landing page of its own yet: a keeper with one
 // holding goes straight to it, a keeper with several goes to their first.
-// A keeper with none has nothing to land on.
+// A keeper with none has nothing to land on. Holdings come from the hub
+// JWT (resolved from identity-service-helper's directAssignments at login),
+// the same source KRDS/cattle-api holding details are keyed on - not a
+// spoke-local lookup.
 export const landingController = {
   handler(request, h) {
     const userId = request.app.hubAuth?.email ?? request.app.hubAuth?.sub
     logger.info(`Cattle home landing request received [userId=${userId}]`)
 
-    const holdings = getHoldingsForUser(userId)
+    const holdings = request.app.hubAuth?.holdings ?? []
 
     if (holdings.length === 0) {
       return h.response('Page not found').code(statusCodes.notFound)
     }
 
-    return h.redirect(`${holdingDetailsBasePath}/${cphPath(holdings[0].cph)}`)
+    return h.redirect(
+      `${holdingDetailsBasePath}/${cphPath(holdings[0].countyParishHoldingNumber)}`
+    )
   }
 }
 

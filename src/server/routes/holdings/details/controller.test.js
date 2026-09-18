@@ -1,11 +1,23 @@
-import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  vi
+} from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
+import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 import { cphFromParams } from './controller.js'
-import { holdings } from './index.js'
+
+const mocks = {
+  getHoldingDetails: vi.spyOn(cattleHomeBe4FeClient, 'getHoldingDetails')
+}
 
 async function createHubJwt() {
   return issueHubJwt(
@@ -58,24 +70,6 @@ describe('cphFromParams()', () => {
   })
 })
 
-describe('holdings plugin', () => {
-  test('it registers the holding details route', () => {
-    // Arrange
-    const route = vi.fn()
-
-    // Act
-    holdings.plugin.register({ route })
-
-    // Assert
-    expect(route).toHaveBeenCalledWith(
-      expect.objectContaining({
-        method: 'GET',
-        path: '/holdings/{county}/{parish}/{holding}'
-      })
-    )
-  })
-})
-
 describe('holdingDetailsController', () => {
   let server
 
@@ -88,6 +82,10 @@ describe('holdingDetailsController', () => {
     await server.stop({ timeout: 0 })
   })
 
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
   test('it renders the Oakfield Farm holding for an authenticated user', async () => {
     // Arrange
     const jwt = await createHubJwt()
@@ -98,12 +96,27 @@ describe('holdingDetailsController', () => {
         cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
       }
     }
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      business_name: null,
+      address: [
+        'Oakfield Farm',
+        'Church Lane',
+        'Shrewsbury',
+        'Shropshire',
+        'SY4 1AB',
+        'England'
+      ],
+      herd_marks: ['UK 324537']
+    })
 
     // Act
     const { result, statusCode } = await server.inject(request)
 
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
+    expect(mocks.getHoldingDetails).toHaveBeenCalledWith('22/001/0001')
     expect(result).toEqual(
       expect.stringContaining(
         'Holding details - Cattle - Livestock Information'
@@ -142,9 +155,10 @@ describe('holdingDetailsController', () => {
     // Assert
     expect(statusCode).toBe(302)
     expect(headers.location).toBeDefined()
+    expect(mocks.getHoldingDetails).not.toHaveBeenCalled()
   })
 
-  test('it returns not found for a CPH with no canned holding', async () => {
+  test('it returns not found when the BE4FE has no matching holding', async () => {
     // Arrange
     const jwt = await createHubJwt()
     const request = {
@@ -154,6 +168,9 @@ describe('holdingDetailsController', () => {
         cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
       }
     }
+    const notFoundError = new Error('Request failed - 404')
+    notFoundError.statusCode = statusCodes.notFound
+    mocks.getHoldingDetails.mockRejectedValue(notFoundError)
 
     // Act
     const { statusCode } = await server.inject(request)
@@ -172,6 +189,19 @@ describe('holdingDetailsController', () => {
         cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
       }
     }
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/098/0098',
+      name: null,
+      business_name: 'Unnamed Holding Ltd',
+      address: [
+        'Long Lane',
+        'Lavendon',
+        'Buckinghamshire',
+        'MK1 1AZ',
+        'England'
+      ],
+      herd_marks: []
+    })
 
     // Act
     const { result } = await server.inject(request)
@@ -200,6 +230,19 @@ describe('holdingDetailsController', () => {
         cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
       }
     }
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/098/0098',
+      name: null,
+      business_name: 'Unnamed Holding Ltd',
+      address: [
+        'Long Lane',
+        'Lavendon',
+        'Buckinghamshire',
+        'MK1 1AZ',
+        'England'
+      ],
+      herd_marks: []
+    })
 
     // Act
     const { result } = await server.inject(request)
@@ -225,6 +268,13 @@ describe('holdingDetailsController', () => {
         cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
       }
     }
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/097/0097',
+      name: 'No Address Farm',
+      business_name: 'No Address Ltd',
+      address: [],
+      herd_marks: ['UK 999999']
+    })
 
     // Act
     const { result } = await server.inject(request)
