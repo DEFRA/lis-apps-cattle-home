@@ -50,7 +50,7 @@ describe('getAnimalsForCph()', () => {
     expect(animals[0].eartag).toBe('UK300000000004')
   })
 
-  test('it sorts by age using the same field as date of birth', () => {
+  test('it sorts by age ascending with the youngest animal first', () => {
     // Arrange
     const byDateOfBirth = getAnimalsForCph('22/001/0001', {
       sort: 'date_of_birth',
@@ -61,14 +61,27 @@ describe('getAnimalsForCph()', () => {
     // Act
     const byAge = getAnimalsForCph('22/001/0001', {
       sort: 'age',
+      direction: 'asc',
+      itemsPerPage: 34
+    })
+
+    // Assert
+    expect(byAge.animals[0].eartag).toBe('UK300000000004')
+    expect(byAge.animals.map((animal) => animal.eartag)).toEqual(
+      byDateOfBirth.animals.map((animal) => animal.eartag)
+    )
+  })
+
+  test('it sorts by age descending with the oldest animal first', () => {
+    // Act
+    const { animals } = getAnimalsForCph('22/001/0001', {
+      sort: 'age',
       direction: 'desc',
       itemsPerPage: 34
     })
 
     // Assert
-    expect(byAge.animals.map((animal) => animal.eartag)).toEqual(
-      byDateOfBirth.animals.map((animal) => animal.eartag)
-    )
+    expect(animals[0].eartag).toBe('UK300000000005')
   })
 
   test('it defaults to ear tag ascending for an unrecognised sort column', () => {

@@ -32,7 +32,11 @@ function compareValues(field, a, b) {
 function sortAnimals(animals, sort, direction) {
   const field = sortFields.get(sort) ?? sortFields.get('ear_tag')
   const sorted = [...animals].sort((a, b) => compareValues(field, a, b))
-  return direction === 'desc' ? sorted.reverse() : sorted
+  // Age sorts on date of birth, where the youngest animal has the latest
+  // date - so ascending age is descending date of birth.
+  const descending =
+    sort === 'age' ? direction !== 'desc' : direction === 'desc'
+  return descending ? sorted.reverse() : sorted
 }
 
 function stripSpaces(value) {
