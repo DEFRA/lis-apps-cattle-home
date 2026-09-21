@@ -90,6 +90,25 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
+  test('it labels each ear tag so a screen reader reads it character by character', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<td class="govuk-table__cell" aria-label="U K, 2 0 0 0 0 0, 0 0 0 0 0 1">UK 200000 000001</td>'
+      )
+    )
+  })
+
   test('it shows dates as day, short month and year', async () => {
     // Arrange
     const jwt = await createHubJwt()
