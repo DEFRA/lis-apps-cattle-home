@@ -40,7 +40,9 @@ function buildPageTitle({
   direction
 }) {
   const resultsNoun = totalItems === 1 ? 'result' : 'results'
-  const results = search ? `${totalItems} ${resultsNoun} for '${search}' - ` : ''
+  const results = search
+    ? `${totalItems} ${resultsNoun} for '${search}' - `
+    : ''
   const page = totalPages > 1 ? ` (page ${currentPage} of ${totalPages})` : ''
   const sortColumn = columns.find(({ sortKey }) => sortKey === requestedSort)
   const directionText = direction === 'desc' ? 'descending' : 'ascending'
