@@ -90,23 +90,57 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
-  test('it labels each ear tag so a screen reader reads it character by character', async () => {
+  test('it puts the search, page, sort and holding in the page title', async () => {
     // Arrange
     const jwt = await createHubJwt()
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/animals?search=male&sort=age&direction=desc',
       headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
     })
 
     // Assert
     expect(result).toEqual(
       expect.stringContaining(
-        '<td class="govuk-table__cell" aria-label="U K, 2 0 0 0 0 0, 0 0 0 0 0 1">UK 200000 000001</td>'
+        '15 results for &#39;male&#39; - Animals on holding, sorted by age descending - Oakfield Farm - Cattle - Livestock Information'
       )
     )
+  })
+
+  test('it does not mention a sort in the page title when none was asked for', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        'Animals on holding (page 1 of 2) - Oakfield Farm - Cattle - Livestock Information'
+      )
+    )
+  })
+
+  test('it does not mark the search results as a live region', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=male',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).not.toEqual(expect.stringContaining('aria-live'))
   })
 
   test('it shows dates as day, short month and year', async () => {

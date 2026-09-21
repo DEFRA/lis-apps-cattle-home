@@ -119,7 +119,7 @@ describe('holdingDetailsController', () => {
     expect(mocks.getHoldingDetails).toHaveBeenCalledWith('22/001/0001')
     expect(result).toEqual(
       expect.stringContaining(
-        'Holding details - Cattle - Livestock Information'
+        'Holding details - Oakfield Farm - Cattle - Livestock Information'
       )
     )
     expect(result).toEqual(

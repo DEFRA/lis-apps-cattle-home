@@ -20,7 +20,7 @@ export const holdingDetailsController = {
     const holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)
 
     return h.view('holdings/details/index', {
-      pageTitle: 'Holding details',
+      pageTitle: `Holding details - ${holding.name ?? holding.cph}`,
       holding: {
         cphNumber: holding.cph,
         holdingName: holding.name,

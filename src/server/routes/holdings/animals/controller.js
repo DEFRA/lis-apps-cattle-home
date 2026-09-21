@@ -8,6 +8,49 @@ import { cphFromParams } from '../details/controller.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 
+const columns = [
+  { text: 'Ear tag number', sortKey: 'ear_tag' },
+  { text: 'Date of birth', sortKey: 'date_of_birth' },
+  { text: 'Age', sortKey: 'age' },
+  { text: 'Date on holding', sortKey: 'date_on_cph' },
+  { text: 'Sex', sortKey: 'sex' },
+  { text: 'Breed', sortKey: 'breed' }
+]
+
+/**
+ * The page reloads on every search, sort and page change, so the title is
+ * what tells a screen reader user what they have landed on.
+ * @param {object} state
+ * @param {{ name: string|null, cph: string }} state.holding
+ * @param {string} state.search
+ * @param {number} state.totalItems
+ * @param {number} state.totalPages
+ * @param {number} state.currentPage
+ * @param {string} [state.requestedSort] the sort column asked for, if any
+ * @param {'asc'|'desc'} state.direction
+ * @returns {string} e.g. "15 results for 'male' - Animals on holding (page 1 of 2), sorted by age ascending - Oakfield Farm"
+ */
+function buildPageTitle({
+  holding,
+  search,
+  totalItems,
+  totalPages,
+  currentPage,
+  requestedSort,
+  direction
+}) {
+  const resultsNoun = totalItems === 1 ? 'result' : 'results'
+  const results = search ? `${totalItems} ${resultsNoun} for '${search}' - ` : ''
+  const page = totalPages > 1 ? ` (page ${currentPage} of ${totalPages})` : ''
+  const sortColumn = columns.find(({ sortKey }) => sortKey === requestedSort)
+  const directionText = direction === 'desc' ? 'descending' : 'ascending'
+  const sorted = sortColumn
+    ? `, sorted by ${sortColumn.text.toLowerCase()} ${directionText}`
+    : ''
+
+  return `${results}Animals on holding${page}${sorted} - ${holding.name ?? holding.cph}`
+}
+
 export const animalsOnHoldingController = {
   handler(request, h) {
     const cph = cphFromParams(request.params)
@@ -33,22 +76,18 @@ export const animalsOnHoldingController = {
       page: Number(request.query.page) || 1
     })
 
-    const pageTitle =
-      totalPages > 1
-        ? `Animals on holding (page ${currentPage} of ${totalPages})`
-        : 'Animals on holding'
-
     return h.view('holdings/animals/index', {
-      pageTitle,
+      pageTitle: buildPageTitle({
+        holding,
+        search,
+        totalItems,
+        totalPages,
+        currentPage,
+        requestedSort: request.query.sort,
+        direction
+      }),
       holding,
-      columns: [
-        { text: 'Ear tag number', sortKey: 'ear_tag' },
-        { text: 'Date of birth', sortKey: 'date_of_birth' },
-        { text: 'Age', sortKey: 'age' },
-        { text: 'Date on holding', sortKey: 'date_on_cph' },
-        { text: 'Sex', sortKey: 'sex' },
-        { text: 'Breed', sortKey: 'breed' }
-      ],
+      columns,
       animals: pageAnimals.map((animal) => ({
         eartag: animal.eartag,
         dateOfBirth: animal.date_of_birth,
