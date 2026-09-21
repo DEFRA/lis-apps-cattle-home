@@ -61,7 +61,7 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
-  test('it keeps each ear tag on one line, in a table labelled as sortable and scrollable', async () => {
+  test('it renders a no-wrap table, labelled as sortable and scrollable', async () => {
     // Arrange
     const jwt = await createHubJwt()
 
@@ -75,7 +75,7 @@ describe('animalsOnHoldingController', () => {
     // Assert
     expect(result).toEqual(
       expect.stringContaining(
-        '<td class="govuk-table__cell lis-sortable-table__cell--no-wrap">UK 200000 000001</td>'
+        '<table class="govuk-table lis-sortable-table--no-wrap">'
       )
     )
     expect(result).toEqual(
