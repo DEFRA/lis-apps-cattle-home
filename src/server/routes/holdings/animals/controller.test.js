@@ -182,6 +182,28 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
+  test('it shows "Not supplied" for the age when the date of birth is in the future', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2020-01-01') })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+    vi.useRealTimers()
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<td class="govuk-table__cell"><strong class="govuk-tag govuk-tag--red">Not supplied</strong></td>'
+      )
+    )
+    expect(result).not.toEqual(expect.stringContaining('-3 years'))
+  })
+
   test('it shows the remaining results on page 2', async () => {
     // Arrange
     const jwt = await createHubJwt()

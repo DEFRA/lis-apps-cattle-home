@@ -49,10 +49,12 @@
             {%- set breedHtml -%}
               <abbr title="{{ animal.breedName }}">{{ animal.breedCode }}</abbr><span class="govuk-visually-hidden">, {{ animal.breedName }}</span>
             {%- endset -%}
+            {#- no age for a missing, unparseable or future date of birth -#}
+            {%- set age = animal.dateOfBirth | formatAge -%}
             {%- set _ = rows.push([
               { text: animal.eartag | formatEarTag } if animal.eartag else { html: notSuppliedHtml },
               { text: lisDate(animal.dateOfBirth) } if animal.dateOfBirth else { html: notSuppliedHtml },
-              { text: animal.dateOfBirth | formatAge } if animal.dateOfBirth else { html: notSuppliedHtml },
+              { text: age } if age else { html: notSuppliedHtml },
               { text: lisDate(animal.dateOnCph) } if animal.dateOnCph else { html: notSuppliedHtml },
               { text: animal.sex } if animal.sex else { html: notSuppliedHtml },
               { html: breedHtml } if animal.breedCode else { html: notSuppliedHtml }
