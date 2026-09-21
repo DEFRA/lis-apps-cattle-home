@@ -52,7 +52,7 @@
             {%- set _ = rows.push([
               { text: animal.eartag } if animal.eartag else { html: notSuppliedHtml },
               { text: lisDate(animal.dateOfBirth) } if animal.dateOfBirth else { html: notSuppliedHtml },
-              { text: animal.age } if animal.age else { html: notSuppliedHtml },
+              { text: animal.dateOfBirth | formatAge } if animal.dateOfBirth else { html: notSuppliedHtml },
               { text: lisDate(animal.dateOnCph) } if animal.dateOnCph else { html: notSuppliedHtml },
               { text: animal.sex } if animal.sex else { html: notSuppliedHtml },
               { html: breedHtml } if animal.breedCode else { html: notSuppliedHtml }

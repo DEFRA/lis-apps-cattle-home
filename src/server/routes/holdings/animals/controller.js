@@ -3,7 +3,6 @@ import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
 import { getAnimalsForCph } from '#server/services/canned-animals.js'
 import { getHoldingByCph } from '#server/services/canned-holdings.js'
-import { computeAge } from '#server/services/animal-age.js'
 import { getBreedName } from '#server/services/breed-names.js'
 import { cphFromParams } from '../details/controller.js'
 
@@ -53,7 +52,6 @@ export const animalsOnHoldingController = {
       animals: pageAnimals.map((animal) => ({
         eartag: animal.eartag,
         dateOfBirth: animal.date_of_birth,
-        age: animal.date_of_birth ? computeAge(animal.date_of_birth) : null,
         dateOnCph: animal.date_on_cph,
         sex: animal.sex,
         breedCode: animal.breed_code,

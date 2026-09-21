@@ -79,6 +79,27 @@ describe('animalsOnHoldingController', () => {
     expect(result).not.toEqual(expect.stringContaining('2023-02-01'))
   })
 
+  test("it shows each animal's age in years and months", async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-09-10') })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+    vi.useRealTimers()
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<td class="govuk-table__cell">3 years, 7 months</td>'
+      )
+    )
+  })
+
   test('it shows the remaining results on page 2', async () => {
     // Arrange
     const jwt = await createHubJwt()
