@@ -7,10 +7,10 @@
     <div class="govuk-grid-column-full">
       {% if holding.holdingName %}
         <span class="govuk-caption-l">{{ holding.holdingName }}</span>
-        <h1 class="govuk-heading-l">Holding details</h1>
       {% else %}
-        <h1 class="govuk-heading-l">CPH number: {{ holding.cphNumber }}</h1>
+        <span class="govuk-caption-l">{{ holding.cphNumber }}</span>
       {% endif %}
+      <h1 class="govuk-heading-l">Holding details</h1>
 
       {{ lisSubNavigation({
         label: "Sub navigation",
