@@ -61,6 +61,24 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
+  test('it shows dates as day, short month and year', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining('<td class="govuk-table__cell">1 Feb 2023</td>')
+    )
+    expect(result).not.toEqual(expect.stringContaining('2023-02-01'))
+  })
+
   test('it shows the remaining results on page 2', async () => {
     // Arrange
     const jwt = await createHubJwt()
