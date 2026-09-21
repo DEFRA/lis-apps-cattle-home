@@ -1,4 +1,12 @@
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  vi
+} from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
@@ -34,6 +42,10 @@ describe('animalsOnHoldingController', () => {
 
   afterAll(async () => {
     await server.stop({ timeout: 0 })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   test('it renders the results for an authenticated user', async () => {
@@ -172,7 +184,6 @@ describe('animalsOnHoldingController', () => {
       url: '/holdings/22/001/0001/animals?search=UK200000000001',
       headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
     })
-    vi.useRealTimers()
 
     // Assert
     expect(result).toEqual(
@@ -193,7 +204,6 @@ describe('animalsOnHoldingController', () => {
       url: '/holdings/22/001/0001/animals?search=UK200000000001',
       headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
     })
-    vi.useRealTimers()
 
     // Assert
     expect(result).toEqual(
