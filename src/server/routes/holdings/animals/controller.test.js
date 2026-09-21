@@ -50,7 +50,7 @@ describe('animalsOnHoldingController', () => {
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(expect.stringContaining('Animals on holding'))
-    expect(result).toEqual(expect.stringContaining('UK200000000001'))
+    expect(result).toEqual(expect.stringContaining('UK 200000 000001'))
     expect(result).toEqual(expect.stringContaining('Date on holding'))
     expect(result).toEqual(
       expect.stringContaining('Showing 1 to 25 of 34 results')
@@ -137,8 +137,8 @@ describe('animalsOnHoldingController', () => {
     const rowsStart = result.indexOf('govuk-table__body')
     // UK300000000004 (born 2026-06-01) is the most recent birth date, so it
     // should sort first when descending.
-    expect(result.indexOf('UK300000000004', rowsStart)).toBeLessThan(
-      result.indexOf('UK200000000001', rowsStart)
+    expect(result.indexOf('UK 300000 000004', rowsStart)).toBeLessThan(
+      result.indexOf('UK 200000 000001', rowsStart)
     )
   })
 
@@ -157,8 +157,8 @@ describe('animalsOnHoldingController', () => {
     expect(result).toEqual(
       expect.stringContaining("1 result for <strong>'UK300000000023'</strong>")
     )
-    expect(result).toEqual(expect.stringContaining('UK300000000023'))
-    expect(result).not.toEqual(expect.stringContaining('UK200000000001'))
+    expect(result).toEqual(expect.stringContaining('UK 300000 000023'))
+    expect(result).not.toEqual(expect.stringContaining('UK 200000 000001'))
   })
 
   test('it shows no table and a "Clear search" link when nothing matches', async () => {
@@ -228,7 +228,7 @@ describe('animalsOnHoldingController', () => {
       ) ?? []
     ).length
     expect(notSuppliedCount).toBe(3)
-    expect(result).toEqual(expect.stringContaining('UK400000000001'))
+    expect(result).toEqual(expect.stringContaining('UK 400000 000001'))
     expect(result).not.toEqual(expect.stringContaining('page 1 of'))
   })
 

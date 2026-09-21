@@ -50,7 +50,7 @@
               <abbr title="{{ animal.breedName }}">{{ animal.breedCode }}</abbr><span class="govuk-visually-hidden">, {{ animal.breedName }}</span>
             {%- endset -%}
             {%- set _ = rows.push([
-              { text: animal.eartag } if animal.eartag else { html: notSuppliedHtml },
+              { text: animal.eartag | formatEarTag } if animal.eartag else { html: notSuppliedHtml },
               { text: lisDate(animal.dateOfBirth) } if animal.dateOfBirth else { html: notSuppliedHtml },
               { text: animal.dateOfBirth | formatAge } if animal.dateOfBirth else { html: notSuppliedHtml },
               { text: lisDate(animal.dateOnCph) } if animal.dateOnCph else { html: notSuppliedHtml },
