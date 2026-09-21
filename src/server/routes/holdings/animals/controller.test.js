@@ -61,6 +61,35 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
+  test('it keeps each ear tag on one line, in a table labelled as sortable and scrollable', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<td class="govuk-table__cell lis-sortable-table__cell--no-wrap">UK 200000 000001</td>'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<span class="govuk-visually-hidden"> (column headers with links are sortable).</span>'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'tabindex="0" role="region" aria-label="Animals on holding table"'
+      )
+    )
+  })
+
   test('it shows dates as day, short month and year', async () => {
     // Arrange
     const jwt = await createHubJwt()
