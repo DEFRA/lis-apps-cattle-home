@@ -1,4 +1,12 @@
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  vi
+} from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
@@ -36,6 +44,10 @@ describe('animalsOnHoldingController', () => {
     await server.stop({ timeout: 0 })
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   test('it renders the results for an authenticated user', async () => {
     // Arrange
     const jwt = await createHubJwt()
@@ -50,7 +62,7 @@ describe('animalsOnHoldingController', () => {
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(expect.stringContaining('Animals on holding'))
-    expect(result).toEqual(expect.stringContaining('UK200000000001'))
+    expect(result).toEqual(expect.stringContaining('UK 200000 000001'))
     expect(result).toEqual(expect.stringContaining('Date on holding'))
     expect(result).toEqual(
       expect.stringContaining('Showing 1 to 25 of 34 results')
@@ -59,6 +71,147 @@ describe('animalsOnHoldingController', () => {
     expect(result).toEqual(
       expect.stringContaining('Animals on holding (page 1 of 2)')
     )
+  })
+
+  test('it renders a no-wrap table, labelled as sortable and scrollable', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<table class="govuk-table lis-sortable-table--no-wrap">'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<span class="govuk-visually-hidden"> (column headers with links are sortable).</span>'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'tabindex="0" role="region" aria-label="Animals on holding table"'
+      )
+    )
+  })
+
+  test('it puts the search, page, sort and holding in the page title', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=male&sort=age&direction=desc',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '15 results for &#39;male&#39; - Animals on holding, sorted by age descending - Oakfield Farm - Cattle - Livestock Information'
+      )
+    )
+  })
+
+  test('it does not mention a sort in the page title when none was asked for', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        'Animals on holding (page 1 of 2) - Oakfield Farm - Cattle - Livestock Information'
+      )
+    )
+  })
+
+  test('it does not mark the search results as a live region', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=male',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).not.toEqual(expect.stringContaining('aria-live'))
+  })
+
+  test('it shows dates as day, short month and year', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining('<td class="govuk-table__cell">1 Feb 2023</td>')
+    )
+    expect(result).not.toEqual(expect.stringContaining('2023-02-01'))
+  })
+
+  test("it shows each animal's age in years and months", async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-09-10') })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<td class="govuk-table__cell">3 years, 7 months</td>'
+      )
+    )
+  })
+
+  test('it shows "Not supplied" for the age when the date of birth is in the future', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2020-01-01') })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<td class="govuk-table__cell"><strong class="govuk-tag govuk-tag--red">Not supplied</strong></td>'
+      )
+    )
+    expect(result).not.toEqual(expect.stringContaining('-3 years'))
   })
 
   test('it shows the remaining results on page 2', async () => {
@@ -98,8 +251,8 @@ describe('animalsOnHoldingController', () => {
     const rowsStart = result.indexOf('govuk-table__body')
     // UK300000000004 (born 2026-06-01) is the most recent birth date, so it
     // should sort first when descending.
-    expect(result.indexOf('UK300000000004', rowsStart)).toBeLessThan(
-      result.indexOf('UK200000000001', rowsStart)
+    expect(result.indexOf('UK 300000 000004', rowsStart)).toBeLessThan(
+      result.indexOf('UK 200000 000001', rowsStart)
     )
   })
 
@@ -118,8 +271,8 @@ describe('animalsOnHoldingController', () => {
     expect(result).toEqual(
       expect.stringContaining("1 result for <strong>'UK300000000023'</strong>")
     )
-    expect(result).toEqual(expect.stringContaining('UK300000000023'))
-    expect(result).not.toEqual(expect.stringContaining('UK200000000001'))
+    expect(result).toEqual(expect.stringContaining('UK 300000 000023'))
+    expect(result).not.toEqual(expect.stringContaining('UK 200000 000001'))
   })
 
   test('it shows no table and a "Clear search" link when nothing matches', async () => {
@@ -189,7 +342,7 @@ describe('animalsOnHoldingController', () => {
       ) ?? []
     ).length
     expect(notSuppliedCount).toBe(3)
-    expect(result).toEqual(expect.stringContaining('UK400000000001'))
+    expect(result).toEqual(expect.stringContaining('UK 400000 000001'))
     expect(result).not.toEqual(expect.stringContaining('page 1 of'))
   })
 

@@ -119,7 +119,7 @@ describe('holdingDetailsController', () => {
     expect(mocks.getHoldingDetails).toHaveBeenCalledWith('22/001/0001')
     expect(result).toEqual(
       expect.stringContaining(
-        'Holding details - Cattle - Livestock Information'
+        'Holding details - Oakfield Farm - Cattle - Livestock Information'
       )
     )
     expect(result).toEqual(
@@ -179,7 +179,7 @@ describe('holdingDetailsController', () => {
     expect(statusCode).toBe(statusCodes.notFound)
   })
 
-  test('it shows the CPH as the heading, with no caption, when the holding has no name', async () => {
+  test('it shows the CPH as the caption, above the "Holding details" heading, when the holding has no name', async () => {
     // Arrange
     const jwt = await createHubJwt()
     const request = {
@@ -209,11 +209,10 @@ describe('holdingDetailsController', () => {
     // Assert
     expect(result).toEqual(
       expect.stringContaining(
-        '<h1 class="govuk-heading-l">CPH number: 22/098/0098</h1>'
+        '<span class="govuk-caption-l">22/098/0098</span>'
       )
     )
-    expect(result).not.toEqual(expect.stringContaining('govuk-caption-l'))
-    expect(result).not.toEqual(
+    expect(result).toEqual(
       expect.stringContaining(
         '<h1 class="govuk-heading-l">Holding details</h1>'
       )

@@ -2,6 +2,7 @@
 
 {% from "sortable-paginated-table/macro.njk" import sortablePaginatedTable %}
 {% from "search-form/macro.njk" import searchForm %}
+{% from "date/macro.njk" import lisDate %}
 
 {% block content %}
   <div class="govuk-grid-row">
@@ -32,7 +33,7 @@
         </div>
 
         {% if search %}
-          <p class="govuk-body" aria-live="polite">
+          <p class="govuk-body">
             {{ totalItems }} result{{ "s" if totalItems != 1 else "" }} for <strong>'{{ search }}'</strong>
           </p>
           <p class="govuk-body">
@@ -48,11 +49,13 @@
             {%- set breedHtml -%}
               <abbr title="{{ animal.breedName }}">{{ animal.breedCode }}</abbr><span class="govuk-visually-hidden">, {{ animal.breedName }}</span>
             {%- endset -%}
+            {#- no age for a missing, unparseable or future date of birth -#}
+            {%- set age = animal.dateOfBirth | formatAge -%}
             {%- set _ = rows.push([
-              { text: animal.eartag } if animal.eartag else { html: notSuppliedHtml },
-              { text: animal.dateOfBirth } if animal.dateOfBirth else { html: notSuppliedHtml },
-              { text: animal.age } if animal.age else { html: notSuppliedHtml },
-              { text: animal.dateOnCph } if animal.dateOnCph else { html: notSuppliedHtml },
+              { text: animal.eartag | formatEarTag } if animal.eartag else { html: notSuppliedHtml },
+              { text: lisDate(animal.dateOfBirth) } if animal.dateOfBirth else { html: notSuppliedHtml },
+              { text: age } if age else { html: notSuppliedHtml },
+              { text: lisDate(animal.dateOnCph) } if animal.dateOnCph else { html: notSuppliedHtml },
               { text: animal.sex } if animal.sex else { html: notSuppliedHtml },
               { html: breedHtml } if animal.breedCode else { html: notSuppliedHtml }
             ]) -%}
@@ -60,6 +63,7 @@
 
           {{ sortablePaginatedTable({
             caption: "Animals on holding",
+            classes: "lis-sortable-table--no-wrap",
             columns: columns,
             rows: rows,
             sort: sort,
