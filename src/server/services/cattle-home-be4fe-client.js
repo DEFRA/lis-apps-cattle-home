@@ -1,6 +1,8 @@
 import { BaseClient } from '@defra/lis-hubs-infra-core'
 
 import { config } from '#config/config.js'
+import { searchAnimals } from '#server/services/animals/search.js'
+import { paginateAnimals } from '#server/services/animals/paginate.js'
 
 /**
  * @typedef {object} UserCph
@@ -117,27 +119,28 @@ class CattleHomeBe4FeClient extends BaseClient {
 
   /**
    * @param {string} cph holding identifier, e.g. '10/081/1234'
-   * @param {{ eartag?: string, breed?: string, sex?: string }} [query] optional search filters, passed through to the cattle API
-   * @returns {Promise<CattleSummary[]>} the cattle on this CPH
+   * @param {object} [options]
+   * @param {string} [options.q] free-text match against ear tag, sex or breed
+   * @param {string} [options.orderBy] column to sort by, see sortFields
+   * @param {'asc'|'desc'} [options.direction]
+   * @param {number} [options.page] 1-indexed page number
+   * @param {number} [options.pageSize]
+   * @returns {Promise<{ animals: CattleSummary[], totalItems: number, totalPages: number, currentPage: number, itemsPerPage: number }>}
    */
-  async getCattleForCph(cph, query = {}) {
+  async getCattleForCph(cph, options = {}) {
     const encodedCph = this.#encodeCphSegments(cph)
-    const searchParams = new URLSearchParams()
 
-    for (const [name, value] of Object.entries(query)) {
-      if (value) {
-        searchParams.set(name, value)
-      }
+    const { payload } = await this._get(`api/cphs/${encodedCph}/cattle`)
+    let animals = payload.data
+    if (options.q) {
+      animals = searchAnimals(animals, options.q)
     }
-
-    let path = `api/cphs/${encodedCph}/cattle`
-
-    if (searchParams.size) {
-      path += `?${searchParams.toString()}`
-    }
-
-    const { payload } = await this._get(path)
-    return payload.data
+    return paginateAnimals(animals, {
+      orderBy: options.orderBy,
+      direction: options.direction,
+      page: options.page,
+      pageSize: options.pageSize
+    })
   }
 
   /**

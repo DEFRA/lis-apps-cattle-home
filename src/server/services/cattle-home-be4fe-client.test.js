@@ -1,8 +1,25 @@
-import { afterEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
+import { searchAnimals } from '#server/services/animals/search.js'
+import { paginateAnimals } from '#server/services/animals/paginate.js'
 import { cattleHomeBe4FeClient as client } from './cattle-home-be4fe-client.js'
 
+vi.mock('#server/services/animals/search.js')
+vi.mock('#server/services/animals/paginate.js')
+
+const mocks = {
+  searchAnimals: vi.mocked(searchAnimals),
+  paginateAnimals: vi.mocked(paginateAnimals)
+}
+
 describe('CattleHomeBe4FeClient', () => {
+  // beforeEach rather than beforeAll: this file restores mocks after each
+  // test, which clears implementations as well as call history.
+  beforeEach(() => {
+    mocks.searchAnimals.mockReturnValue([])
+    mocks.paginateAnimals.mockReturnValue({ animals: [] })
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })
@@ -37,36 +54,94 @@ describe('CattleHomeBe4FeClient', () => {
     expect(get).toHaveBeenCalledWith('api/cphs/10/081/1234/cattle')
   })
 
-  test('Passes eartag/breed/sex filters through as query parameters', async () => {
+  test('Passes the fetched animals and the search term to searchAnimals', async () => {
     // Arrange
-    const get = vi
-      .spyOn(client, '_get')
-      .mockResolvedValue({ res: { statusCode: 200 }, payload: { data: [] } })
+    const animals = [{ eartag: 'UK123' }, { eartag: 'UK999' }]
+    const searched = [{ eartag: 'UK123' }]
+    vi.spyOn(client, '_get').mockResolvedValue({
+      res: { statusCode: 200 },
+      payload: { data: animals }
+    })
+    mocks.searchAnimals.mockReturnValue(searched)
+    mocks.paginateAnimals.mockReturnValue({ animals: searched })
 
     // Act
-    await client.getCattleForCph('10/081/1234', {
-      eartag: 'UK 123',
-      breed: 'Limousin',
-      sex: 'Female'
-    })
+    await client.getCattleForCph('10/081/1234', { q: 'UK123' })
 
     // Assert
-    expect(get).toHaveBeenCalledWith(
-      'api/cphs/10/081/1234/cattle?eartag=UK+123&breed=Limousin&sex=Female'
+    expect(mocks.searchAnimals).toHaveBeenCalledWith(animals, 'UK123')
+    expect(mocks.paginateAnimals).toHaveBeenCalledWith(
+      searched,
+      expect.anything()
     )
   })
 
-  test('Omits the query string when no filters are supplied', async () => {
+  test('Skips searchAnimals when no search term is given', async () => {
     // Arrange
-    const get = vi
-      .spyOn(client, '_get')
-      .mockResolvedValue({ res: { statusCode: 200 }, payload: { data: [] } })
+    const animals = [{ eartag: 'UK123' }]
+    vi.spyOn(client, '_get').mockResolvedValue({
+      res: { statusCode: 200 },
+      payload: { data: animals }
+    })
+    mocks.paginateAnimals.mockReturnValue({ animals })
 
     // Act
-    await client.getCattleForCph('10/081/1234', { eartag: '' })
+    await client.getCattleForCph('10/081/1234')
 
     // Assert
-    expect(get).toHaveBeenCalledWith('api/cphs/10/081/1234/cattle')
+    expect(mocks.searchAnimals).not.toHaveBeenCalled()
+    expect(mocks.paginateAnimals).toHaveBeenCalledWith(
+      animals,
+      expect.anything()
+    )
+  })
+
+  test('Passes the sort and paging options through to paginateAnimals', async () => {
+    // Arrange
+    const animals = [{ eartag: 'UK123' }]
+    vi.spyOn(client, '_get').mockResolvedValue({
+      res: { statusCode: 200 },
+      payload: { data: animals }
+    })
+    mocks.paginateAnimals.mockReturnValue({ animals })
+
+    // Act
+    await client.getCattleForCph('10/081/1234', {
+      orderBy: 'date_of_birth',
+      direction: 'desc',
+      page: 3,
+      pageSize: 10
+    })
+
+    // Assert
+    expect(mocks.paginateAnimals).toHaveBeenCalledWith(animals, {
+      orderBy: 'date_of_birth',
+      direction: 'desc',
+      page: 3,
+      pageSize: 10
+    })
+  })
+
+  test('Returns whatever paginateAnimals produced', async () => {
+    // Arrange
+    const paginated = {
+      animals: [{ eartag: 'UK123' }],
+      totalItems: 30,
+      totalPages: 2,
+      currentPage: 2,
+      itemsPerPage: 25
+    }
+    vi.spyOn(client, '_get').mockResolvedValue({
+      res: { statusCode: 200 },
+      payload: { data: [{ eartag: 'UK123' }] }
+    })
+    mocks.paginateAnimals.mockReturnValue(paginated)
+
+    // Act
+    const result = await client.getCattleForCph('10/081/1234')
+
+    // Assert
+    expect(result).toBe(paginated)
   })
 
   test('Rejects malformed CPH values without making a request', async () => {
