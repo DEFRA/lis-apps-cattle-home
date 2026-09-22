@@ -12,6 +12,45 @@ import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
+import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
+
+vi.mock('#server/services/cattle-home-be4fe-client.js')
+
+const mocks = {
+  getCattleForCph: vi.mocked(cattleHomeBe4FeClient.getCattleForCph)
+}
+
+// Inline fixtures rather than the canned JSON: this suite tests what the
+// controller renders and what it asks the client for. Search, sort and
+// paging behaviour is covered by animals/search and animals/paginate.
+const animal = {
+  cattle_id: 'UK200000000001',
+  eartag: 'UK200000000001',
+  date_of_birth: '2023-02-01',
+  date_on_cph: '2023-02-10',
+  sex: 'Male',
+  breed_code: 'AA',
+  breed_name: 'Aberdeen Angus'
+}
+
+const incompleteAnimal = {
+  cattle_id: 'UK400000000001',
+  eartag: 'UK400000000001',
+  sex: 'Female',
+  breed_code: 'AA',
+  breed_name: 'Aberdeen Angus'
+}
+
+function page(animals, overrides = {}) {
+  return {
+    animals,
+    totalItems: animals.length,
+    totalPages: 1,
+    currentPage: 1,
+    itemsPerPage: 25,
+    ...overrides
+  }
+}
 
 async function createHubJwt() {
   return issueHubJwt(
@@ -38,19 +77,29 @@ describe('animalsOnHoldingController', () => {
   beforeAll(async () => {
     server = await createServer()
     await server.initialize()
+
+    mocks.getCattleForCph.mockResolvedValue(page([animal]))
   })
 
   afterAll(async () => {
     await server.stop({ timeout: 0 })
   })
 
+  beforeEach(() => {
+    mocks.getCattleForCph.mockResolvedValue(page([animal]))
+  })
+
   afterEach(() => {
     vi.useRealTimers()
+    vi.clearAllMocks()
   })
 
   test('it renders the results for an authenticated user', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getCattleForCph.mockResolvedValue(
+      page([animal], { totalItems: 34, totalPages: 2 })
+    )
 
     // Act
     const { statusCode, result } = await server.inject({
@@ -105,6 +154,7 @@ describe('animalsOnHoldingController', () => {
   test('it puts the search, page, sort and holding in the page title', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getCattleForCph.mockResolvedValue(page([animal], { totalItems: 15 }))
 
     // Act
     const { result } = await server.inject({
@@ -124,6 +174,9 @@ describe('animalsOnHoldingController', () => {
   test('it does not mention a sort in the page title when none was asked for', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getCattleForCph.mockResolvedValue(
+      page([animal], { totalItems: 34, totalPages: 2 })
+    )
 
     // Act
     const { result } = await server.inject({
@@ -214,9 +267,12 @@ describe('animalsOnHoldingController', () => {
     expect(result).not.toEqual(expect.stringContaining('-3 years'))
   })
 
-  test('it shows the remaining results on page 2', async () => {
+  test('it asks the client for page 2 and renders what it returns', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getCattleForCph.mockResolvedValue(
+      page([animal], { totalItems: 34, totalPages: 2, currentPage: 2 })
+    )
 
     // Act
     const { statusCode, result } = await server.inject({
@@ -227,6 +283,10 @@ describe('animalsOnHoldingController', () => {
 
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
+    expect(mocks.getCattleForCph).toHaveBeenCalledWith(
+      '22/001/0001',
+      expect.objectContaining({ page: 2 })
+    )
     expect(result).toEqual(
       expect.stringContaining('Showing 26 to 34 of 34 results')
     )
@@ -235,7 +295,7 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
-  test('it sorts by the requested column and direction', async () => {
+  test('it passes the requested sort column and direction to the client', async () => {
     // Arrange
     const jwt = await createHubJwt()
 
@@ -247,37 +307,40 @@ describe('animalsOnHoldingController', () => {
     })
 
     // Assert
-    expect(result).toEqual(expect.stringContaining('aria-sort="descending"'))
-    const rowsStart = result.indexOf('govuk-table__body')
-    // UK300000000004 (born 2026-06-01) is the most recent birth date, so it
-    // should sort first when descending.
-    expect(result.indexOf('UK 300000 000004', rowsStart)).toBeLessThan(
-      result.indexOf('UK 200000 000001', rowsStart)
+    expect(mocks.getCattleForCph).toHaveBeenCalledWith(
+      '22/001/0001',
+      expect.objectContaining({ orderBy: 'date_of_birth', direction: 'desc' })
     )
+    expect(result).toEqual(expect.stringContaining('aria-sort="descending"'))
   })
 
-  test('it filters by the search term', async () => {
+  test('it passes the search term to the client and renders the matches', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getCattleForCph.mockResolvedValue(page([animal]))
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=UK300000000023',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
       headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
     })
 
     // Assert
-    expect(result).toEqual(
-      expect.stringContaining("1 result for <strong>'UK300000000023'</strong>")
+    expect(mocks.getCattleForCph).toHaveBeenCalledWith(
+      '22/001/0001',
+      expect.objectContaining({ q: 'UK200000000001' })
     )
-    expect(result).toEqual(expect.stringContaining('UK 300000 000023'))
-    expect(result).not.toEqual(expect.stringContaining('UK 200000 000001'))
+    expect(result).toEqual(
+      expect.stringContaining("1 result for <strong>'UK200000000001'</strong>")
+    )
+    expect(result).toEqual(expect.stringContaining('UK 200000 000001'))
   })
 
   test('it shows no table and a "Clear search" link when nothing matches', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getCattleForCph.mockResolvedValue(page([]))
 
     // Act
     const { result } = await server.inject({
@@ -299,6 +362,7 @@ describe('animalsOnHoldingController', () => {
   test('it shows the no-animals empty state when the holding has none recorded', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getCattleForCph.mockResolvedValue(page([]))
 
     // Act
     const { result } = await server.inject({
@@ -327,6 +391,7 @@ describe('animalsOnHoldingController', () => {
   test('it shows "Not supplied", styled as an error, for missing animal fields', async () => {
     // Arrange
     const jwt = await createHubJwt()
+    mocks.getCattleForCph.mockResolvedValue(page([incompleteAnimal]))
 
     // Act
     const { result } = await server.inject({
@@ -336,6 +401,7 @@ describe('animalsOnHoldingController', () => {
     })
 
     // Assert
+    // Date of birth, age and date on holding are all missing for this animal.
     const notSuppliedCount = (
       result.match(
         /<strong class="govuk-tag govuk-tag--red">Not supplied<\/strong>/g

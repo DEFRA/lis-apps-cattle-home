@@ -1,13 +1,12 @@
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
-import { getAnimalsForCph } from '#server/services/canned-animals.js'
 import { getHoldingByCph } from '#server/services/canned-holdings.js'
-import { getBreedName } from '#server/services/breed-names.js'
 import { cphFromParams } from '../details/controller.js'
+import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
-
+const PAGE_SIZE = 25
 const columns = [
   { text: 'Ear tag number', sortKey: 'ear_tag' },
   { text: 'Date of birth', sortKey: 'date_of_birth' },
@@ -54,7 +53,7 @@ function buildPageTitle({
 }
 
 export const animalsOnHoldingController = {
-  handler(request, h) {
+  async handler(request, h) {
     const cph = cphFromParams(request.params)
     const holding = getHoldingByCph(cph)
 
@@ -65,18 +64,14 @@ export const animalsOnHoldingController = {
     const search = request.query.search?.trim() || ''
     const sort = request.query.sort || 'ear_tag'
     const direction = request.query.direction === 'desc' ? 'desc' : 'asc'
-    const {
-      animals: pageAnimals,
-      totalItems,
-      totalPages,
-      currentPage,
-      itemsPerPage
-    } = getAnimalsForCph(cph, {
-      search,
-      sort,
-      direction,
-      page: Number(request.query.page) || 1
-    })
+    const { animals, totalItems, totalPages, currentPage, itemsPerPage } =
+      await cattleHomeBe4FeClient.getCattleForCph(cph, {
+        q: search,
+        orderBy: sort,
+        direction,
+        page: Number(request.query.page) || 1,
+        pageSize: PAGE_SIZE
+      })
 
     return h.view('holdings/animals/index', {
       pageTitle: buildPageTitle({
@@ -90,13 +85,13 @@ export const animalsOnHoldingController = {
       }),
       holding,
       columns,
-      animals: pageAnimals.map((animal) => ({
+      animals: animals.map((animal) => ({
         eartag: animal.eartag,
         dateOfBirth: animal.date_of_birth,
         dateOnCph: animal.date_on_cph,
         sex: animal.sex,
         breedCode: animal.breed_code,
-        breedName: getBreedName(animal.breed_code)
+        breedName: animal.breed_name
       })),
       search,
       totalItems,
