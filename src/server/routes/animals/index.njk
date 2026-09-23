@@ -1,0 +1,98 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "date/macro.njk" import lisDate %}
+{% from "not-supplied/macro.njk" import notSupplied %}
+
+{% set notSuppliedHtml = notSupplied() %}
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: "Back",
+    href: backLinkHref
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <span class="govuk-caption-l">{{ formattedEarTag }}</span>
+      <h1 class="govuk-heading-l">Cattle details</h1>
+
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: { text: "Ear tag number" },
+            value: { text: formattedEarTag } if cattle.eartag else { html: notSuppliedHtml }
+          },
+          {
+            key: { text: "Date of birth" },
+            value: { text: lisDate(cattle.dateOfBirth) } if cattle.dateOfBirth else { html: notSuppliedHtml }
+          },
+          {
+            key: { text: "Date registered" },
+            value: { text: lisDate(cattle.dateRegistered) } if cattle.dateRegistered else { html: notSuppliedHtml }
+          },
+          {
+            key: { text: "Date on holding" },
+            value: { text: lisDate(cattle.dateOnCph) } if cattle.dateOnCph else { html: notSuppliedHtml }
+          },
+          {
+            key: { text: "Sex" },
+            value: { text: cattle.sex } if cattle.sex else { html: notSuppliedHtml }
+          },
+          {
+            key: { text: "Breed" },
+            value: { text: cattle.breedDisplay } if cattle.breedDisplay else { html: notSuppliedHtml }
+          },
+          {
+            key: { text: "Animal status" },
+            value: { text: cattle.status }
+          }
+        ]
+      }) }}
+
+      <h2 class="govuk-heading-m">Dam details</h2>
+
+      {%- set damRows = [
+        {
+          key: { text: "Dam type" },
+          value: { text: cattle.dam.damType } if cattle.dam.damType else { html: notSuppliedHtml }
+        },
+        {
+          key: { text: "Genetic dam ear tag" },
+          value: { text: cattle.dam.geneticDamTag | formatEarTag } if cattle.dam.geneticDamTag else { html: notSuppliedHtml }
+        }
+      ] -%}
+      {%- if cattle.dam.showSurrogateRow -%}
+        {%- set _ = damRows.push({
+          key: { text: "Surrogate dam ear tag" },
+          value: { text: cattle.dam.surrogateTag | formatEarTag }
+        }) -%}
+      {%- endif -%}
+
+      {{ govukSummaryList({
+        rows: damRows
+      }) }}
+
+      <h2 class="govuk-heading-m">Sire details</h2>
+
+      {% if cattle.sire.hasDetails %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Sire ear tag" },
+              value: { text: "Not required" } if cattle.sire.tagNotRequired else { text: cattle.sire.tag | formatEarTag }
+            },
+            {
+              key: { text: "Sire name" },
+              value: { text: "Not required" } if cattle.sire.nameNotRequired else { text: cattle.sire.name }
+            }
+          ]
+        }) }}
+      {% else %}
+        <p class="govuk-body">No sire details recorded.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

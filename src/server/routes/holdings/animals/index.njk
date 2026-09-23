@@ -3,6 +3,7 @@
 {% from "sortable-paginated-table/macro.njk" import sortablePaginatedTable %}
 {% from "search-form/macro.njk" import searchForm %}
 {% from "date/macro.njk" import lisDate %}
+{% from "not-supplied/macro.njk" import notSupplied %}
 
 {% block content %}
   <div class="govuk-grid-row">
@@ -42,17 +43,20 @@
         {% endif %}
 
         {% if totalItems > 0 %}
-          {% set notSuppliedHtml = '<strong class="govuk-tag govuk-tag--red">Not supplied</strong>' %}
+          {% set notSuppliedHtml = notSupplied() %}
 
           {%- set rows = [] -%}
           {%- for animal in animals -%}
             {%- set breedHtml -%}
               <abbr title="{{ animal.breedName }}">{{ animal.breedCode }}</abbr><span class="govuk-visually-hidden">, {{ animal.breedName }}</span>
             {%- endset -%}
+            {%- set eartagHtml -%}
+              <a class="govuk-link" href="{{ animalsBasePath }}/{{ animal.eartag }}">{{ animal.eartag | formatEarTag }}</a>
+            {%- endset -%}
             {#- no age for a missing, unparseable or future date of birth -#}
             {%- set age = animal.dateOfBirth | formatAge -%}
             {%- set _ = rows.push([
-              { text: animal.eartag | formatEarTag } if animal.eartag else { html: notSuppliedHtml },
+              { html: eartagHtml } if animal.eartag else { html: notSuppliedHtml },
               { text: lisDate(animal.dateOfBirth) } if animal.dateOfBirth else { html: notSuppliedHtml },
               { text: age } if age else { html: notSuppliedHtml },
               { text: lisDate(animal.dateOnCph) } if animal.dateOnCph else { html: notSuppliedHtml },

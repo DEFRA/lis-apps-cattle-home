@@ -48,7 +48,7 @@ describe('CattleHomeBe4FeClient', () => {
       .mockResolvedValue({ res: { statusCode: 200 }, payload: { data: [] } })
 
     // Act
-    await client.getCattleForCph('10/081/1234')
+    await client.getCattleOnHolding('10/081/1234')
 
     // Assert
     expect(get).toHaveBeenCalledWith('api/cphs/10/081/1234/cattle')
@@ -66,7 +66,7 @@ describe('CattleHomeBe4FeClient', () => {
     mocks.paginateAnimals.mockReturnValue({ animals: searched })
 
     // Act
-    await client.getCattleForCph('10/081/1234', { q: 'UK123' })
+    await client.getCattleOnHolding('10/081/1234', { q: 'UK123' })
 
     // Assert
     expect(mocks.searchAnimals).toHaveBeenCalledWith(animals, 'UK123')
@@ -86,7 +86,7 @@ describe('CattleHomeBe4FeClient', () => {
     mocks.paginateAnimals.mockReturnValue({ animals })
 
     // Act
-    await client.getCattleForCph('10/081/1234')
+    await client.getCattleOnHolding('10/081/1234')
 
     // Assert
     expect(mocks.searchAnimals).not.toHaveBeenCalled()
@@ -106,7 +106,7 @@ describe('CattleHomeBe4FeClient', () => {
     mocks.paginateAnimals.mockReturnValue({ animals })
 
     // Act
-    await client.getCattleForCph('10/081/1234', {
+    await client.getCattleOnHolding('10/081/1234', {
       orderBy: 'date_of_birth',
       direction: 'desc',
       page: 3,
@@ -138,7 +138,7 @@ describe('CattleHomeBe4FeClient', () => {
     mocks.paginateAnimals.mockReturnValue(paginated)
 
     // Act
-    const result = await client.getCattleForCph('10/081/1234')
+    const result = await client.getCattleOnHolding('10/081/1234')
 
     // Assert
     expect(result).toBe(paginated)
@@ -151,7 +151,7 @@ describe('CattleHomeBe4FeClient', () => {
     // Act
     let error
     try {
-      await client.getCattleForCph('10/081')
+      await client.getCattleOnHolding('10/081')
     } catch (e) {
       error = e
     }
@@ -169,7 +169,7 @@ describe('CattleHomeBe4FeClient', () => {
     // Act
     let error
     try {
-      await client.getCattleForCph('10//1234')
+      await client.getCattleOnHolding('10//1234')
     } catch (e) {
       error = e
     }

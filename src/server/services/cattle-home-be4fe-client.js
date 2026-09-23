@@ -46,14 +46,16 @@ import { paginateAnimals } from '#server/services/animals/paginate.js'
 
 /**
  * @typedef {object} CattleDetails
- * @property {string} cattle_id
  * @property {string} eartag
- * @property {string} cph
- * @property {string} breed
- * @property {string} sex
- * @property {string} date_of_birth
- * @property {string} status
- * @property {string} [dam_type]
+ * @property {string} [cph]
+ * @property {string} [breed] breed code, e.g. "HF"
+ * @property {string} [sex]
+ * @property {string} [date_of_birth] ISO date, e.g. "2023-04-15"
+ * @property {string} [date_registered] ISO date
+ * @property {string} [date_on_cph] ISO date
+ * @property {string} [state] e.g. "Alive", "Dead"
+ * @property {string} [restriction_status] e.g. "Restricted", "None"
+ * @property {string} [dam_type] "genetic" | "surrogate" (case-insensitive)
  * @property {string} [genetic_dam_tag]
  * @property {string} [surrogate_tag]
  * @property {string} [sire_tag]
@@ -127,7 +129,7 @@ class CattleHomeBe4FeClient extends BaseClient {
    * @param {number} [options.pageSize]
    * @returns {Promise<{ animals: CattleSummary[], totalItems: number, totalPages: number, currentPage: number, itemsPerPage: number }>}
    */
-  async getCattleForCph(cph, options = {}) {
+  async getCattleOnHolding(cph, options = {}) {
     const encodedCph = this.#encodeCphSegments(cph)
 
     const { payload } = await this._get(`api/cphs/${encodedCph}/cattle`)
