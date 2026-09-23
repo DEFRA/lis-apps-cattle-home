@@ -6,6 +6,7 @@ import { cphFromParams } from '../details/controller.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
+const animalsBasePath = `${getBasePathForModule('cattle-home')}/animals`
 const PAGE_SIZE = 25
 const columns = [
   { text: 'Ear tag number', sortKey: 'ear_tag' },
@@ -65,7 +66,7 @@ export const animalsOnHoldingController = {
     const sort = request.query.sort || 'ear_tag'
     const direction = request.query.direction === 'desc' ? 'desc' : 'asc'
     const { animals, totalItems, totalPages, currentPage, itemsPerPage } =
-      await cattleHomeBe4FeClient.getCattleForCph(cph, {
+      await cattleHomeBe4FeClient.getCattleOnHolding(cph, {
         q: search,
         orderBy: sort,
         direction,
@@ -98,6 +99,7 @@ export const animalsOnHoldingController = {
       sort,
       direction,
       baseHref: `${holdingsBasePath}/${cph}/animals`,
+      animalsBasePath,
       pagination: {
         currentPage,
         totalPages,

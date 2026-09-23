@@ -17,7 +17,7 @@ import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client
 vi.mock('#server/services/cattle-home-be4fe-client.js')
 
 const mocks = {
-  getCattleForCph: vi.mocked(cattleHomeBe4FeClient.getCattleForCph)
+  getCattleForCph: vi.mocked(cattleHomeBe4FeClient.getCattleOnHolding)
 }
 
 // Inline fixtures rather than the canned JSON: this suite tests what the
@@ -117,6 +117,11 @@ describe('animalsOnHoldingController', () => {
       expect.stringContaining('Showing 1 to 25 of 34 results')
     )
     expect(result).toEqual(expect.stringContaining('aria-sort="ascending"'))
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<a class="govuk-link" href="/cattle/animals/UK200000000001">UK 200000 000001</a>'
+      )
+    )
     expect(result).toEqual(
       expect.stringContaining('Animals on holding (page 1 of 2)')
     )
