@@ -10,7 +10,9 @@ vi.mock('@hapi/inert', () => ({ default: inert }))
 vi.mock('@defra/lis-hubs-infra-access/auth', () => ({
   createModuleAccessGuard,
   createSpokeGuard,
-  getHubJwtCookieOptions: vi.fn(() => ({}))
+  getHubJwtCookieOptions: vi.fn(() => ({})),
+  demandPermission: vi.fn(() => vi.fn()),
+  PERMISSIONS: { cattleRead: 'lis-perm-cattle-read' }
 }))
 
 describe('#router', () => {
