@@ -8,7 +8,11 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
-      <span class="govuk-caption-l">{{ holding.name }}</span>
+      {% if holding.name %}
+        <span class="govuk-caption-l">{{ holding.name }}</span>
+      {% else %}
+        <span class="govuk-caption-l">{{ holding.cph }}</span>
+      {% endif %}
       <h1 class="govuk-heading-l">Animals on holding</h1>
 
       {{ lisSubNavigation({
