@@ -36,10 +36,6 @@
             value: { text: holding.holdingName } if holding.holdingName else { html: notSuppliedHtml }
           },
           {
-            key: { text: "Business name" },
-            value: { text: holding.businessName } if holding.businessName else { html: notSuppliedHtml }
-          },
-          {
             key: { text: "Address" },
             value: { html: addressHtml } if holding.addressLines.length else { html: notSuppliedHtml }
           },
