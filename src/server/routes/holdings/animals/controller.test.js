@@ -176,6 +176,25 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
+  test('it shows the CPH as the caption when the holding has no name', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/098/0098/animals',
+      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<span class="govuk-caption-l">22/098/0098</span>'
+      )
+    )
+  })
+
   test('it does not mention a sort in the page title when none was asked for', async () => {
     // Arrange
     const jwt = await createHubJwt()
