@@ -24,7 +24,6 @@ export const holdingDetailsController = {
       holding: {
         cphNumber: holding.cph,
         holdingName: holding.name,
-        businessName: holding.business_name,
         addressLines: holding.address.filter(Boolean),
         herdMark: holding.herd_marks.join(', ')
       },

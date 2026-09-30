@@ -130,11 +130,8 @@ describe('holdingDetailsController', () => {
     expect(result).toEqual(expect.stringContaining('govuk-grid-column-full'))
     expect(result).toEqual(expect.stringContaining('Oakfield Farm'))
     expect(result).toEqual(expect.stringContaining('22/001/0001'))
-    expect(result).toEqual(
-      expect.stringContaining(
-        '<strong class="govuk-tag govuk-tag--red">Not supplied</strong>'
-      )
-    )
+    expect(result).not.toEqual(expect.stringContaining('Not supplied'))
+    expect(result).not.toEqual(expect.stringContaining('Business name'))
     expect(result).toEqual(expect.stringContaining('UK 324537'))
     expect(result).not.toEqual(expect.stringContaining('Registered keeper'))
     expect(result).toEqual(
@@ -253,7 +250,7 @@ describe('holdingDetailsController', () => {
       ) ?? []
     ).length
     expect(notSuppliedCount).toBe(2)
-    expect(result).toEqual(expect.stringContaining('Unnamed Holding Ltd'))
+    expect(result).not.toEqual(expect.stringContaining('Unnamed Holding Ltd'))
     expect(result).toEqual(expect.stringContaining('Long Lane'))
   })
 
