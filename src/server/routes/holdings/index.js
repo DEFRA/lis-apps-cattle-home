@@ -1,5 +1,22 @@
-import { holdingDetailsController } from './details/controller.js'
+import { demandPermission, PERMISSIONS } from '@defra/lis-hubs-infra-access/auth'
+
+import {
+  cphFromParams,
+  holdingDetailsController
+} from './details/controller.js'
 import { animalsOnHoldingController } from './animals/controller.js'
+
+// Only a user granted cattle read on this holding's CPH may view it.
+const cphAccess = {
+  pre: [
+    {
+      method: demandPermission({
+        permission: PERMISSIONS.cattleRead,
+        getCph: (request) => cphFromParams(request.params)
+      })
+    }
+  ]
+}
 
 export const holdings = {
   plugin: {
@@ -9,12 +26,14 @@ export const holdings = {
         {
           method: 'GET',
           path: '/holdings/{county}/{parish}/{holding}',
-          ...holdingDetailsController
+          ...holdingDetailsController,
+          options: cphAccess
         },
         {
           method: 'GET',
           path: '/holdings/{county}/{parish}/{holding}/animals',
-          ...animalsOnHoldingController
+          ...animalsOnHoldingController,
+          options: cphAccess
         }
       ])
     }
