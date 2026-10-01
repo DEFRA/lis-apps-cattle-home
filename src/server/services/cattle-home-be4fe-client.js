@@ -74,12 +74,14 @@ class CattleHomeBe4FeClient extends BaseClient {
   /**
    * @param {object} options
    * @param {string} options.environment 'local' | 'docker_compose' | 'dev' | 'test' | 'ext-test' | 'perf-test' | 'prod'
+   * @param {string} [options.apiKey] API key sent to the cattle-home BE4FE as x-api-key
    */
-  constructor({ environment }) {
+  constructor({ environment, apiKey }) {
     super({
       environment,
       serviceName: 'lis-be4fe-cattle-home',
-      port: localPort
+      port: localPort,
+      apiKey
     })
   }
 
@@ -155,5 +157,6 @@ class CattleHomeBe4FeClient extends BaseClient {
 }
 
 export const cattleHomeBe4FeClient = new CattleHomeBe4FeClient({
-  environment: config.get('environment')
+  environment: config.get('environment'),
+  apiKey: config.get('cattleHomeApi.apiKey')
 })
