@@ -12,12 +12,12 @@ import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
 import { config } from '#config/config.js'
 import { createServer } from '#server/server.js'
-import { getCannedCattleDetails } from '#server/services/canned-animals.js'
+import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
-vi.mock('#server/services/canned-animals.js')
+vi.mock('#server/services/cattle-home-be4fe-client.js')
 
 const mocks = {
-  getCannedCattleDetails: vi.mocked(getCannedCattleDetails)
+  getCattleDetails: vi.mocked(cattleHomeBe4FeClient.getCattleDetails)
 }
 
 const fullRecord = {
@@ -75,7 +75,7 @@ describe('cattleDetailsController', () => {
   test('it renders the cattle details for an authenticated user', async () => {
     // Arrange
     const jwt = await createHubJwt()
-    mocks.getCannedCattleDetails.mockReturnValue(fullRecord)
+    mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
@@ -89,7 +89,7 @@ describe('cattleDetailsController', () => {
 
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
-    expect(mocks.getCannedCattleDetails).toHaveBeenCalledWith('UK200000000001')
+    expect(mocks.getCattleDetails).toHaveBeenCalledWith('UK200000000001')
     expect(result).toEqual(
       expect.stringContaining(
         '<span class="govuk-caption-l">UK 200000 000001</span>'
@@ -112,7 +112,7 @@ describe('cattleDetailsController', () => {
   test('it shows "Not supplied", styled as an error, for missing required fields', async () => {
     // Arrange
     const jwt = await createHubJwt()
-    mocks.getCannedCattleDetails.mockReturnValue({
+    mocks.getCattleDetails.mockResolvedValue({
       ...fullRecord,
       sex: null,
       date_registered: null
@@ -140,7 +140,7 @@ describe('cattleDetailsController', () => {
   test('it shows "No sire details recorded." when neither the sire tag nor name is present', async () => {
     // Arrange
     const jwt = await createHubJwt()
-    mocks.getCannedCattleDetails.mockReturnValue({
+    mocks.getCattleDetails.mockResolvedValue({
       ...fullRecord,
       sire_tag: null,
       sire_name: null
@@ -163,7 +163,7 @@ describe('cattleDetailsController', () => {
   test('it shows "Not required", without error styling, for the missing half of the sire pair', async () => {
     // Arrange
     const jwt = await createHubJwt()
-    mocks.getCannedCattleDetails.mockReturnValue({
+    mocks.getCattleDetails.mockResolvedValue({
       ...fullRecord,
       sire_tag: null,
       sire_name: 'Highland Monarch'
@@ -192,7 +192,7 @@ describe('cattleDetailsController', () => {
   test('it shows the surrogate dam ear tag row only when a surrogate tag is present', async () => {
     // Arrange
     const jwt = await createHubJwt()
-    mocks.getCannedCattleDetails.mockReturnValue({
+    mocks.getCattleDetails.mockResolvedValue({
       ...fullRecord,
       dam_type: 'surrogate',
       genetic_dam_tag: 'UK200000000090',
@@ -217,7 +217,11 @@ describe('cattleDetailsController', () => {
   test('it returns not found when there is no matching cattle record', async () => {
     // Arrange
     const jwt = await createHubJwt()
-    mocks.getCannedCattleDetails.mockReturnValue(undefined)
+    mocks.getCattleDetails.mockRejectedValue(
+      Object.assign(new Error('Request failed - 404'), {
+        statusCode: statusCodes.notFound
+      })
+    )
     const request = {
       method: 'GET',
       url: '/animals/UK999999999999',
@@ -233,6 +237,47 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(statusCodes.notFound)
   })
 
+  test('it omits the back link when the record has no CPH', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+    mocks.getCattleDetails.mockResolvedValue({ ...fullRecord, cph: null })
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      headers: {
+        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
+      }
+    }
+
+    // Act
+    const { result, statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).not.toEqual(expect.stringContaining('govuk-back-link'))
+  })
+
+  test('it returns a server error when the BE4FE fails', async () => {
+    // Arrange
+    const jwt = await createHubJwt()
+    mocks.getCattleDetails.mockRejectedValue(
+      Object.assign(new Error('Request failed - 500'), { statusCode: 500 })
+    )
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      headers: {
+        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
+      }
+    }
+
+    // Act
+    const { statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(500)
+  })
+
   test('it redirects an unauthenticated request to the hub login', async () => {
     // Arrange
     const request = {
@@ -246,6 +291,6 @@ describe('cattleDetailsController', () => {
     // Assert
     expect(statusCode).toBe(302)
     expect(headers.location).toBeDefined()
-    expect(mocks.getCannedCattleDetails).not.toHaveBeenCalled()
+    expect(mocks.getCattleDetails).not.toHaveBeenCalled()
   })
 })

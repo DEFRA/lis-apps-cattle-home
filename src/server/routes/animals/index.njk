@@ -7,10 +7,12 @@
 {% set notSuppliedHtml = notSupplied() %}
 
 {% block beforeContent %}
-  {{ govukBackLink({
-    text: "Back",
-    href: backLinkHref
-  }) }}
+  {% if backLinkHref %}
+    {{ govukBackLink({
+      text: "Back",
+      href: backLinkHref
+    }) }}
+  {% endif %}
 {% endblock %}
 
 {% block content %}

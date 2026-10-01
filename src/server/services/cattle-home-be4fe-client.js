@@ -143,7 +143,7 @@ class CattleHomeBe4FeClient extends BaseClient {
   }
 
   /**
-   * @param {string} cattleId
+   * @param {string} cattleId the animal's ear tag, e.g. 'UK 200000 000013'
    * @returns {Promise<CattleDetails>} the cattle's details
    */
   async getCattleDetails(cattleId) {
