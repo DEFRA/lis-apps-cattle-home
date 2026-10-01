@@ -17,8 +17,7 @@ service. For local development, start that API on port `8085` and configure:
 CATTLE_HOME_API_URL=http://localhost:3225
 ```
 
-`CATTLE_HOME_API_KEY`, `CATTLE_HOME_API_KEY_HEADER` and
-`CATTLE_HOME_API_TIMEOUT` configure the optional API key and request timeout.
+`CATTLE_HOME_API_TIMEOUT` configures the request timeout.
 
 Primary URL path: `/cattle/home`
 
