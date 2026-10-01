@@ -229,6 +229,13 @@ export const config = convict({
     }
   },
   cattleHomeApi: {
+    apiKey: {
+      doc: 'API key sent to the cattle-home BE4FE as x-api-key',
+      format: String,
+      default: '',
+      env: 'CATTLE_HOME_API_KEY',
+      sensitive: true
+    },
     timeout: {
       doc: 'Timeout in milliseconds for cattle-home BE4FE API requests',
       format: 'nat',

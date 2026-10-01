@@ -24,6 +24,20 @@ describe('CattleHomeBe4FeClient', () => {
     vi.restoreAllMocks()
   })
 
+  test('Sends the configured BE4FE API key', async () => {
+    // Arrange
+    vi.stubEnv('CATTLE_HOME_API_KEY', 'test-api-key')
+    vi.resetModules()
+
+    // Act
+    const { cattleHomeBe4FeClient: reloadedClient } =
+      await import('./cattle-home-be4fe-client.js')
+
+    // Assert
+    expect(reloadedClient._apiKey).toBe('test-api-key')
+    vi.unstubAllEnvs()
+  })
+
   test('Gets CPHs for an encoded user ID', async () => {
     // Arrange
     const payload = { data: [{ cph: '10/081/1234' }] }
