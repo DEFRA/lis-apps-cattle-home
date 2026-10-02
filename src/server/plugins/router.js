@@ -27,8 +27,7 @@ const authGuard = createSpokeGuard({
   port: config.get('port'),
   basePath: getBasePathForModule('cattle-home'),
   secret: config.get('auth.hubJwt.secret'),
-  audience: config.get('auth.hubJwt.audience'),
-  allowHubServiceRoutes: true
+  audience: config.get('auth.hubJwt.audience')
 })
 
 const moduleAccessGuard = createModuleAccessGuard({
