@@ -1,3 +1,4 @@
+import { animalAccess } from './access.js'
 import { cattleDetailsController } from './controller.js'
 
 export const animals = {
@@ -8,7 +9,8 @@ export const animals = {
         {
           method: 'GET',
           path: '/animals/{earTag}',
-          ...cattleDetailsController
+          ...cattleDetailsController,
+          options: animalAccess
         }
       ])
     }
