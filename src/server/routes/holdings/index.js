@@ -1,7 +1,7 @@
 import {
-  demandPermission,
-  PERMISSIONS
-} from '@defra/lis-hubs-infra-access/auth'
+  PERMISSIONS,
+  demandPermission
+} from '@defra/lis-hubs-infra-access/authorization'
 
 import {
   cphFromParams,

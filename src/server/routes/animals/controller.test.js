@@ -8,9 +8,8 @@ import {
   vi
 } from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
-import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
-import { config } from '#config/config.js'
+import { spokeAuth } from '#test-helpers/spoke-auth.js'
 import { createServer } from '#server/server.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
@@ -37,23 +36,21 @@ const fullRecord = {
   sire_name: null
 }
 
-async function createHubJwt() {
-  return issueHubJwt(
-    {
-      sub: 'test-user',
-      email: 'test.user@example.com',
-      firstName: 'Test',
-      lastName: 'User',
-      statements: [{ role: 'lis-role-cattle-read', cphs: '*' }],
-      serviceId: 'test-service'
-    },
-    {
-      secret: config.get('auth.hubJwt.secret'),
-      issuer: config.get('auth.hubOrigins')[0],
-      audience: config.get('auth.hubJwt.audience'),
-      ttlSeconds: config.get('auth.hubJwt.ttlSeconds')
-    }
-  )
+function createUser() {
+  return {
+    sub: 'test-user',
+    email: 'test.user@example.com',
+    firstName: 'Test',
+    lastName: 'User',
+    statements: [
+      {
+        role: 'lis-role-cattle-read',
+        cphs: '*',
+        permissions: ['lis-perm-cattle-read']
+      }
+    ],
+    serviceId: 'test-service'
+  }
 }
 
 describe('cattleDetailsController', () => {
@@ -74,14 +71,12 @@ describe('cattleDetailsController', () => {
 
   test('it renders the cattle details for an authenticated user', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
 
     // Act
@@ -111,7 +106,7 @@ describe('cattleDetailsController', () => {
 
   test('it shows "Not supplied", styled as an error, for missing required fields', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleDetails.mockResolvedValue({
       ...fullRecord,
       sex: null,
@@ -120,9 +115,7 @@ describe('cattleDetailsController', () => {
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
 
     // Act
@@ -139,7 +132,7 @@ describe('cattleDetailsController', () => {
 
   test('it shows "No sire details recorded." when neither the sire tag nor name is present', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleDetails.mockResolvedValue({
       ...fullRecord,
       sire_tag: null,
@@ -148,9 +141,7 @@ describe('cattleDetailsController', () => {
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
 
     // Act
@@ -162,7 +153,7 @@ describe('cattleDetailsController', () => {
 
   test('it shows "Not required", without error styling, for the missing half of the sire pair', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleDetails.mockResolvedValue({
       ...fullRecord,
       sire_tag: null,
@@ -171,9 +162,7 @@ describe('cattleDetailsController', () => {
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
 
     // Act
@@ -191,7 +180,7 @@ describe('cattleDetailsController', () => {
 
   test('it shows the surrogate dam ear tag row only when a surrogate tag is present', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleDetails.mockResolvedValue({
       ...fullRecord,
       dam_type: 'surrogate',
@@ -201,9 +190,7 @@ describe('cattleDetailsController', () => {
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
 
     // Act
@@ -216,7 +203,7 @@ describe('cattleDetailsController', () => {
 
   test('it returns not found when there is no matching cattle record', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleDetails.mockRejectedValue(
       Object.assign(new Error('Request failed - 404'), {
         statusCode: statusCodes.notFound
@@ -225,9 +212,7 @@ describe('cattleDetailsController', () => {
     const request = {
       method: 'GET',
       url: '/animals/UK999999999999',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
 
     // Act
@@ -239,14 +224,12 @@ describe('cattleDetailsController', () => {
 
   test('it omits the back link when the record has no CPH', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleDetails.mockResolvedValue({ ...fullRecord, cph: null })
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
 
     // Act
@@ -259,16 +242,14 @@ describe('cattleDetailsController', () => {
 
   test('it returns a server error when the BE4FE fails', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleDetails.mockRejectedValue(
       Object.assign(new Error('Request failed - 500'), { statusCode: 500 })
     )
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
 
     // Act
@@ -278,7 +259,7 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(500)
   })
 
-  test('it redirects an unauthenticated request to the hub login', async () => {
+  test('it rejects a request without a hub service token', async () => {
     // Arrange
     const request = {
       method: 'GET',
@@ -286,11 +267,11 @@ describe('cattleDetailsController', () => {
     }
 
     // Act
-    const { statusCode, headers } = await server.inject(request)
+    const { statusCode, result } = await server.inject(request)
 
     // Assert
-    expect(statusCode).toBe(302)
-    expect(headers.location).toBeDefined()
+    expect(statusCode).toBe(statusCodes.unauthorized)
+    expect(result).toEqual({ message: 'Service authentication required' })
     expect(mocks.getCattleDetails).not.toHaveBeenCalled()
   })
 })
