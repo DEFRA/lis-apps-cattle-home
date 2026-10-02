@@ -80,7 +80,7 @@ describe('holdings CPH access', () => {
     expect(statusCode).toBe(statusCodes.ok)
   })
 
-  test('it forbids holding details for a CPH the user is not granted', async () => {
+  test('it returns not found for holding details on a CPH the user is not granted', async () => {
     // Arrange
     const user = createUser(['22/002/0002'])
 
@@ -92,7 +92,7 @@ describe('holdings CPH access', () => {
     })
 
     // Assert
-    expect(statusCode).toBe(statusCodes.forbidden)
+    expect(statusCode).toBe(statusCodes.notFound)
     expect(cattleHomeBe4FeClient.getHoldingDetails).not.toHaveBeenCalled()
   })
 
@@ -111,7 +111,7 @@ describe('holdings CPH access', () => {
     expect(statusCode).toBe(statusCodes.ok)
   })
 
-  test('it forbids animals on holding for a CPH the user is not granted', async () => {
+  test('it returns not found for animals on holding on a CPH the user is not granted', async () => {
     // Arrange
     const user = createUser(['22/002/0002'])
 
@@ -123,7 +123,7 @@ describe('holdings CPH access', () => {
     })
 
     // Assert
-    expect(statusCode).toBe(statusCodes.forbidden)
+    expect(statusCode).toBe(statusCodes.notFound)
     expect(cattleHomeBe4FeClient.getCattleOnHolding).not.toHaveBeenCalled()
   })
 })

@@ -1,5 +1,5 @@
+import Boom from '@hapi/boom'
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
-import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
 import { getHoldingByCph } from '#server/services/canned-holdings.js'
 import { cphFromParams } from '../details/controller.js'
@@ -59,7 +59,7 @@ export const animalsOnHoldingController = {
     const holding = getHoldingByCph(cph)
 
     if (!holding) {
-      return h.response('Page not found').code(statusCodes.notFound)
+      return Boom.notFound()
     }
 
     const search = request.query.search?.trim() || ''

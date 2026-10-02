@@ -1,5 +1,5 @@
+import Boom from '@hapi/boom'
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
-import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { logger } from '@defra/lis-hubs-infra-core'
 
 const holdingDetailsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
@@ -18,7 +18,7 @@ export const landingController = {
     const holdings = user.holdings ?? []
 
     if (holdings.length === 0) {
-      return h.response('Page not found').code(statusCodes.notFound)
+      return Boom.notFound()
     }
 
     return h.redirect(

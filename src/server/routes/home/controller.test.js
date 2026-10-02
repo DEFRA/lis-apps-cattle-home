@@ -1,4 +1,3 @@
-import { vi } from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
 import { spokeAuth } from '#test-helpers/spoke-auth.js'
@@ -94,19 +93,17 @@ describe('#landingController', () => {
 
   test('Should return not found when the user has no holdings property', async () => {
     // Arrange
-    const response = { code: vi.fn() }
-    const h = { response: vi.fn(() => response) }
     const request = {
       auth: { credentials: { user: { sub: 'subject-id' } } },
       headers: {}
     }
 
     // Act
-    landingController.handler(request, h)
+    const result = landingController.handler(request, {})
 
     // Assert
-    expect(h.response).toHaveBeenCalledWith('Page not found')
-    expect(response.code).toHaveBeenCalledWith(statusCodes.notFound)
+    expect(result.isBoom).toBe(true)
+    expect(result.output.statusCode).toBe(statusCodes.notFound)
   })
 
   test('Should reject a request without a hub service token', async () => {
