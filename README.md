@@ -23,10 +23,7 @@ CATTLE_HOME_API_URL=http://localhost:3225
 Primary URL path: `/cattle/home`
 
 The root route renders the complete user-facing CPH list and uses the hub session
-cookie. `GET /summary` renders the embeddable CPH cattle-count fragment used by
-front-office and requires a hub-service bearer token. `GET /summary-data`
-returns the structured species, holding-count and action data used by the
-front-office dashboard and has the same hub-service authentication requirement.
+cookie.
 
 Run locally with `npm run dev`.
 Install dependencies locally with `npm install` from this project directory.
