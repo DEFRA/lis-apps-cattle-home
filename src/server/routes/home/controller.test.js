@@ -92,27 +92,21 @@ describe('#landingController', () => {
     expect(statusCode).toBe(statusCodes.notFound)
   })
 
-  test('Should resolve the user id from the sub when there is no email', async () => {
+  test('Should return not found when the user has no holdings property', async () => {
     // Arrange
-    const redirect = vi.fn()
+    const response = { code: vi.fn() }
+    const h = { response: vi.fn(() => response) }
     const request = {
-      auth: {
-        credentials: {
-          user: {
-            sub: 'subject-id',
-            email: null,
-            holdings: [{ countyParishHoldingNumber: '10/081/1234' }]
-          }
-        }
-      },
+      auth: { credentials: { user: { sub: 'subject-id' } } },
       headers: {}
     }
 
     // Act
-    landingController.handler(request, { redirect })
+    landingController.handler(request, h)
 
     // Assert
-    expect(redirect).toHaveBeenCalledWith('/cattle/holdings/10/081/1234')
+    expect(h.response).toHaveBeenCalledWith('Page not found')
+    expect(response.code).toHaveBeenCalledWith(statusCodes.notFound)
   })
 
   test('Should reject a request without a hub service token', async () => {

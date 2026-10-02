@@ -15,7 +15,7 @@ export const landingController = {
     const { user } = request.auth.credentials
     logger.info({ userId: user.sub }, 'Cattle home landing request received')
 
-    const holdings = user?.holdings ?? []
+    const holdings = user.holdings ?? []
 
     if (holdings.length === 0) {
       return h.response('Page not found').code(statusCodes.notFound)
