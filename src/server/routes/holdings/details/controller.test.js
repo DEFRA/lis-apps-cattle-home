@@ -8,9 +8,8 @@ import {
   vi
 } from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
-import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
-import { config } from '#config/config.js'
+import { spokeAuth } from '#test-helpers/spoke-auth.js'
 import { createServer } from '#server/server.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 import { cphFromParams } from './controller.js'
@@ -19,23 +18,21 @@ const mocks = {
   getHoldingDetails: vi.spyOn(cattleHomeBe4FeClient, 'getHoldingDetails')
 }
 
-async function createHubJwt() {
-  return issueHubJwt(
-    {
-      sub: 'test-user',
-      email: 'test.user@example.com',
-      firstName: 'Test',
-      lastName: 'User',
-      statements: [{ role: 'lis-role-cattle-read', cphs: '*' }],
-      serviceId: 'test-service'
-    },
-    {
-      secret: config.get('auth.hubJwt.secret'),
-      issuer: config.get('auth.hubOrigins')[0],
-      audience: config.get('auth.hubJwt.audience'),
-      ttlSeconds: config.get('auth.hubJwt.ttlSeconds')
-    }
-  )
+function createUser() {
+  return {
+    sub: 'test-user',
+    email: 'test.user@example.com',
+    firstName: 'Test',
+    lastName: 'User',
+    statements: [
+      {
+        role: 'lis-role-cattle-read',
+        cphs: '*',
+        permissions: ['lis-perm-cattle-read']
+      }
+    ],
+    serviceId: 'test-service'
+  }
 }
 
 describe('cphFromParams()', () => {
@@ -88,13 +85,11 @@ describe('holdingDetailsController', () => {
 
   test('it renders the Oakfield Farm holding for an authenticated user', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     const request = {
       method: 'GET',
       url: '/holdings/22/001/0001',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
     mocks.getHoldingDetails.mockResolvedValue({
       cph: '22/001/0001',
@@ -139,7 +134,7 @@ describe('holdingDetailsController', () => {
     )
   })
 
-  test('it redirects an unauthenticated request to the hub login', async () => {
+  test('it rejects a request without a hub service token', async () => {
     // Arrange
     const request = {
       method: 'GET',
@@ -147,23 +142,21 @@ describe('holdingDetailsController', () => {
     }
 
     // Act
-    const { statusCode, headers } = await server.inject(request)
+    const { statusCode, result } = await server.inject(request)
 
     // Assert
-    expect(statusCode).toBe(302)
-    expect(headers.location).toBeDefined()
+    expect(statusCode).toBe(statusCodes.unauthorized)
+    expect(result).toEqual({ message: 'Service authentication required' })
     expect(mocks.getHoldingDetails).not.toHaveBeenCalled()
   })
 
   test('it returns not found when the BE4FE has no matching holding', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     const request = {
       method: 'GET',
       url: '/holdings/99/999/9999',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
     const notFoundError = new Error('Request failed - 404')
     notFoundError.statusCode = statusCodes.notFound
@@ -178,13 +171,11 @@ describe('holdingDetailsController', () => {
 
   test('it shows the CPH as the caption, above the "Holding details" heading, when the holding has no name', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     const request = {
       method: 'GET',
       url: '/holdings/22/098/0098',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
     mocks.getHoldingDetails.mockResolvedValue({
       cph: '22/098/0098',
@@ -218,13 +209,11 @@ describe('holdingDetailsController', () => {
 
   test('it shows "Not supplied", styled as an error, for a missing holding name and herd mark', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     const request = {
       method: 'GET',
       url: '/holdings/22/098/0098',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
     mocks.getHoldingDetails.mockResolvedValue({
       cph: '22/098/0098',
@@ -256,13 +245,11 @@ describe('holdingDetailsController', () => {
 
   test('it shows "Not supplied" for the address when none is recorded', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     const request = {
       method: 'GET',
       url: '/holdings/22/097/0097',
-      headers: {
-        cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}`
-      }
+      auth: spokeAuth(user)
     }
     mocks.getHoldingDetails.mockResolvedValue({
       cph: '22/097/0097',

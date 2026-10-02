@@ -1,32 +1,29 @@
 import { vi } from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
-import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
-import { config } from '#config/config.js'
+import { spokeAuth } from '#test-helpers/spoke-auth.js'
 import { createServer } from '#server/server.js'
 import { cphPath, landingController } from './controller.js'
 
-async function createHubJwt({
-  statements = [{ role: 'lis-role-cattle-read', cphs: '*' }],
+function createUser({
+  statements = [
+    {
+      role: 'lis-role-cattle-read',
+      cphs: '*',
+      permissions: ['lis-perm-cattle-read']
+    }
+  ],
   holdings = []
 } = {}) {
-  return issueHubJwt(
-    {
-      sub: 'test-user',
-      email: 'test.user@example.com',
-      firstName: 'Test',
-      lastName: 'User',
-      statements,
-      holdings,
-      serviceId: 'test-service'
-    },
-    {
-      secret: config.get('auth.hubJwt.secret'),
-      issuer: config.get('auth.hubOrigins')[0],
-      audience: config.get('auth.hubJwt.audience'),
-      ttlSeconds: config.get('auth.hubJwt.ttlSeconds')
-    }
-  )
+  return {
+    sub: 'test-user',
+    email: 'test.user@example.com',
+    firstName: 'Test',
+    lastName: 'User',
+    statements,
+    holdings,
+    serviceId: 'test-service'
+  }
 }
 
 describe('#landingController', () => {
@@ -43,7 +40,7 @@ describe('#landingController', () => {
 
   test('Should redirect a keeper with one holding to its details page', async () => {
     // Arrange
-    const jwt = await createHubJwt({
+    const user = createUser({
       holdings: [{ countyParishHoldingNumber: '10/081/1234' }]
     })
 
@@ -51,7 +48,7 @@ describe('#landingController', () => {
     const { statusCode, headers } = await server.inject({
       method: 'GET',
       url: '/',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -61,7 +58,7 @@ describe('#landingController', () => {
 
   test('Should redirect a keeper with several holdings to the first', async () => {
     // Arrange
-    const jwt = await createHubJwt({
+    const user = createUser({
       holdings: [
         { countyParishHoldingNumber: '10/081/1234' },
         { countyParishHoldingNumber: '10/081/5678' }
@@ -72,7 +69,7 @@ describe('#landingController', () => {
     const { statusCode, headers } = await server.inject({
       method: 'GET',
       url: '/',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -82,65 +79,65 @@ describe('#landingController', () => {
 
   test('Should return not found when the keeper has no holdings', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
 
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
       url: '/',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
     expect(statusCode).toBe(statusCodes.notFound)
   })
 
-  test('Should resolve the user id from the sub when there is no email', async () => {
+  test('Should return not found when the user has no holdings property', async () => {
     // Arrange
-    const redirect = vi.fn()
+    const response = { code: vi.fn() }
+    const h = { response: vi.fn(() => response) }
     const request = {
-      app: {
-        hubAuth: {
-          sub: 'subject-id',
-          email: null,
-          holdings: [{ countyParishHoldingNumber: '10/081/1234' }]
-        }
-      },
+      auth: { credentials: { user: { sub: 'subject-id' } } },
       headers: {}
     }
 
     // Act
-    landingController.handler(request, { redirect })
+    landingController.handler(request, h)
 
     // Assert
-    expect(redirect).toHaveBeenCalledWith('/cattle/holdings/10/081/1234')
+    expect(h.response).toHaveBeenCalledWith('Page not found')
+    expect(response.code).toHaveBeenCalledWith(statusCodes.notFound)
   })
 
-  test('Should redirect to the hub when the JWT is missing', async () => {
+  test('Should reject a request without a hub service token', async () => {
     // Act
-    const { headers, statusCode } = await server.inject({
+    const { result, statusCode } = await server.inject({
       method: 'GET',
       url: '/'
     })
 
     // Assert
-    expect(statusCode).toBe(302)
-    expect(headers.location).toContain(
-      'https://front-office.lis.defra/auth/login?returnUrl=%2Fcattle'
-    )
+    expect(statusCode).toBe(statusCodes.unauthorized)
+    expect(result).toEqual({ message: 'Service authentication required' })
   })
 
   test('Should return forbidden when the user lacks the cattle module permission', async () => {
     // Arrange
-    const jwt = await createHubJwt({
-      statements: [{ role: 'lis-role-cattle-move-read', cphs: '*' }]
+    const user = createUser({
+      statements: [
+        {
+          role: 'lis-role-cattle-move-read',
+          cphs: '*',
+          permissions: ['lis-perm-cattle-move-read']
+        }
+      ]
     })
 
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
       url: '/',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert

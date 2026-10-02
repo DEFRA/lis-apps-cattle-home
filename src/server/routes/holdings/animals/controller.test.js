@@ -8,9 +8,8 @@ import {
   vi
 } from 'vitest'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
-import { issueHubJwt } from '@defra/lis-hubs-infra-access/auth'
 
-import { config } from '#config/config.js'
+import { spokeAuth } from '#test-helpers/spoke-auth.js'
 import { createServer } from '#server/server.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
@@ -52,23 +51,21 @@ function page(animals, overrides = {}) {
   }
 }
 
-async function createHubJwt() {
-  return issueHubJwt(
-    {
-      sub: 'test-user',
-      email: 'test.user@example.com',
-      firstName: 'Test',
-      lastName: 'User',
-      statements: [{ role: 'lis-role-cattle-read', cphs: '*' }],
-      serviceId: 'test-service'
-    },
-    {
-      secret: config.get('auth.hubJwt.secret'),
-      issuer: config.get('auth.hubOrigins')[0],
-      audience: config.get('auth.hubJwt.audience'),
-      ttlSeconds: config.get('auth.hubJwt.ttlSeconds')
-    }
-  )
+function createUser() {
+  return {
+    sub: 'test-user',
+    email: 'test.user@example.com',
+    firstName: 'Test',
+    lastName: 'User',
+    statements: [
+      {
+        role: 'lis-role-cattle-read',
+        cphs: '*',
+        permissions: ['lis-perm-cattle-read']
+      }
+    ],
+    serviceId: 'test-service'
+  }
 }
 
 describe('animalsOnHoldingController', () => {
@@ -96,7 +93,7 @@ describe('animalsOnHoldingController', () => {
 
   test('it renders the results for an authenticated user', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(
       page([animal], { totalItems: 34, totalPages: 2 })
     )
@@ -105,7 +102,7 @@ describe('animalsOnHoldingController', () => {
     const { statusCode, result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -129,13 +126,13 @@ describe('animalsOnHoldingController', () => {
 
   test('it renders a no-wrap table, labelled as sortable and scrollable', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals?search=UK200000000001',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -158,14 +155,14 @@ describe('animalsOnHoldingController', () => {
 
   test('it puts the search, page, sort and holding in the page title', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(page([animal], { totalItems: 15 }))
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals?search=male&sort=age&direction=desc',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -178,13 +175,13 @@ describe('animalsOnHoldingController', () => {
 
   test('it shows the CPH as the caption when the holding has no name', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/098/0098/animals',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -197,7 +194,7 @@ describe('animalsOnHoldingController', () => {
 
   test('it does not mention a sort in the page title when none was asked for', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(
       page([animal], { totalItems: 34, totalPages: 2 })
     )
@@ -206,7 +203,7 @@ describe('animalsOnHoldingController', () => {
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -219,13 +216,13 @@ describe('animalsOnHoldingController', () => {
 
   test('it does not mark the search results as a live region', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals?search=male',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -234,13 +231,13 @@ describe('animalsOnHoldingController', () => {
 
   test('it shows dates as day, short month and year', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals?search=UK200000000001',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -252,14 +249,14 @@ describe('animalsOnHoldingController', () => {
 
   test("it shows each animal's age in years and months", async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-09-10') })
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals?search=UK200000000001',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -272,14 +269,14 @@ describe('animalsOnHoldingController', () => {
 
   test('it shows "Not supplied" for the age when the date of birth is in the future', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     vi.useFakeTimers({ toFake: ['Date'], now: new Date('2020-01-01') })
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals?search=UK200000000001',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -293,7 +290,7 @@ describe('animalsOnHoldingController', () => {
 
   test('it asks the client for page 2 and renders what it returns', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(
       page([animal], { totalItems: 34, totalPages: 2, currentPage: 2 })
     )
@@ -302,7 +299,7 @@ describe('animalsOnHoldingController', () => {
     const { statusCode, result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals?page=2',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -321,13 +318,13 @@ describe('animalsOnHoldingController', () => {
 
   test('it passes the requested sort column and direction to the client', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals?sort=date_of_birth&direction=desc',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -340,14 +337,14 @@ describe('animalsOnHoldingController', () => {
 
   test('it passes the search term to the client and renders the matches', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(page([animal]))
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals?search=UK200000000001',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -363,14 +360,14 @@ describe('animalsOnHoldingController', () => {
 
   test('it shows no table and a "Clear search" link when nothing matches', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(page([]))
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals?search=not-a-real-animal',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -385,14 +382,14 @@ describe('animalsOnHoldingController', () => {
 
   test('it shows the no-animals empty state when the holding has none recorded', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(page([]))
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/095/0095/animals',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -414,14 +411,14 @@ describe('animalsOnHoldingController', () => {
 
   test('it shows "Not supplied", styled as an error, for missing animal fields', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(page([incompleteAnimal]))
 
     // Act
     const { result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/096/0096/animals',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
@@ -438,28 +435,28 @@ describe('animalsOnHoldingController', () => {
 
   test('it returns not found for a CPH with no canned holding', async () => {
     // Arrange
-    const jwt = await createHubJwt()
+    const user = createUser()
 
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
       url: '/holdings/99/999/9999/animals',
-      headers: { cookie: `${config.get('auth.hubJwt.cookieName')}=${jwt}` }
+      auth: spokeAuth(user)
     })
 
     // Assert
     expect(statusCode).toBe(statusCodes.notFound)
   })
 
-  test('it redirects an unauthenticated request to the hub login', async () => {
+  test('it rejects a request without a hub service token', async () => {
     // Act
-    const { statusCode, headers } = await server.inject({
+    const { statusCode, result } = await server.inject({
       method: 'GET',
       url: '/holdings/22/001/0001/animals'
     })
 
     // Assert
-    expect(statusCode).toBe(302)
-    expect(headers.location).toBeDefined()
+    expect(statusCode).toBe(statusCodes.unauthorized)
+    expect(result).toEqual({ message: 'Service authentication required' })
   })
 })
