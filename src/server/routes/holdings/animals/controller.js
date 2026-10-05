@@ -1,7 +1,5 @@
-import Boom from '@hapi/boom'
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
-import { getHoldingByCph } from '#server/services/canned-holdings.js'
 import { cphFromParams } from '../details/controller.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
@@ -56,11 +54,7 @@ function buildPageTitle({
 export const animalsOnHoldingController = {
   async handler(request, h) {
     const cph = cphFromParams(request.params)
-    const holding = getHoldingByCph(cph)
-
-    if (!holding) {
-      return Boom.notFound()
-    }
+    const holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)
 
     const search = request.query.search?.trim() || ''
     const sort = request.query.sort || 'ear_tag'

@@ -16,12 +16,13 @@ import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client
 vi.mock('#server/services/cattle-home-be4fe-client.js')
 
 const mocks = {
-  getCattleForCph: vi.mocked(cattleHomeBe4FeClient.getCattleOnHolding)
+  getCattleForCph: vi.mocked(cattleHomeBe4FeClient.getCattleOnHolding),
+  getHoldingDetails: vi.mocked(cattleHomeBe4FeClient.getHoldingDetails)
 }
 
-// Inline fixtures rather than the canned JSON: this suite tests what the
-// controller renders and what it asks the client for. Search, sort and
-// paging behaviour is covered by animals/search and animals/paginate.
+// Inline fixtures: this suite tests what the controller renders and what it
+// asks the client for. Search, sort and paging behaviour is covered by
+// animals/search and animals/paginate.
 const animal = {
   cattle_id: 'UK200000000001',
   eartag: 'UK200000000001',
@@ -84,6 +85,10 @@ describe('animalsOnHoldingController', () => {
 
   beforeEach(() => {
     mocks.getCattleForCph.mockResolvedValue(page([animal]))
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm'
+    })
   })
 
   afterEach(() => {
@@ -176,6 +181,7 @@ describe('animalsOnHoldingController', () => {
   test('it shows the CPH as the caption when the holding has no name', async () => {
     // Arrange
     const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValue({ cph: '22/098/0098' })
 
     // Act
     const { result } = await server.inject({
@@ -433,9 +439,12 @@ describe('animalsOnHoldingController', () => {
     expect(result).not.toEqual(expect.stringContaining('page 1 of'))
   })
 
-  test('it returns not found for a CPH with no canned holding', async () => {
+  test('it returns not found when the BE4FE does not know the holding', async () => {
     // Arrange
     const user = createUser()
+    const notFoundError = new Error('Request failed - 404')
+    notFoundError.statusCode = statusCodes.notFound
+    mocks.getHoldingDetails.mockRejectedValue(notFoundError)
 
     // Act
     const { statusCode } = await server.inject({
@@ -446,6 +455,32 @@ describe('animalsOnHoldingController', () => {
 
     // Assert
     expect(statusCode).toBe(statusCodes.notFound)
+  })
+
+  test('it returns forbidden when the user lacks the cattle module permission', async () => {
+    // Arrange
+    const user = {
+      ...createUser(),
+      statements: [
+        {
+          role: 'lis-role-cattle-move-read',
+          cphs: '*',
+          permissions: ['lis-perm-cattle-move-read']
+        }
+      ]
+    }
+
+    // Act
+    const { statusCode, result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.forbidden)
+    expect(result).toEqual(expect.stringContaining('Forbidden'))
+    expect(mocks.getHoldingDetails).not.toHaveBeenCalled()
   })
 
   test('it rejects a request without a hub service token', async () => {

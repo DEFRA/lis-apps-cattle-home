@@ -5,7 +5,6 @@ import {
 } from '@defra/lis-hubs-infra-access/authentication'
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
-import { home } from '../routes/home/index.js'
 import { holdings } from '../routes/holdings/index.js'
 import { animals } from '../routes/animals/index.js'
 import { health } from '../routes/health/index.js'
@@ -35,7 +34,7 @@ export const router = {
     async register(server) {
       await server.register([inert, spokeAuth])
 
-      await server.register([health, home, holdings, animals])
+      await server.register([health, holdings, animals])
 
       await server.register(serveStaticFiles)
     }
