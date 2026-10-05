@@ -54,19 +54,22 @@ function buildPageTitle({
 export const animalsOnHoldingController = {
   async handler(request, h) {
     const cph = cphFromParams(request.params)
-    const holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)
-
     const search = request.query.search?.trim() || ''
     const sort = request.query.sort || 'ear_tag'
     const direction = request.query.direction === 'desc' ? 'desc' : 'asc'
-    const { animals, totalItems, totalPages, currentPage, itemsPerPage } =
-      await cattleHomeBe4FeClient.getCattleOnHolding(cph, {
+    const [
+      holding,
+      { animals, totalItems, totalPages, currentPage, itemsPerPage }
+    ] = await Promise.all([
+      cattleHomeBe4FeClient.getHoldingDetails(cph),
+      cattleHomeBe4FeClient.getCattleOnHolding(cph, {
         q: search,
         orderBy: sort,
         direction,
         page: Number(request.query.page) || 1,
         pageSize: PAGE_SIZE
       })
+    ])
 
     return h.view('holdings/animals/index', {
       pageTitle: buildPageTitle({
