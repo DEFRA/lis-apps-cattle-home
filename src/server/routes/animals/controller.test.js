@@ -31,7 +31,13 @@ const holdingRecord = {
 
 const fullRecord = {
   eartag: 'UK200000000001',
-  cph: '22/001/0001',
+  current_location: {
+    identifier: '22/001/0001',
+    sub_identifier: null,
+    full_identifier: '22/001/0001',
+    name: 'Oakfield Farm',
+    premises_type: 'AH'
+  },
   breed: 'HF',
   sex: 'Male',
   date_of_birth: '2023-04-15',
@@ -476,7 +482,16 @@ describe('cattleDetailsController', () => {
   test('it returns not found when the animal record has no holding', async () => {
     // Arrange
     const user = createUser()
-    mocks.getCattleDetails.mockResolvedValue({ ...fullRecord, cph: null })
+    mocks.getCattleDetails.mockResolvedValue({
+      ...fullRecord,
+      current_location: {
+        identifier: null,
+        sub_identifier: null,
+        full_identifier: null,
+        name: null,
+        premises_type: null
+      }
+    })
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',

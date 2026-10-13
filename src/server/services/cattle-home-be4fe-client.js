@@ -73,9 +73,20 @@ import { paginateAnimals } from '#server/services/animals/paginate.js'
  */
 
 /**
+ * @typedef {object} CattleLocation
+ * @property {string} [identifier] the holding's CPH
+ * @property {string} [sub_identifier]
+ * @property {string} [full_identifier]
+ * @property {string} [name]
+ * @property {string} [premises_type]
+ */
+
+/**
  * @typedef {object} CattleDetails
  * @property {string} eartag
- * @property {string} [cph]
+ * @property {CattleLocation} [current_location] where the animal is now; every field null when unknown
+ * @property {CattleLocation} [registered_location] where the animal was registered
+ * @property {CattleLocation} [death_location] where the animal died, if it has
  * @property {string} [breed] breed code, e.g. "HF"
  * @property {string} [sex]
  * @property {string} [date_of_birth] ISO date, e.g. "2023-04-15"

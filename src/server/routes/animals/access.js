@@ -23,11 +23,9 @@ async function demandAnimalAccess(request) {
     request.params.earTag
   )
   const { user } = request.auth.credentials
+  const cph = record.current_location?.identifier
 
-  if (
-    record.cph &&
-    hasPermission(user, { permission: PERMISSIONS.cattleRead, cph: record.cph })
-  ) {
+  if (cph && hasPermission(user, { permission: PERMISSIONS.cattleRead, cph })) {
     return record
   }
 

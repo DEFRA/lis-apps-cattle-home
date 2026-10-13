@@ -28,7 +28,7 @@ async function getCurrentLocation(cph) {
 export const cattleDetailsController = {
   async handler(request, h) {
     const { record } = request.pre
-    const { cph } = record
+    const cph = record.current_location.identifier
     const cattle = buildCattleDetailsViewModel(record)
     const formattedEarTag = formatEarTag(cattle.eartag)
 
