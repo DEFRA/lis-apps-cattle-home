@@ -36,14 +36,13 @@
         {
           key: { text: "Date of birth" },
           value: { text: cattle.dateOfBirth | formatDate(dateFormat) } if cattle.dateOfBirth else { html: notSuppliedHtml }
-        },
-        {
-          key: { text: "Registered on" if isBackOffice else "Date registered" },
-          value: { text: cattle.dateRegistered | formatDate(dateFormat) } if cattle.dateRegistered else { html: notSuppliedHtml }
         }
       ] -%}
       {%- if not isBackOffice -%}
         {%- set _ = animalRows.push({
+          key: { text: "Date registered" },
+          value: { text: cattle.dateRegistered | formatDate(dateFormat) } if cattle.dateRegistered else { html: notSuppliedHtml }
+        }, {
           key: { text: "Date on holding" },
           value: { text: cattle.dateOnCph | formatDate(dateFormat) } if cattle.dateOnCph else { html: notSuppliedHtml }
         }) -%}

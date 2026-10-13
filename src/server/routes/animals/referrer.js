@@ -3,7 +3,7 @@ import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 const animalsOnHoldingPath = new RegExp(
-  `^${holdingsBasePath}/(\\d{2}/\\d{3}/\\d{4})/animals$`
+  String.raw`^${holdingsBasePath}/(\d{2}/\d{3}/\d{4})/animals$`
 )
 
 /**

@@ -40,8 +40,8 @@ export const cattleDetailsController = {
       request.params.earTag
     )
 
-    // TODO: temporary fallback while the cattle record may have no cph.
-    // once the record always carries it, use record.cph alone
+    // Temporary fallback while the cattle record may have no cph.
+    // Once the record always carries it, use record.cph alone.
     const cph = record.cph || getReferringHoldingCph(request)
     const cattle = buildCattleDetailsViewModel(record)
     const formattedEarTag = formatEarTag(cattle.eartag)
