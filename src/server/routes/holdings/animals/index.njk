@@ -43,6 +43,7 @@
               label: "Search animals on holding" if isBackOffice else "Search animals on your holding",
               hint: "You can use all or part of the animal ear tag number, or search by sex or breed.",
               value: search,
+              hiddenFields: [{ name: "referrer", value: referrerId }] if referrerId else undefined,
               insetText: undefined if isBackOffice else "Recent changes such as new registrations may take up to 24 hours to appear in your list."
             }) }}
           </div>
@@ -63,7 +64,7 @@
         {% endif %}
         {% if search %}
           <p class="govuk-body">
-            <a class="govuk-link" href="{{ baseHref }}">Clear search</a>
+            <a class="govuk-link" href="{{ clearSearchHref }}">Clear search</a>
           </p>
         {% endif %}
 
@@ -101,7 +102,7 @@
             direction: direction,
             baseHref: baseHref,
             pagination: pagination,
-            query: { search: search }
+            query: { search: search, referrer: referrerId }
           }) }}
         {% endif %}
       {% endif %}

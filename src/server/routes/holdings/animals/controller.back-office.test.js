@@ -267,4 +267,95 @@ describe('animalsOnHoldingController (back office)', () => {
     expect(result).toEqual(expect.stringContaining('Clear search'))
     expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
   })
+
+  test('it remembers the holdings search a back-office user came from and carries it through search, sort, paging and the tabs', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleForCph.mockResolvedValue(
+      page([animal], { totalItems: 34, totalPages: 2 })
+    )
+    const fromSearch = {
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals',
+      auth: spokeAuth(user, 'back-office'),
+      headers: {
+        'x-forwarded-host': 'back-office.lis.defra',
+        referer: 'https://back-office.lis.defra/holdings?search=oak&page=2'
+      }
+    }
+
+    // Act
+    const first = await server.inject(fromSearch)
+    const referrerId = first.result.match(/referrer=([0-9a-f-]{36})/)?.[1]
+    const second = await server.inject({
+      method: 'GET',
+      url: `/holdings/22/001/0001/animals?search=male&referrer=${referrerId}`,
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(first.result).toEqual(
+      expect.stringContaining(
+        'href="/holdings?search=oak&amp;page=2" class="govuk-back-link"'
+      )
+    )
+    expect(referrerId).toBeDefined()
+    expect(first.result).toEqual(
+      expect.stringContaining(
+        `<input type="hidden" name="referrer" value="${referrerId}">`
+      )
+    )
+    expect(first.result).toEqual(
+      expect.stringContaining(
+        `href="/cattle/holdings/22/001/0001?referrer=${referrerId}"`
+      )
+    )
+    expect(first.result).toMatch(
+      new RegExp(`href="[^"]*referrer=${referrerId}[^"]*sort=ear_tag[^"]*"`)
+    )
+    expect(first.result).toMatch(
+      new RegExp(`href="[^"]*referrer=${referrerId}[^"]*page=2"`)
+    )
+    expect(second.result).toEqual(
+      expect.stringContaining(
+        'href="/holdings?search=oak&amp;page=2" class="govuk-back-link"'
+      )
+    )
+    expect(second.result).toEqual(
+      expect.stringContaining(
+        `href="/cattle/holdings/22/001/0001/animals?referrer=${referrerId}">Clear search</a>`
+      )
+    )
+  })
+
+  test("it links back to the holdings list when the carried referrer id is not the user's", async () => {
+    // Arrange
+    const user = createUser()
+    const otherUser = { ...createUser(), sub: 'someone-else' }
+    const fromSearch = {
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals',
+      auth: spokeAuth(user, 'back-office'),
+      headers: {
+        'x-forwarded-host': 'back-office.lis.defra',
+        referer: 'https://back-office.lis.defra/holdings?search=oak'
+      }
+    }
+
+    // Act
+    const first = await server.inject(fromSearch)
+    const referrerId = first.result.match(/referrer=([0-9a-f-]{36})/)?.[1]
+    const second = await server.inject({
+      method: 'GET',
+      url: `/holdings/22/001/0001/animals?referrer=${referrerId}`,
+      auth: spokeAuth(otherUser, 'back-office')
+    })
+
+    // Assert
+    expect(referrerId).toBeDefined()
+    expect(second.result).toEqual(
+      expect.stringContaining('href="/holdings" class="govuk-back-link"')
+    )
+    expect(second.result).not.toEqual(expect.stringContaining('referrer='))
+  })
 })

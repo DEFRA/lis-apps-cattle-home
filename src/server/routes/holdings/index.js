@@ -10,6 +10,7 @@ import {
   holdingDetailsController
 } from './details/controller.js'
 import { animalsOnHoldingController } from './animals/controller.js'
+import { createListReferrer } from './list-referrer.js'
 
 /**
  * @param {Request} request
@@ -33,27 +34,34 @@ function demandHoldingAccess(request, h) {
   return Boom.notFound()
 }
 
-// Only a user granted cattle read on this holding's CPH may view it.
-const cphAccess = {
-  pre: [{ method: demandHoldingAccess }]
-}
-
 export const holdings = {
   plugin: {
     name: 'holdings',
     register(server) {
+      const listReferrer = createListReferrer(server)
+      server.app.listReferrer = listReferrer
+
+      // Only a user granted cattle read on this holding's CPH may view it.
+      // The list referrer gives back office a back link to the holdings list.
+      const holdingPage = {
+        pre: [
+          { method: demandHoldingAccess },
+          { method: listReferrer.resolve, assign: 'listReferrer' }
+        ]
+      }
+
       server.route([
         {
           method: 'GET',
           path: '/holdings/{county}/{parish}/{holding}',
           ...holdingDetailsController,
-          options: cphAccess
+          options: holdingPage
         },
         {
           method: 'GET',
           path: '/holdings/{county}/{parish}/{holding}/animals',
           ...animalsOnHoldingController,
-          options: cphAccess
+          options: holdingPage
         }
       ])
     }

@@ -18,9 +18,12 @@ export const holdingDetailsController = {
   async handler(request, h) {
     const cph = cphFromParams(request.params)
     const holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)
+    const { listReferrer } = request.pre
+    const { link } = request.server.app.listReferrer
 
     return h.view('holdings/details/index', {
       pageTitle: `Holding details - ${holding.name ?? holding.cph}`,
+      backLinkHref: listReferrer?.href,
       holding: {
         cphNumber: holding.cph,
         holdingName: holding.name,
@@ -30,12 +33,12 @@ export const holdingDetailsController = {
       tabs: [
         {
           text: 'Holding details',
-          href: `${holdingsBasePath}/${cph}`,
+          href: link(`${holdingsBasePath}/${cph}`, listReferrer?.id),
           active: true
         },
         {
           text: 'Animals on holding',
-          href: `${holdingsBasePath}/${cph}/animals`
+          href: link(`${holdingsBasePath}/${cph}/animals`, listReferrer?.id)
         }
       ]
     })

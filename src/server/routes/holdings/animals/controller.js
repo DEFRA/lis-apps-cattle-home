@@ -1,14 +1,11 @@
-/** @import { Request } from '@hapi/hapi' */
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
 import { cphFromParams } from '../details/controller.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
+import { isFromBackOffice } from '#server/common/helpers/hub.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 const animalsBasePath = `${getBasePathForModule('cattle-home')}/animals`
-const backOfficeCaller = 'lis-hubs-back-office'
-// the back-office hub's find-a-holding page, which every holding page is reached from
-const backOfficeHoldingsListPath = '/holdings'
 const PAGE_SIZE = 25
 const columns = [
   { text: 'Ear tag number', sortKey: 'ear_tag' },
@@ -21,14 +18,6 @@ const columns = [
 const backOfficeColumns = [{ text: 'Ear tag', sortKey: 'ear_tag' }].concat(
   columns.slice(1)
 )
-
-/**
- * @param {Request} request
- * @returns {boolean} whether the back-office hub made the request
- */
-function isFromBackOffice(request) {
-  return request.auth.credentials.caller === backOfficeCaller
-}
 
 /**
  * @param {{ name: string|null, cph: string }} holding
@@ -115,6 +104,9 @@ export const animalsOnHoldingController = {
       })
     ])
     const holdingHeading = buildHoldingHeading(holding, isBackOffice)
+    const { listReferrer } = request.pre
+    const { link } = request.server.app.listReferrer
+    const baseHref = `${holdingsBasePath}/${cph}/animals`
 
     return h.view('holdings/animals/index', {
       pageTitle: buildPageTitle({
@@ -128,7 +120,8 @@ export const animalsOnHoldingController = {
         columns: pageColumns
       }),
       isBackOffice,
-      backLinkHref: isBackOffice ? backOfficeHoldingsListPath : undefined,
+      backLinkHref: listReferrer?.href,
+      referrerId: listReferrer?.id,
       holdingHeading,
       summaryText: buildRangeSummary({ currentPage, itemsPerPage, totalItems }),
       columns: pageColumns,
@@ -144,7 +137,8 @@ export const animalsOnHoldingController = {
       totalItems,
       sort,
       direction,
-      baseHref: `${holdingsBasePath}/${cph}/animals`,
+      baseHref,
+      clearSearchHref: link(baseHref, listReferrer?.id),
       animalsBasePath,
       pagination: {
         currentPage,
@@ -155,11 +149,11 @@ export const animalsOnHoldingController = {
       tabs: [
         {
           text: 'Holding details',
-          href: `${holdingsBasePath}/${cph}`
+          href: link(`${holdingsBasePath}/${cph}`, listReferrer?.id)
         },
         {
           text: 'Animals on holding',
-          href: `${holdingsBasePath}/${cph}/animals`,
+          href: link(baseHref, listReferrer?.id),
           active: true
         }
       ]
