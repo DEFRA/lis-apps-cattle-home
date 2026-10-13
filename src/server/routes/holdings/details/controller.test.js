@@ -224,7 +224,7 @@ describe('holdingDetailsController', () => {
           customer_number: 'C1',
           name: 'James Williams',
           address: [],
-          roles: [{ code: 'LIVESTOCKKEEPER' }]
+          roles: [{ code: 'keeper' }]
         }
       ]
     })

@@ -29,7 +29,7 @@ import { paginateAnimals } from '#server/services/animals/paginate.js'
 
 /**
  * @typedef {object} HoldingRole
- * @property {string} code e.g. 'LIVESTOCKKEEPER'
+ * @property {string} code e.g. 'keeper'
  * @property {string[]} species
  */
 

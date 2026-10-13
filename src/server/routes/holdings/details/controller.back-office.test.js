@@ -194,7 +194,7 @@ describe('holdingDetailsController (back office)', () => {
           customer_number: 'C0',
           name: 'Owner Person',
           address: [],
-          roles: [{ code: 'OWNER', species: ['cattle'] }]
+          roles: [{ code: 'owner', species: ['cattle'] }]
         },
         {
           customer_number: 'C1',
@@ -205,7 +205,10 @@ describe('holdingDetailsController (back office)', () => {
           telephone: null,
           mobile: '07700900001',
           address: ['1 Church Lane', 'Shrewsbury', 'SY4 1AB', 'England'],
-          roles: [{ code: 'LIVESTOCKKEEPER', species: ['cattle'] }]
+          roles: [
+            { code: 'holder', species: ['cattle'] },
+            { code: 'keeper', species: ['cattle'] }
+          ]
         }
       ]
     })
@@ -260,7 +263,7 @@ describe('holdingDetailsController (back office)', () => {
         {
           customer_number: 'C1',
           address: [],
-          roles: [{ code: 'LIVESTOCKKEEPER', species: ['cattle'] }]
+          roles: [{ code: 'keeper', species: ['cattle'] }]
         }
       ]
     })
@@ -299,7 +302,7 @@ describe('holdingDetailsController (back office)', () => {
           email: 'a"<b>&@example.com',
           telephone: '07700 "<b>"&',
           address: ['1 "<b>" & Lane'],
-          roles: [{ code: 'LIVESTOCKKEEPER', species: ['cattle'] }]
+          roles: [{ code: 'keeper', species: ['cattle'] }]
         }
       ]
     })
@@ -348,7 +351,7 @@ describe('holdingDetailsController (back office)', () => {
           customer_number: 'C1',
           name: 'James Williams',
           address: [],
-          roles: [{ code: 'livestockkeeper', species: ['cattle'] }]
+          roles: [{ code: 'KEEPER', species: ['cattle'] }]
         }
       ]
     })
@@ -367,7 +370,7 @@ describe('holdingDetailsController (back office)', () => {
     )
   })
 
-  test('it shows the keeper empty state when no association is a livestock keeper', async () => {
+  test('it shows the keeper empty state when no association is a keeper', async () => {
     // Arrange
     const user = createUser()
     mocks.getHoldingDetails.mockResolvedValueOnce({

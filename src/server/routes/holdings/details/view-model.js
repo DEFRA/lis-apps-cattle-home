@@ -2,7 +2,7 @@
 
 import { formatHoldingType } from '#server/services/holding-types.js'
 
-const registeredKeeperRole = 'LIVESTOCKKEEPER'
+const registeredKeeperRole = 'KEEPER'
 const ukMobileNumber = /^07\d{9}$/
 const mobilePrefixLength = 5
 
@@ -68,8 +68,8 @@ export function buildHoldingRows(holding, { isBackOffice, status }) {
 
 /**
  * @param {HoldingAssociation[]|null} [associations]
- * @returns {HoldingAssociation|null} the first party holding the livestock
- *   keeper role, or null if there is none
+ * @returns {HoldingAssociation|null} the first party holding a keeper
+ *   role, or null if there is none
  */
 export function findRegisteredKeeper(associations) {
   return (

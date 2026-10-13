@@ -78,16 +78,16 @@ describe('buildHerdMarks()', () => {
 })
 
 describe('findRegisteredKeeper()', () => {
-  test('it returns the first association with the livestock keeper role', () => {
+  test('it returns the first association with the keeper role', () => {
     // Arrange
     const owner = { customer_number: 'C1', roles: [{ code: 'OWNER' }] }
     const keeper = {
       customer_number: 'C2',
-      roles: [{ code: 'LIVESTOCKKEEPER', species: ['cattle'] }]
+      roles: [{ code: 'keeper', species: ['cattle'] }]
     }
     const secondKeeper = {
       customer_number: 'C3',
-      roles: [{ code: 'LIVESTOCKKEEPER', species: ['sheep'] }]
+      roles: [{ code: 'keeper', species: ['sheep'] }]
     }
 
     // Act
@@ -101,7 +101,7 @@ describe('findRegisteredKeeper()', () => {
     // Arrange
     const keeper = {
       customer_number: 'C1',
-      roles: [{ code: 'owner' }, { code: 'LivestockKeeper' }]
+      roles: [{ code: 'owner' }, { code: 'Keeper' }]
     }
 
     // Act
@@ -111,11 +111,27 @@ describe('findRegisteredKeeper()', () => {
     expect(result).toBe(keeper)
   })
 
-  test('it returns null when no association is a livestock keeper', () => {
+  test('it finds a keeper listed after another role', () => {
+    // Arrange
+    const owner = { customer_number: 'C1', roles: [{ code: 'owner' }] }
+    const keeper = {
+      customer_number: 'C2',
+      roles: [{ code: 'holder' }, { code: 'keeper' }]
+    }
+
+    // Act
+    const result = findRegisteredKeeper([owner, keeper])
+
+    // Assert
+    expect(result).toBe(keeper)
+  })
+
+  test('it returns null when no association is a keeper', () => {
     // Arrange
     const associations = [
       { customer_number: 'C1', roles: [{ code: 'LIVESTOCKOWNER' }] },
-      { customer_number: 'C2', roles: [{ code: 'owner' }] }
+      { customer_number: 'C2', roles: [{ code: 'owner' }] },
+      { customer_number: 'C3', roles: [{ code: 'holder' }] }
     ]
 
     // Act
@@ -360,7 +376,7 @@ describe('buildKeeperDetails()', () => {
       telephone: '01632960001',
       mobile: '07700900001',
       address: ['1 Church Lane', '', 'Shrewsbury', 'England'],
-      roles: [{ code: 'LIVESTOCKKEEPER' }]
+      roles: [{ code: 'keeper' }]
     }
 
     // Act
