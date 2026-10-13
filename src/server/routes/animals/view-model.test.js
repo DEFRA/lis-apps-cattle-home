@@ -1,5 +1,4 @@
 import {
-  birthHoldingCph,
   buildCattleDetailsViewModel,
   buildDamDetails,
   buildSireDetails,
@@ -238,51 +237,6 @@ describe('buildSireDetails()', () => {
       name: 'Meadowbrook Victor',
       nameNotRequired: false
     })
-  })
-})
-
-describe('birthHoldingCph()', () => {
-  test('it returns the registered location for a UK-tagged animal', () => {
-    // Arrange
-    const record = {
-      eartag: 'uk 200000 000001',
-      registered_location: { identifier: '22/004/0004' }
-    }
-
-    // Act
-    const result = birthHoldingCph(record)
-
-    // Assert
-    expect(result).toBe('22/004/0004')
-  })
-
-  test('it returns null for an animal tagged outside the UK', () => {
-    // Arrange
-    const record = {
-      eartag: 'IE200000000001',
-      registered_location: { identifier: '22/004/0004' }
-    }
-
-    // Act
-    const result = birthHoldingCph(record)
-
-    // Assert
-    expect(result).toBeNull()
-  })
-
-  test('it returns null when the registered location is unknown or missing', () => {
-    // Arrange
-    const records = [
-      { eartag: 'UK200000000001', registered_location: { identifier: null } },
-      { eartag: 'UK200000000001' },
-      { registered_location: { identifier: '22/004/0004' } }
-    ]
-
-    // Act
-    const results = records.map((record) => birthHoldingCph(record))
-
-    // Assert
-    expect(results).toEqual([null, null, null])
   })
 })
 

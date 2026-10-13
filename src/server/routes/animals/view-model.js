@@ -85,26 +85,6 @@ export function buildSireDetails(record) {
   }
 }
 
-const UK_EAR_TAG_PREFIX = 'UK'
-
-/**
- * A UK-tagged animal is registered on the holding it was born on, so its
- * registered location is its place of birth. An imported animal keeps its
- * origin country's tag and is registered where it arrived, so there is no
- * birth holding to show. Confirm with CADS before relying on this for
- * animals re-tagged after import.
- * @param {CattleDetails} record
- * @returns {string|null} the CPH of the birth holding, or null when it isn't known
- */
-export function birthHoldingCph(record) {
-  const tag = (record.eartag ?? '').replaceAll(/\s/g, '').toUpperCase()
-  const registeredCph = record.registered_location?.identifier
-
-  return tag.startsWith(UK_EAR_TAG_PREFIX) && registeredCph
-    ? registeredCph
-    : null
-}
-
 /**
  * @param {CattleDetails} record
  * @returns {object} the view model for the cattle details page

@@ -138,33 +138,6 @@
           rows: locationRows
         }) }}
       {% endif %}
-
-      {% if placeOfBirth %}
-        <h2 class="govuk-heading-m">Place of birth</h2>
-
-        {%- set birthAddressHtml -%}
-          {%- for line in placeOfBirth.addressLines -%}
-            {{ line }}{% if not loop.last %}<br>{% endif %}
-          {%- endfor -%}
-        {%- endset -%}
-
-        {%- set birthRows = [
-          {
-            key: { text: "CPH number" },
-            value: { text: placeOfBirth.cph }
-          }
-        ] -%}
-        {%- if placeOfBirth.addressLines !== null -%}
-          {%- set _ = birthRows.push({
-            key: { text: "Address" },
-            value: { html: birthAddressHtml } if placeOfBirth.addressLines.length else { html: notSuppliedHtml }
-          }) -%}
-        {%- endif -%}
-
-        {{ govukSummaryList({
-          rows: birthRows
-        }) }}
-      {% endif %}
     </div>
   </div>
 {% endblock %}
