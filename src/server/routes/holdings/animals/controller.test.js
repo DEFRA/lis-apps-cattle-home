@@ -415,6 +415,119 @@ describe('animalsOnHoldingController', () => {
     expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
   })
 
+  test('it renders the back-office layout for a back-office user', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleForCph.mockResolvedValue(
+      page([animal], { totalItems: 34, totalPages: 2 })
+    )
+
+    // Act
+    const { statusCode, result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals',
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toEqual(
+      expect.stringContaining('<span class="govuk-caption-l">Holding</span>')
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<h1 class="govuk-heading-l">22/001/0001 - Oakfield Farm</h1>'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'Animals on holding (page 1 of 2) - 22/001/0001 - Oakfield Farm'
+      )
+    )
+    expect(result).toEqual(expect.stringContaining('Search animals on holding'))
+    expect(result).not.toEqual(
+      expect.stringContaining('Search animals on your holding')
+    )
+    expect(result).not.toEqual(expect.stringContaining('Recent changes'))
+    expect(result).toEqual(expect.stringContaining('34 registered cattle'))
+    expect(result).toEqual(expect.stringContaining('Cattle search results'))
+    expect(result).toMatch(/>Ear tag\s*</)
+    expect(result).not.toEqual(expect.stringContaining('Ear tag number'))
+    expect(result).toEqual(expect.stringContaining('<th scope="row"'))
+    expect(result).toEqual(
+      expect.stringContaining('Showing 1 to 25 of 34 results')
+    )
+  })
+
+  test('it shows the CPH alone as the back-office heading when the holding has no name', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/001/0001',
+      name: null
+    })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals',
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining('<h1 class="govuk-heading-l">22/001/0001</h1>')
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'Animals on holding - 22/001/0001 - Cattle - Livestock Information'
+      )
+    )
+  })
+
+  test('it counts the matching records for a back-office search', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleForCph.mockResolvedValue(page([animal]))
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '1 registered cattle record matches <strong>‘UK200000000001’</strong>'
+      )
+    )
+    expect(result).toEqual(expect.stringContaining('UK 200000 000001'))
+  })
+
+  test('it shows no table and a "Clear search" link when nothing matches a back-office search', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleForCph.mockResolvedValue(page([]))
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=not-a-real-animal',
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '0 registered cattle records match <strong>‘not-a-real-animal’</strong>'
+      )
+    )
+    expect(result).toEqual(expect.stringContaining('Clear search'))
+    expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
+  })
+
   test('it shows "Not supplied", styled as an error, for missing animal fields', async () => {
     // Arrange
     const user = createUser()
