@@ -283,6 +283,57 @@ describe('holdingDetailsController (back office)', () => {
     expect(result).not.toEqual(expect.stringContaining('tel:'))
   })
 
+  test('it escapes markup in the keeper details', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValueOnce({
+      cph: '12/345/0001',
+      name: 'Oakfield Farm',
+      holding_type: 'AH',
+      address: [],
+      herd_marks: [],
+      associations: [
+        {
+          customer_number: 'C1',
+          name: 'Tom "<b>" & Co',
+          email: 'a"<b>&@example.com',
+          telephone: '07700 "<b>"&',
+          address: ['1 "<b>" & Lane'],
+          roles: [{ code: 'LIVESTOCKKEEPER', species: ['cattle'] }]
+        }
+      ]
+    })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/12/345/0001',
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining('Tom &quot;&lt;b&gt;&quot; &amp; Co')
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'href="mailto:a&quot;&lt;b&gt;&amp;@example.com">a&quot;&lt;b&gt;&amp;@example.com</a>'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'href="tel:07700">07700 &quot;&lt;b&gt;&quot;&amp;</a>'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining('1 &quot;&lt;b&gt;&quot; &amp; Lane')
+    )
+    expect(result).not.toEqual(expect.stringContaining('"<b>"'))
+    expect(result).not.toEqual(expect.stringContaining('a"<b>&'))
+    expect(result).not.toEqual(expect.stringContaining('& Co'))
+    expect(result).not.toEqual(expect.stringContaining('& Lane'))
+  })
+
   test('it matches the keeper role case-insensitively', async () => {
     // Arrange
     const user = createUser()

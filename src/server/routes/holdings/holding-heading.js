@@ -7,5 +7,5 @@ export function buildHoldingHeading(holding, isBackOffice) {
   if (isBackOffice) {
     return holding.name ? `${holding.cph} - ${holding.name}` : holding.cph
   }
-  return holding.name ?? holding.cph
+  return holding.name || holding.cph
 }

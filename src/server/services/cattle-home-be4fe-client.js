@@ -13,7 +13,7 @@ import { paginateAnimals } from '#server/services/animals/paginate.js'
  * @property {string[]} allowed_species
  * @property {string} [holding_type]
  * @property {string} [registered_keeper]
- * @property {string[]} herd_marks
+ * @property {HerdMark[]} herd_marks
  * @property {string} [postcode]
  * @property {number} [latitude]
  * @property {number} [longitude]
@@ -54,7 +54,6 @@ import { paginateAnimals } from '#server/services/animals/paginate.js'
  * @property {string|null} [name]
  * @property {string} [holding_type] KRDS site type code, e.g. 'AH'
  * @property {string[]} address
- * @property {string|null} [keeper_name]
  * @property {HerdMark[]} herd_marks
  * @property {string[]} allowed_species
  * @property {HoldingAssociation[]} associations

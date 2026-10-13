@@ -44,4 +44,26 @@ describe('buildHoldingHeading()', () => {
     // Assert
     expect(heading).toBe('12/345/0001')
   })
+
+  test('it treats an empty name as missing for back office', () => {
+    // Arrange
+    const holding = { cph: '12/345/0001', name: '' }
+
+    // Act
+    const heading = buildHoldingHeading(holding, true)
+
+    // Assert
+    expect(heading).toBe('12/345/0001')
+  })
+
+  test('it treats an empty name as missing for front office', () => {
+    // Arrange
+    const holding = { cph: '12/345/0001', name: '' }
+
+    // Act
+    const heading = buildHoldingHeading(holding, false)
+
+    // Assert
+    expect(heading).toBe('12/345/0001')
+  })
 })

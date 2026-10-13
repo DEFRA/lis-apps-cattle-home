@@ -1,6 +1,8 @@
 import {
   buildHerdMarks,
+  buildHoldingRows,
   buildKeeperDetails,
+  buildTelephoneHref,
   findRegisteredKeeper,
   formatTelephone
 } from './view-model.js'
@@ -39,6 +41,14 @@ describe('buildHerdMarks()', () => {
   test('it gives the singular key and no marks when there are none', () => {
     // Act
     const result = buildHerdMarks([])
+
+    // Assert
+    expect(result).toEqual({ key: 'Herd mark', marks: [] })
+  })
+
+  test('it gives the singular key and no marks when herd marks are null', () => {
+    // Act
+    const result = buildHerdMarks(null)
 
     // Assert
     expect(result).toEqual({ key: 'Herd mark', marks: [] })
@@ -126,6 +136,14 @@ describe('findRegisteredKeeper()', () => {
     expect(result).toBeNull()
   })
 
+  test('it returns null when associations are null', () => {
+    // Act
+    const result = findRegisteredKeeper(null)
+
+    // Assert
+    expect(result).toBeNull()
+  })
+
   test('it returns null when there are no associations', () => {
     // Act
     const result = findRegisteredKeeper(undefined)
@@ -144,20 +162,20 @@ describe('formatTelephone()', () => {
     expect(result).toBe('07700 900001')
   })
 
-  test('it spaces an 11-digit 01 number 5 then 6 digits', () => {
+  test('it shows an 11-digit 01 number as given', () => {
     // Act
     const result = formatTelephone('01632960001')
 
     // Assert
-    expect(result).toBe('01632 960001')
+    expect(result).toBe('01632960001')
   })
 
-  test('it spaces an 11-digit 02 number 5 then 6 digits', () => {
+  test('it shows an 11-digit 02 number as given', () => {
     // Act
-    const result = formatTelephone('02079460001')
+    const result = formatTelephone('020 7946 0001')
 
     // Assert
-    expect(result).toBe('02079 460001')
+    expect(result).toBe('020 7946 0001')
   })
 
   test('it re-spaces a number that already has spaces', () => {
@@ -193,6 +211,143 @@ describe('formatTelephone()', () => {
   })
 })
 
+describe('buildTelephoneHref()', () => {
+  test('it keeps only the digits of a formatted number', () => {
+    // Act
+    const result = buildTelephoneHref('(01234) 567-890')
+
+    // Assert
+    expect(result).toBe('tel:01234567890')
+  })
+
+  test('it keeps a leading plus', () => {
+    // Act
+    const result = buildTelephoneHref(' +44 7700 900001')
+
+    // Assert
+    expect(result).toBe('tel:+447700900001')
+  })
+
+  test('it drops a plus that is not leading', () => {
+    // Act
+    const result = buildTelephoneHref('07700+900001')
+
+    // Assert
+    expect(result).toBe('tel:07700900001')
+  })
+})
+
+describe('buildHoldingRows()', () => {
+  test('it builds the front-office rows', () => {
+    // Arrange
+    const holding = {
+      cph: '12/345/0001',
+      name: 'Oakfield Farm',
+      holding_type: 'AH',
+      address: ['Oakfield Farm', '', 'England'],
+      herd_marks: [{ mark: 'UK 654322', species: ['cattle'] }]
+    }
+
+    // Act
+    const rows = buildHoldingRows(holding, {
+      isBackOffice: false,
+      status: 'Active'
+    })
+
+    // Assert
+    expect(rows).toEqual([
+      { key: 'CPH number', text: '12/345/0001' },
+      { key: 'Holding name', text: 'Oakfield Farm' },
+      { key: 'Address', lines: ['Oakfield Farm', 'England'] },
+      { key: 'Herd mark', lines: ['UK 654322'], emptyText: 'Not recorded' }
+    ])
+  })
+
+  test('it keeps an empty holding name row for front office', () => {
+    // Arrange
+    const holding = {
+      cph: '12/345/0001',
+      name: null,
+      address: null,
+      herd_marks: null
+    }
+
+    // Act
+    const rows = buildHoldingRows(holding, {
+      isBackOffice: false,
+      status: 'Active'
+    })
+
+    // Assert
+    expect(rows).toEqual([
+      { key: 'CPH number', text: '12/345/0001' },
+      { key: 'Holding name', text: null },
+      { key: 'Address', lines: [] },
+      { key: 'Herd mark', lines: [], emptyText: 'Not recorded' }
+    ])
+  })
+
+  test('it builds the back-office rows in order', () => {
+    // Arrange
+    const holding = {
+      cph: '12/345/0001',
+      name: 'Oakfield Farm',
+      holding_type: 'ah',
+      address: ['Oakfield Farm'],
+      herd_marks: [
+        { mark: 'UK 654322', species: ['cattle'] },
+        { mark: 'UK 654323', species: ['sheep'] }
+      ]
+    }
+
+    // Act
+    const rows = buildHoldingRows(holding, {
+      isBackOffice: true,
+      status: 'Active'
+    })
+
+    // Assert
+    expect(rows).toEqual([
+      { key: 'CPH number', text: '12/345/0001' },
+      { key: 'Holding type', text: 'Agricultural Holding (AH)' },
+      { key: 'Status', text: 'Active' },
+      { key: 'Holding name', text: 'Oakfield Farm' },
+      { key: 'Address', lines: ['Oakfield Farm'] },
+      {
+        key: 'Herd marks',
+        lines: ['UK 654322', 'UK 654323'],
+        emptyText: 'Not recorded'
+      }
+    ])
+  })
+
+  test('it leaves out the holding name row for back office when no name is recorded', () => {
+    // Arrange
+    const holding = {
+      cph: '12/345/0001',
+      name: '',
+      address: [],
+      herd_marks: []
+    }
+
+    // Act
+    const rows = buildHoldingRows(holding, {
+      isBackOffice: true,
+      status: 'Active'
+    })
+
+    // Assert
+    expect(rows.map(({ key }) => key)).toEqual([
+      'CPH number',
+      'Holding type',
+      'Status',
+      'Address',
+      'Herd mark'
+    ])
+    expect(rows[1]).toEqual({ key: 'Holding type', text: null })
+  })
+})
+
 describe('buildKeeperDetails()', () => {
   test('it builds the keeper details from a full association', () => {
     // Arrange
@@ -215,7 +370,7 @@ describe('buildKeeperDetails()', () => {
     expect(result).toEqual({
       name: 'James Williams',
       email: 'james@example.com',
-      telephone: { text: '01632 960001', href: 'tel:01632960001' },
+      telephone: { text: '01632960001', href: 'tel:01632960001' },
       addressLines: ['1 Church Lane', 'Shrewsbury', 'England']
     })
   })

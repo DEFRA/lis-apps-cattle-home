@@ -1,11 +1,10 @@
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
-import { formatHoldingType } from '#server/services/holding-types.js'
 import { isFromBackOffice } from '#server/common/helpers/hub.js'
 import { buildHoldingHeading } from '../holding-heading.js'
 import {
-  buildHerdMarks,
+  buildHoldingRows,
   buildKeeperDetails,
   findRegisteredKeeper
 } from './view-model.js'
@@ -39,16 +38,12 @@ export const holdingDetailsController = {
       isBackOffice,
       holdingHeading,
       backLinkHref: listReferrer?.href,
-      holding: {
-        cphNumber: holding.cph,
-        holdingName: holding.name,
-        holdingType: formatHoldingType(holding.holding_type),
+      holdingRows: buildHoldingRows(holding, {
+        isBackOffice,
         // TODO: the BE4FE holding response carries no status yet, so every
         // holding shows as Active until it does.
-        status: 'Active',
-        addressLines: holding.address.filter(Boolean),
-        herdMarks: buildHerdMarks(holding.herd_marks)
-      },
+        status: 'Active'
+      }),
       keeper: keeper ? buildKeeperDetails(keeper) : null,
       tabs: [
         {

@@ -17,6 +17,22 @@ describe('getHoldingTypeName()', () => {
     expect(name).toBe('Port')
   })
 
+  test('it returns the name for a code from the site type filter list', () => {
+    // Act
+    const name = getHoldingTypeName('KY')
+
+    // Assert
+    expect(name).toBe("Knacker's Yard")
+  })
+
+  test('it matches the code case-insensitively', () => {
+    // Act
+    const name = getHoldingTypeName('sw')
+
+    // Assert
+    expect(name).toBe('Slaughter House White Meat')
+  })
+
   test('it returns null for an unknown code', () => {
     // Act
     const name = getHoldingTypeName('ZZ')
@@ -43,9 +59,25 @@ describe('formatHoldingType()', () => {
     expect(display).toBe('Slaughterhouse (SH)')
   })
 
+  test('it upper-cases a lower-case code', () => {
+    // Act
+    const display = formatHoldingType('ah')
+
+    // Assert
+    expect(display).toBe('Agricultural Holding (AH)')
+  })
+
   test('it shows the bare code for an unknown code', () => {
     // Act
     const display = formatHoldingType('ZZ')
+
+    // Assert
+    expect(display).toBe('ZZ')
+  })
+
+  test('it shows an unknown lower-case code upper-cased', () => {
+    // Act
+    const display = formatHoldingType('zz')
 
     // Assert
     expect(display).toBe('ZZ')
