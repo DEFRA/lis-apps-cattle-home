@@ -18,7 +18,7 @@ vi.spyOn(cattleHomeBe4FeClient, 'getHoldingDetails').mockResolvedValue({
   cph: '22/001/0001',
   name: 'Oakfield Farm',
   address: ['Oakfield Farm'],
-  herd_marks: ['UK 324537']
+  herd_marks: [{ mark: 'UK 324537', species: ['cattle'] }]
 })
 vi.spyOn(cattleHomeBe4FeClient, 'getCattleOnHolding').mockResolvedValue({
   animals: [],

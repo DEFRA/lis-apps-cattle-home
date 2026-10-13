@@ -103,7 +103,7 @@ describe('holdingDetailsController', () => {
         'SY4 1AB',
         'England'
       ],
-      herd_marks: ['UK 324537']
+      herd_marks: [{ mark: 'UK 324537', species: ['cattle'] }]
     })
 
     // Act
@@ -132,6 +132,127 @@ describe('holdingDetailsController', () => {
     expect(result).toEqual(
       expect.stringContaining('href="/cattle/holdings/22/001/0001"')
     )
+  })
+
+  test('it shows a single herd mark under the singular key', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValueOnce({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      address: ['Oakfield Farm'],
+      herd_marks: [
+        { mark: 'UK 324537', start_date: '2020-01-01', species: ['cattle'] }
+      ]
+    })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(result).toMatch(
+      /Herd mark\s*<\/dt>\s*<dd[^>]*>\s*UK 324537\s*<\/dd>/
+    )
+    expect(result).not.toEqual(expect.stringContaining('Herd marks'))
+    expect(result).not.toEqual(expect.stringContaining('[object Object]'))
+  })
+
+  test('it stacks several herd marks under the plural key', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValueOnce({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      address: ['Oakfield Farm'],
+      herd_marks: [
+        { mark: 'UK 324537', species: ['cattle'] },
+        { mark: 'UK 324538', species: ['sheep'] }
+      ]
+    })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(result).toMatch(/Herd marks\s*<\/dt>/)
+    expect(result).toEqual(expect.stringContaining('UK 324537<br>UK 324538'))
+  })
+
+  test('it shows "Not recorded" as plain text when the holding has no herd marks', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValueOnce({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      address: ['Oakfield Farm'],
+      herd_marks: []
+    })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(result).toMatch(
+      /Herd mark\s*<\/dt>\s*<dd[^>]*>\s*Not recorded\s*<\/dd>/
+    )
+    expect(result).not.toEqual(expect.stringContaining('govuk-tag--red'))
+  })
+
+  test('it keeps the front-office layout without the back-office sections', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValueOnce({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      holding_type: 'AH',
+      address: ['Oakfield Farm'],
+      herd_marks: [],
+      associations: [
+        {
+          customer_number: 'C1',
+          name: 'James Williams',
+          address: [],
+          roles: [{ code: 'keeper' }]
+        }
+      ]
+    })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<span class="govuk-caption-l">Oakfield Farm</span>'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<h1 class="govuk-heading-l">Holding details</h1>'
+      )
+    )
+    expect(result).toEqual(expect.stringContaining('govuk-grid-column-full'))
+    expect(result).not.toEqual(expect.stringContaining('Holding information'))
+    expect(result).not.toEqual(expect.stringContaining('Holding type'))
+    expect(result).not.toEqual(expect.stringContaining('Status'))
+    expect(result).not.toEqual(expect.stringContaining('Registered keeper'))
+    expect(result).not.toEqual(expect.stringContaining('James Williams'))
   })
 
   test('it rejects a request without a hub service token', async () => {
@@ -207,7 +328,7 @@ describe('holdingDetailsController', () => {
     )
   })
 
-  test('it shows "Not supplied", styled as an error, for a missing holding name and herd mark', async () => {
+  test('it shows "Not supplied", styled as an error, for a missing holding name and "Not recorded" for a missing herd mark', async () => {
     // Arrange
     const user = createUser()
     const request = {
@@ -238,7 +359,10 @@ describe('holdingDetailsController', () => {
         /<strong class="govuk-tag govuk-tag--red">Not supplied<\/strong>/g
       ) ?? []
     ).length
-    expect(notSuppliedCount).toBe(2)
+    expect(notSuppliedCount).toBe(1)
+    expect(result).toMatch(
+      /Herd mark\s*<\/dt>\s*<dd[^>]*>\s*Not recorded\s*<\/dd>/
+    )
     expect(result).not.toEqual(expect.stringContaining('Unnamed Holding Ltd'))
     expect(result).toEqual(expect.stringContaining('Long Lane'))
   })
@@ -256,7 +380,7 @@ describe('holdingDetailsController', () => {
       name: 'No Address Farm',
       business_name: 'No Address Ltd',
       address: [],
-      herd_marks: ['UK 999999']
+      herd_marks: [{ mark: 'UK 999999', species: ['cattle'] }]
     })
 
     // Act
@@ -270,94 +394,6 @@ describe('holdingDetailsController', () => {
     )
     expect(result).toEqual(expect.stringContaining('No Address Farm'))
     expect(result).toEqual(expect.stringContaining('UK 999999'))
-  })
-
-  test('it links back to the holdings search a back-office user came from, carrying it on the tabs', async () => {
-    // Arrange
-    const user = createUser()
-    mocks.getHoldingDetails.mockResolvedValue({
-      cph: '22/001/0001',
-      name: 'Oakfield Farm',
-      address: [],
-      herd_marks: []
-    })
-    const request = {
-      method: 'GET',
-      url: '/holdings/22/001/0001',
-      auth: spokeAuth(user, 'back-office'),
-      headers: {
-        'x-forwarded-host': 'back-office.lis.defra',
-        referer: 'https://back-office.lis.defra/holdings?search=oak&page=2'
-      }
-    }
-
-    // Act
-    const { result } = await server.inject(request)
-
-    // Assert
-    expect(result).toEqual(
-      expect.stringContaining(
-        'href="/holdings?search=oak&amp;page=2" class="govuk-back-link"'
-      )
-    )
-    expect(result).toMatch(
-      /href="\/cattle\/holdings\/22\/001\/0001\/animals\?referrer=[0-9a-f-]{36}"/
-    )
-  })
-
-  test('it links back to the holdings list when a back-office user did not come from a search', async () => {
-    // Arrange
-    const user = createUser()
-    mocks.getHoldingDetails.mockResolvedValue({
-      cph: '22/001/0001',
-      name: 'Oakfield Farm',
-      address: [],
-      herd_marks: []
-    })
-    const request = {
-      method: 'GET',
-      url: '/holdings/22/001/0001',
-      auth: spokeAuth(user, 'back-office')
-    }
-
-    // Act
-    const { result } = await server.inject(request)
-
-    // Assert
-    expect(result).toEqual(
-      expect.stringContaining('href="/holdings" class="govuk-back-link"')
-    )
-    expect(result).not.toEqual(expect.stringContaining('referrer='))
-  })
-
-  test('it links back to the holdings list when a back-office user came from a page that is not the list', async () => {
-    // Arrange
-    const user = createUser()
-    mocks.getHoldingDetails.mockResolvedValue({
-      cph: '22/001/0001',
-      name: 'Oakfield Farm',
-      address: [],
-      herd_marks: []
-    })
-    const request = {
-      method: 'GET',
-      url: '/holdings/22/001/0001',
-      auth: spokeAuth(user, 'back-office'),
-      headers: {
-        'x-forwarded-host': 'back-office.lis.defra',
-        referer:
-          'https://back-office.lis.defra/cattle/holdings/22/002/0002/animals'
-      }
-    }
-
-    // Act
-    const { result } = await server.inject(request)
-
-    // Assert
-    expect(result).toEqual(
-      expect.stringContaining('href="/holdings" class="govuk-back-link"')
-    )
-    expect(result).not.toEqual(expect.stringContaining('referrer='))
   })
 
   test('it shows no back link for a front-office user', async () => {

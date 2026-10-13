@@ -13,22 +13,50 @@ import { paginateAnimals } from '#server/services/animals/paginate.js'
  * @property {string[]} allowed_species
  * @property {string} [holding_type]
  * @property {string} [registered_keeper]
- * @property {string[]} herd_marks
+ * @property {HerdMark[]} herd_marks
  * @property {string} [postcode]
  * @property {number} [latitude]
  * @property {number} [longitude]
  */
 
 /**
+ * @typedef {object} HerdMark
+ * @property {string} mark e.g. 'UK 324537'
+ * @property {string} [start_date]
+ * @property {string|null} [end_date]
+ * @property {string[]} species
+ */
+
+/**
+ * @typedef {object} HoldingRole
+ * @property {string} code e.g. 'keeper'
+ * @property {string[]} species
+ */
+
+/**
+ * @typedef {object} HoldingAssociation
+ * @property {string} customer_number
+ * @property {string|null} [title]
+ * @property {string|null} [first_name]
+ * @property {string|null} [last_name]
+ * @property {string|null} [name]
+ * @property {string} [party_type]
+ * @property {string|null} [email]
+ * @property {string|null} [mobile]
+ * @property {string|null} [telephone]
+ * @property {string[]} address
+ * @property {HoldingRole[]} roles
+ */
+
+/**
  * @typedef {object} HoldingDetails
  * @property {string} cph
- * @property {string} [name]
- * @property {string} [business_name]
+ * @property {string|null} [name]
+ * @property {string} [holding_type] KRDS site type code, e.g. 'AH'
  * @property {string[]} address
- * @property {string} [holding_type]
- * @property {string} [registered_keeper]
- * @property {string[]} herd_marks
+ * @property {HerdMark[]} herd_marks
  * @property {string[]} allowed_species
+ * @property {HoldingAssociation[]} associations
  */
 
 /**
