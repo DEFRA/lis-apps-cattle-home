@@ -227,6 +227,27 @@ describe('cattleDetailsController', () => {
     )
   })
 
+  test('it returns a server error when the current holding lookup fails', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue(fullRecord)
+    mocks.getHoldingDetails.mockRejectedValueOnce(
+      Object.assign(new Error('Request failed - 500'), { statusCode: 500 })
+    )
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user, 'back-office'),
+      headers: fromAnimalsOnHolding()
+    }
+
+    // Act
+    const { statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(500)
+  })
+
   test('it still renders, with the address not supplied, when the current holding is not found', async () => {
     // Arrange
     const user = createUser()
