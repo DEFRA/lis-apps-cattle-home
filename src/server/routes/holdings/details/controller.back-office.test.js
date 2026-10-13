@@ -410,6 +410,43 @@ describe('holdingDetailsController (back office)', () => {
     expect(result).not.toEqual(expect.stringContaining('Owen Owner'))
   })
 
+  test('it labels an organisation keeper with its business name', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValueOnce({
+      cph: '12/345/0001',
+      name: 'Oakfield Farm',
+      holding_type: 'AH',
+      address: [],
+      herd_marks: [],
+      associations: [
+        {
+          customer_number: 'C2',
+          name: 'Oakfield Livestock Ltd',
+          party_type: 'Organisation',
+          email: null,
+          telephone: null,
+          mobile: null,
+          address: [],
+          roles: [{ code: 'keeper', species: ['cattle'] }]
+        }
+      ]
+    })
+    const request = {
+      method: 'GET',
+      url: '/holdings/12/345/0001',
+      auth: spokeAuth(user, 'back-office')
+    }
+
+    // Act
+    const { result } = await server.inject(request)
+
+    // Assert
+    expect(result).toEqual(expect.stringContaining('Business name'))
+    expect(result).toEqual(expect.stringContaining('Oakfield Livestock Ltd'))
+    expect(result).not.toMatch(/govuk-summary-list__key">\s*Name\s*</)
+  })
+
   test('it shows the keeper empty state when the holding has no associations', async () => {
     // Arrange
     const user = createUser()

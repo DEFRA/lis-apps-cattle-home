@@ -17,7 +17,6 @@ vi.mock('#server/services/cattle-home-be4fe-client.js')
 
 const mocks = {
   getCattleDetails: vi.mocked(cattleHomeBe4FeClient.getCattleDetails),
-  getCattleOnHolding: vi.mocked(cattleHomeBe4FeClient.getCattleOnHolding),
   getHoldingDetails: vi.mocked(cattleHomeBe4FeClient.getHoldingDetails)
 }
 
@@ -32,7 +31,13 @@ const holdingRecord = {
 
 const fullRecord = {
   eartag: 'UK200000000001',
-  cph: '22/001/0001',
+  current_location: {
+    identifier: '22/001/0001',
+    sub_identifier: null,
+    full_identifier: '22/001/0001',
+    name: 'Oakfield Farm',
+    premises_type: 'AH'
+  },
   breed: 'HF',
   sex: 'Male',
   date_of_birth: '2023-04-15',
@@ -77,9 +82,6 @@ describe('cattleDetailsController', () => {
   let server
 
   beforeAll(async () => {
-    mocks.getCattleOnHolding.mockResolvedValue({
-      animals: [{ eartag: 'UK200000000001' }]
-    })
     server = await createServer()
     await server.initialize()
   })
@@ -201,30 +203,6 @@ describe('cattleDetailsController', () => {
     // Assert
     expect(result).toEqual(
       expect.stringContaining('No sire details are recorded.')
-    )
-  })
-
-  test('it uses the referring holding for the current location when the animal record has no CPH', async () => {
-    // Arrange
-    const user = createUser()
-    mocks.getCattleDetails.mockResolvedValue({ ...fullRecord, cph: null })
-    mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
-    const request = {
-      method: 'GET',
-      url: '/animals/UK200000000001',
-      auth: spokeAuth(user, 'back-office'),
-      headers: fromAnimalsOnHolding('22/001/0001')
-    }
-
-    // Act
-    const { result, statusCode } = await server.inject(request)
-
-    // Assert
-    expect(statusCode).toBe(statusCodes.ok)
-    expect(mocks.getHoldingDetails).toHaveBeenCalledWith('22/001/0001')
-    expect(result).toEqual(expect.stringContaining('Current location'))
-    expect(result).toEqual(
-      expect.stringContaining('Mill Lane<br>Exeter<br>EX1 1AA')
     )
   })
 
@@ -427,9 +405,10 @@ describe('cattleDetailsController', () => {
     )
   })
 
-  test('it returns not found when the request did not come from an animals-on-holding page', async () => {
+  test('it links back to the same-host referrer when it is not an animals-on-holding page', async () => {
     // Arrange
     const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
@@ -441,109 +420,25 @@ describe('cattleDetailsController', () => {
     }
 
     // Act
-    const { statusCode } = await server.inject(request)
+    const { result, statusCode } = await server.inject(request)
 
     // Assert
-    expect(statusCode).toBe(statusCodes.notFound)
-    expect(mocks.getCattleDetails).not.toHaveBeenCalled()
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toEqual(
+      expect.stringContaining(
+        'href="/cattle/holdings/22/001/0001" class="govuk-back-link"'
+      )
+    )
   })
 
-  test('it returns not found when there is no referrer', async () => {
+  test("it links back to the animal's holding when there is no referrer", async () => {
     // Arrange
     const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
       auth: spokeAuth(user)
-    }
-
-    // Act
-    const { statusCode } = await server.inject(request)
-
-    // Assert
-    expect(statusCode).toBe(statusCodes.notFound)
-    expect(mocks.getCattleDetails).not.toHaveBeenCalled()
-  })
-
-  test('it returns not found when the referrer is on another host', async () => {
-    // Arrange
-    const user = createUser()
-    const request = {
-      method: 'GET',
-      url: '/animals/UK200000000001',
-      auth: spokeAuth(user),
-      headers: {
-        'x-forwarded-host': hubHost,
-        referer: 'https://elsewhere.example/cattle/holdings/22/001/0001/animals'
-      }
-    }
-
-    // Act
-    const { statusCode } = await server.inject(request)
-
-    // Assert
-    expect(statusCode).toBe(statusCodes.notFound)
-    expect(mocks.getCattleDetails).not.toHaveBeenCalled()
-  })
-
-  test('it returns not found when the user may not read the referring holding', async () => {
-    // Arrange
-    const user = {
-      ...createUser(),
-      statements: [
-        {
-          role: 'lis-role-cattle-read',
-          cphs: ['22/002/0002'],
-          permissions: ['lis-perm-cattle-read']
-        }
-      ]
-    }
-    const request = {
-      method: 'GET',
-      url: '/animals/UK200000000001',
-      auth: spokeAuth(user),
-      headers: fromAnimalsOnHolding('22/001/0001')
-    }
-
-    // Act
-    const { statusCode } = await server.inject(request)
-
-    // Assert
-    expect(statusCode).toBe(statusCodes.notFound)
-    expect(mocks.getCattleDetails).not.toHaveBeenCalled()
-  })
-
-  test('it returns not found when the animal is not on the referring holding', async () => {
-    // Arrange
-    const user = createUser()
-    mocks.getCattleOnHolding.mockResolvedValueOnce({ animals: [] })
-    const request = {
-      method: 'GET',
-      url: '/animals/UK200000000001',
-      auth: spokeAuth(user),
-      headers: fromAnimalsOnHolding('22/001/0001')
-    }
-
-    // Act
-    const { statusCode } = await server.inject(request)
-
-    // Assert
-    expect(statusCode).toBe(statusCodes.notFound)
-    expect(mocks.getCattleOnHolding).toHaveBeenCalledWith('22/001/0001', {
-      q: 'UK200000000001'
-    })
-    expect(mocks.getCattleDetails).not.toHaveBeenCalled()
-  })
-
-  test('it renders when the animal record has no CPH, using the referring holding for the back link', async () => {
-    // Arrange
-    const user = createUser()
-    mocks.getCattleDetails.mockResolvedValue({ ...fullRecord, cph: null })
-    const request = {
-      method: 'GET',
-      url: '/animals/UK200000000001',
-      auth: spokeAuth(user),
-      headers: fromAnimalsOnHolding('22/001/0001')
     }
 
     // Act
@@ -558,25 +453,82 @@ describe('cattleDetailsController', () => {
     )
   })
 
-  test('it matches the ear tag regardless of spacing and case', async () => {
+  test("it links back to the animal's holding when the referrer is on another host", async () => {
     // Arrange
     const user = createUser()
-    mocks.getCattleOnHolding.mockResolvedValueOnce({
-      animals: [{ eartag: 'uk 200000 000001' }]
-    })
     mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
       auth: spokeAuth(user),
-      headers: fromAnimalsOnHolding('22/001/0001')
+      headers: {
+        'x-forwarded-host': hubHost,
+        referer: 'https://elsewhere.example/cattle/holdings/22/001/0001/animals'
+      }
+    }
+
+    // Act
+    const { result, statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toEqual(
+      expect.stringContaining(
+        'href="/cattle/holdings/22/001/0001/animals" class="govuk-back-link"'
+      )
+    )
+  })
+
+  test('it returns not found when the animal record has no holding', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue({
+      ...fullRecord,
+      current_location: {
+        identifier: null,
+        sub_identifier: null,
+        full_identifier: null,
+        name: null,
+        premises_type: null
+      }
+    })
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user)
     }
 
     // Act
     const { statusCode } = await server.inject(request)
 
     // Assert
-    expect(statusCode).toBe(statusCodes.ok)
+    expect(statusCode).toBe(statusCodes.notFound)
+  })
+
+  test("it returns not found when the user may not read the animal's holding", async () => {
+    // Arrange
+    const user = {
+      ...createUser(),
+      statements: [
+        {
+          role: 'lis-role-cattle-read',
+          cphs: ['22/002/0002'],
+          permissions: ['lis-perm-cattle-read']
+        }
+      ]
+    }
+    mocks.getCattleDetails.mockResolvedValue(fullRecord)
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user)
+    }
+
+    // Act
+    const { statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.notFound)
   })
 
   test('it returns a server error when the BE4FE fails', async () => {

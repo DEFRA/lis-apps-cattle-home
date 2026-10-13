@@ -1,4 +1,5 @@
 import {
+  keeperNameLabel,
   buildHerdMarks,
   buildHoldingRows,
   buildKeeperDetails,
@@ -364,6 +365,41 @@ describe('buildHoldingRows()', () => {
   })
 })
 
+describe('keeperNameLabel()', () => {
+  test('it labels an organisation keeper as a business name', () => {
+    // Arrange
+    const partyType = 'Organisation'
+
+    // Act
+    const result = keeperNameLabel(partyType)
+
+    // Assert
+    expect(result).toBe('Business name')
+  })
+
+  test('it matches the party type regardless of case', () => {
+    // Arrange
+    const partyType = 'ORGANISATION'
+
+    // Act
+    const result = keeperNameLabel(partyType)
+
+    // Assert
+    expect(result).toBe('Business name')
+  })
+
+  test('it labels an individual, or an unknown party type, as a name', () => {
+    // Arrange
+    const partyTypes = ['Individual', undefined, null, 'Other', 42]
+
+    // Act
+    const results = partyTypes.map((partyType) => keeperNameLabel(partyType))
+
+    // Assert
+    expect(results).toEqual(['Name', 'Name', 'Name', 'Name', 'Name'])
+  })
+})
+
 describe('buildKeeperDetails()', () => {
   test('it builds the keeper details from a full association', () => {
     // Arrange
@@ -384,6 +420,7 @@ describe('buildKeeperDetails()', () => {
 
     // Assert
     expect(result).toEqual({
+      nameLabel: 'Name',
       name: 'James Williams',
       email: 'james@example.com',
       telephone: { text: '01632960001', href: 'tel:01632960001' },
@@ -454,6 +491,7 @@ describe('buildKeeperDetails()', () => {
 
     // Assert
     expect(result).toEqual({
+      nameLabel: 'Name',
       name: null,
       email: null,
       telephone: null,

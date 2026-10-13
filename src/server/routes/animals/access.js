@@ -1,4 +1,5 @@
-/** @import { Request, ResponseToolkit } from '@hapi/hapi' */
+/** @import { Request } from '@hapi/hapi' */
+/** @import { CattleDetails } from '#server/services/cattle-home-be4fe-client.js' */
 import Boom from '@hapi/boom'
 import {
   hasPermission,
@@ -6,51 +7,32 @@ import {
 } from '@defra/lis-hubs-infra-access/authorization'
 
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
-import { getReferringHoldingCph } from './referrer.js'
-
-function normaliseEarTag(earTag) {
-  return earTag.replaceAll(/\s/g, '').toUpperCase()
-}
 
 /**
- * @param {string} cph
- * @param {string} earTag
- * @returns {Promise<boolean>} whether the animal is in the holding's animals-on-holding list
- */
-async function isOnHolding(cph, earTag) {
-  const wanted = normaliseEarTag(earTag)
-  const { animals } = await cattleHomeBe4FeClient.getCattleOnHolding(cph, {
-    q: earTag
-  })
-
-  return animals.some((animal) => normaliseEarTag(animal.eartag) === wanted)
-}
-
-/**
+ * Fetches the animal and allows the request when the user may read cattle on
+ * the animal's current holding. Not found rather than forbidden, so an
+ * animal's existence isn't confirmed to someone not entitled to it. Access
+ * via one of the animal's previous holdings waits on a CADS location history
+ * endpoint.
+ *
  * @param {Request} request
- * @param {ResponseToolkit} h
- * @returns {Promise<symbol | Boom.Boom>} h.continue when access is allowed, otherwise a 404
+ * @returns {Promise<CattleDetails>} the cattle record, for the handler
  */
-async function demandAnimalAccess(request, h) {
-  // TODO: temporary access check.
-  // eventually a user must have access to the animal's current holding or one of its previous holdings
-  // this will require a cads endpoint to get the animal's location history
-  const cph = getReferringHoldingCph(request)
+async function demandAnimalAccess(request) {
+  const record = await cattleHomeBe4FeClient.getCattleDetails(
+    request.params.earTag
+  )
   const { user } = request.auth.credentials
+  const cph = record.current_location?.identifier
 
-  if (
-    cph &&
-    hasPermission(user, { permission: PERMISSIONS.cattleRead, cph }) &&
-    (await isOnHolding(cph, request.params.earTag))
-  ) {
-    return h.continue
+  if (cph && hasPermission(user, { permission: PERMISSIONS.cattleRead, cph })) {
+    return record
   }
 
-  return Boom.notFound()
+  throw Boom.notFound()
 }
 
-// Only a user who reached the animal from the animals-on-holding page of a
-// holding they may read, with the animal on that holding, may view it.
+// Only a user granted cattle read on the animal's current holding may view it.
 export const animalAccess = {
-  pre: [{ method: demandAnimalAccess }]
+  pre: [{ method: demandAnimalAccess, assign: 'record' }]
 }

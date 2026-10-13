@@ -4,7 +4,7 @@ import { formatEarTag } from '@defra/lis-infra-ui-services/nunjucks/filters'
 
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 import { isFromBackOffice } from '#server/common/helpers/hub.js'
-import { getReferringHoldingCph, getSameHostReferrerPath } from './referrer.js'
+import { getSameHostReferrerPath } from './referrer.js'
 import { buildCattleDetailsViewModel } from './view-model.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
@@ -27,13 +27,8 @@ async function getCurrentLocation(cph) {
 
 export const cattleDetailsController = {
   async handler(request, h) {
-    const record = await cattleHomeBe4FeClient.getCattleDetails(
-      request.params.earTag
-    )
-
-    // Temporary fallback while the cattle record may have no cph.
-    // Once the record always carries it, use record.cph alone.
-    const cph = record.cph || getReferringHoldingCph(request)
+    const { record } = request.pre
+    const cph = record.current_location.identifier
     const cattle = buildCattleDetailsViewModel(record)
     const formattedEarTag = formatEarTag(cattle.eartag)
 
@@ -41,11 +36,11 @@ export const cattleDetailsController = {
       pageTitle: `Cattle details - ${formattedEarTag}`,
       formattedEarTag,
       cattle,
-      currentLocation:
-        isFromBackOffice(request) && cph ? await getCurrentLocation(cph) : null,
+      currentLocation: isFromBackOffice(request)
+        ? await getCurrentLocation(cph)
+        : null,
       backLinkHref:
-        getSameHostReferrerPath(request) ??
-        (cph && `${holdingsBasePath}/${cph}/animals`)
+        getSameHostReferrerPath(request) ?? `${holdingsBasePath}/${cph}/animals`
     })
   }
 }

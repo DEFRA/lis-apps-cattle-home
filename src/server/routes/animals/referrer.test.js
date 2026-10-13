@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { getReferringHoldingCph, getSameHostReferrerPath } from './referrer.js'
+import { getSameHostReferrerPath } from './referrer.js'
 
 describe('getSameHostReferrerPath()', () => {
   test('it returns the path and query of a referrer on the forwarded host', () => {
@@ -104,72 +104,6 @@ describe('getSameHostReferrerPath()', () => {
 
     // Act
     const result = getSameHostReferrerPath(request)
-
-    // Assert
-    expect(result).toBeUndefined()
-  })
-})
-
-describe('getReferringHoldingCph()', () => {
-  test('it returns the CPH of a same-host animals-on-holding referrer', () => {
-    // Arrange
-    const request = {
-      headers: {
-        referer:
-          'https://front-office.lis.defra/cattle/holdings/22/002/0002/animals?page=2',
-        'x-forwarded-host': 'front-office.lis.defra'
-      }
-    }
-
-    // Act
-    const result = getReferringHoldingCph(request)
-
-    // Assert
-    expect(result).toBe('22/002/0002')
-  })
-
-  test('it returns undefined when there is no referrer', () => {
-    // Arrange
-    const request = {
-      headers: {
-        'x-forwarded-host': 'front-office.lis.defra'
-      }
-    }
-
-    // Act
-    const result = getReferringHoldingCph(request)
-
-    // Assert
-    expect(result).toBeUndefined()
-  })
-
-  test('it returns undefined when the referrer is on another host', () => {
-    // Arrange
-    const request = {
-      headers: {
-        referer: 'https://evil.example/cattle/holdings/22/002/0002/animals',
-        'x-forwarded-host': 'front-office.lis.defra'
-      }
-    }
-
-    // Act
-    const result = getReferringHoldingCph(request)
-
-    // Assert
-    expect(result).toBeUndefined()
-  })
-
-  test('it returns undefined when the referrer is not an animals-on-holding page', () => {
-    // Arrange
-    const request = {
-      headers: {
-        referer: 'https://front-office.lis.defra/cattle/holdings/22/002/0002',
-        'x-forwarded-host': 'front-office.lis.defra'
-      }
-    }
-
-    // Act
-    const result = getReferringHoldingCph(request)
 
     // Assert
     expect(result).toBeUndefined()
