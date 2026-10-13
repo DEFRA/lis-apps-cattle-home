@@ -74,7 +74,7 @@
           {{ govukSummaryList({
             rows: [
               {
-                key: { text: "Name" },
+                key: { text: keeper.nameLabel },
                 value: { text: keeper.name } if keeper.name else { html: notSuppliedHtml }
               },
               {

@@ -103,9 +103,24 @@ export function buildTelephoneHref(number) {
   return `tel:${prefix}${trimmed.replaceAll(/\D/g, '')}`
 }
 
+const ORGANISATION_PARTY_TYPE = 'ORGANISATION'
+
+/**
+ * KRDS puts the organisation name in `name` for an organisation and the
+ * person's composed name for an individual, so the row is labelled by the
+ * party type.
+ * @param {string} [partyType]
+ * @returns {'Business name'|'Name'}
+ */
+export function keeperNameLabel(partyType) {
+  return partyType?.toUpperCase() === ORGANISATION_PARTY_TYPE
+    ? 'Business name'
+    : 'Name'
+}
+
 /**
  * @param {HoldingAssociation} association
- * @returns {{ name: string|null, email: string|null, telephone: { text: string, href: string }|null, addressLines: string[] }}
+ * @returns {{ nameLabel: 'Business name'|'Name', name: string|null, email: string|null, telephone: { text: string, href: string }|null, addressLines: string[] }}
  */
 export function buildKeeperDetails(association) {
   const fullName = [association.first_name, association.last_name]
@@ -114,6 +129,7 @@ export function buildKeeperDetails(association) {
   const number = association.telephone || association.mobile
 
   return {
+    nameLabel: keeperNameLabel(association.party_type),
     name: association.name || fullName || null,
     email: association.email || null,
     telephone: number
