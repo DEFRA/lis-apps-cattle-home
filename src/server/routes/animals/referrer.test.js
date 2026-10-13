@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { getSameHostReferrerPath } from './controller.js'
+import { getSameHostReferrerPath } from './referrer.js'
 
 describe('getSameHostReferrerPath()', () => {
   test('it returns the path and query of a referrer on the forwarded host', () => {
