@@ -13,9 +13,8 @@ const hubHoldingsListPath = '/holdings'
  * @returns {boolean} whether it is the hub's holdings list, with or without a query
  */
 export function isHubHoldingsList(path) {
-  return (
-    path === hubHoldingsListPath || path.startsWith(`${hubHoldingsListPath}?`)
-  )
+  const [pathname] = path.split('?')
+  return pathname.replace(/\/$/, '') === hubHoldingsListPath
 }
 
 /**
