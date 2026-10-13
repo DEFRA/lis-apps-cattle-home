@@ -480,7 +480,9 @@ describe('animalsOnHoldingController', () => {
 
     // Assert
     expect(statusCode).toBe(statusCodes.forbidden)
-    expect(result).toEqual(expect.stringContaining('Forbidden'))
+    expect(result).toEqual(
+      expect.stringContaining('Sorry, you are not authorised to view this page')
+    )
     expect(mocks.getHoldingDetails).not.toHaveBeenCalled()
   })
 
