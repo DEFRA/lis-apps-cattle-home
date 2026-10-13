@@ -390,13 +390,13 @@ describe('keeperNameLabel()', () => {
 
   test('it labels an individual, or an unknown party type, as a name', () => {
     // Arrange
-    const partyTypes = ['Individual', undefined, null, 'Other']
+    const partyTypes = ['Individual', undefined, null, 'Other', 42]
 
     // Act
     const results = partyTypes.map((partyType) => keeperNameLabel(partyType))
 
     // Assert
-    expect(results).toEqual(['Name', 'Name', 'Name', 'Name'])
+    expect(results).toEqual(['Name', 'Name', 'Name', 'Name', 'Name'])
   })
 })
 

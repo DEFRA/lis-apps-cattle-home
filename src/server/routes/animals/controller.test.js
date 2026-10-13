@@ -480,8 +480,7 @@ describe('cattleDetailsController', () => {
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
-      auth: spokeAuth(user),
-      headers: fromAnimalsOnHolding()
+      auth: spokeAuth(user)
     }
 
     // Act
@@ -507,8 +506,7 @@ describe('cattleDetailsController', () => {
     const request = {
       method: 'GET',
       url: '/animals/UK200000000001',
-      auth: spokeAuth(user),
-      headers: fromAnimalsOnHolding('22/001/0001')
+      auth: spokeAuth(user)
     }
 
     // Act

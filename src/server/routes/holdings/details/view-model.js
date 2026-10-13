@@ -113,7 +113,8 @@ const ORGANISATION_PARTY_TYPE = 'ORGANISATION'
  * @returns {'Business name'|'Name'}
  */
 export function keeperNameLabel(partyType) {
-  return partyType?.toUpperCase() === ORGANISATION_PARTY_TYPE
+  return typeof partyType === 'string' &&
+    partyType.toUpperCase() === ORGANISATION_PARTY_TYPE
     ? 'Business name'
     : 'Name'
 }
