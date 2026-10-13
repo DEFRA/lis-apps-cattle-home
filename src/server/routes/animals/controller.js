@@ -1,22 +1,13 @@
-/** @import { Request } from '@hapi/hapi' */
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { formatEarTag } from '@defra/lis-infra-ui-services/nunjucks/filters'
 
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
+import { isFromBackOffice } from '#server/common/helpers/hub.js'
 import { getReferringHoldingCph, getSameHostReferrerPath } from './referrer.js'
 import { buildCattleDetailsViewModel } from './view-model.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
-const backOfficeCaller = 'lis-hubs-back-office'
-
-/**
- * @param {Request} request
- * @returns {boolean} whether the back-office hub made the request
- */
-function isFromBackOffice(request) {
-  return request.auth.credentials.caller === backOfficeCaller
-}
 
 /**
  * @param {string} cph

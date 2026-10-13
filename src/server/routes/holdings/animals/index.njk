@@ -4,16 +4,27 @@
 {% from "search-form/macro.njk" import searchForm %}
 {% from "date/macro.njk" import lisDate %}
 {% from "not-supplied/macro.njk" import notSupplied %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+
+{% block beforeContent %}
+  {% if backLinkHref %}
+    {{ govukBackLink({
+      text: "Back",
+      href: backLinkHref
+    }) }}
+  {% endif %}
+{% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
-      {% if holding.name %}
-        <span class="govuk-caption-l">{{ holding.name }}</span>
+      {% if isBackOffice %}
+        <span class="govuk-caption-l">Holding</span>
+        <h1 class="govuk-heading-l">{{ holdingHeading }}</h1>
       {% else %}
-        <span class="govuk-caption-l">{{ holding.cph }}</span>
+        <span class="govuk-caption-l">{{ holdingHeading }}</span>
+        <h1 class="govuk-heading-l">Animals on holding</h1>
       {% endif %}
-      <h1 class="govuk-heading-l">Animals on holding</h1>
 
       {{ lisSubNavigation({
         label: "Sub navigation",
@@ -29,25 +40,36 @@
         <div class="govuk-grid-row">
           <div class="govuk-grid-column-two-thirds">
             {{ searchForm({
-              label: "Search animals on your holding",
+              label: "Search animals on holding" if isBackOffice else "Search animals on your holding",
               hint: "You can use all or part of the animal ear tag number, or search by sex or breed.",
               value: search,
-              insetText: "Recent changes such as new registrations may take up to 24 hours to appear in your list."
+              hiddenFields: [{ name: "referrer", value: referrerId }] if referrerId else undefined,
+              insetText: undefined if isBackOffice else "Recent changes such as new registrations may take up to 24 hours to appear in your list."
             }) }}
           </div>
         </div>
 
-        {% if search %}
+        {% if isBackOffice %}
+          <p class="govuk-body">
+            {%- if search -%}
+              {{ totalItems }} registered cattle record{{ "s match" if totalItems != 1 else " matches" }} <strong>‘{{ search }}’</strong>
+            {%- else -%}
+              {{ totalItems }} registered cattle
+            {%- endif -%}
+          </p>
+        {% elif search %}
           <p class="govuk-body">
             {{ totalItems }} result{{ "s" if totalItems != 1 else "" }} for <strong>'{{ search }}'</strong>
           </p>
+        {% endif %}
+        {% if search %}
           <p class="govuk-body">
-            <a class="govuk-link" href="{{ baseHref }}">Clear search</a>
+            <a class="govuk-link" href="{{ clearSearchHref }}">Clear search</a>
           </p>
         {% endif %}
 
         {% if totalItems > 0 %}
-          {% set notSuppliedHtml = notSupplied() %}
+          {% set notSuppliedHtml = notSupplied("N/A") if isBackOffice else notSupplied() %}
 
           {%- set rows = [] -%}
           {%- for animal in animals -%}
@@ -70,15 +92,17 @@
           {%- endfor -%}
 
           {{ sortablePaginatedTable({
-            caption: "Animals on holding",
+            caption: "Cattle search results" if isBackOffice else "Animals on holding",
+            summary: { text: summaryText, position: "below" } if isBackOffice else undefined,
             classes: "lis-sortable-table--no-wrap",
+            firstCellIsHeader: isBackOffice,
             columns: columns,
             rows: rows,
             sort: sort,
             direction: direction,
             baseHref: baseHref,
             pagination: pagination,
-            query: { search: search }
+            query: { search: search, referrer: referrerId }
           }) }}
         {% endif %}
       {% endif %}

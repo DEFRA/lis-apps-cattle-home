@@ -271,4 +271,119 @@ describe('holdingDetailsController', () => {
     expect(result).toEqual(expect.stringContaining('No Address Farm'))
     expect(result).toEqual(expect.stringContaining('UK 999999'))
   })
+
+  test('it links back to the holdings search a back-office user came from, carrying it on the tabs', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      address: [],
+      herd_marks: []
+    })
+    const request = {
+      method: 'GET',
+      url: '/holdings/22/001/0001',
+      auth: spokeAuth(user, 'back-office'),
+      headers: {
+        'x-forwarded-host': 'back-office.lis.defra',
+        referer: 'https://back-office.lis.defra/holdings?search=oak&page=2'
+      }
+    }
+
+    // Act
+    const { result } = await server.inject(request)
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        'href="/holdings?search=oak&amp;page=2" class="govuk-back-link"'
+      )
+    )
+    expect(result).toMatch(
+      /href="\/cattle\/holdings\/22\/001\/0001\/animals\?referrer=[0-9a-f-]{36}"/
+    )
+  })
+
+  test('it links back to the holdings list when a back-office user did not come from a search', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      address: [],
+      herd_marks: []
+    })
+    const request = {
+      method: 'GET',
+      url: '/holdings/22/001/0001',
+      auth: spokeAuth(user, 'back-office')
+    }
+
+    // Act
+    const { result } = await server.inject(request)
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining('href="/holdings" class="govuk-back-link"')
+    )
+    expect(result).not.toEqual(expect.stringContaining('referrer='))
+  })
+
+  test('it links back to the holdings list when a back-office user came from a page that is not the list', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      address: [],
+      herd_marks: []
+    })
+    const request = {
+      method: 'GET',
+      url: '/holdings/22/001/0001',
+      auth: spokeAuth(user, 'back-office'),
+      headers: {
+        'x-forwarded-host': 'back-office.lis.defra',
+        referer:
+          'https://back-office.lis.defra/cattle/holdings/22/002/0002/animals'
+      }
+    }
+
+    // Act
+    const { result } = await server.inject(request)
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining('href="/holdings" class="govuk-back-link"')
+    )
+    expect(result).not.toEqual(expect.stringContaining('referrer='))
+  })
+
+  test('it shows no back link for a front-office user', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      address: [],
+      herd_marks: []
+    })
+    const request = {
+      method: 'GET',
+      url: '/holdings/22/001/0001',
+      auth: spokeAuth(user),
+      headers: {
+        'x-forwarded-host': 'front-office.lis.defra',
+        referer: 'https://front-office.lis.defra/holdings?search=oak'
+      }
+    }
+
+    // Act
+    const { result } = await server.inject(request)
+
+    // Assert
+    expect(result).not.toEqual(expect.stringContaining('govuk-back-link'))
+    expect(result).not.toEqual(expect.stringContaining('referrer='))
+  })
 })

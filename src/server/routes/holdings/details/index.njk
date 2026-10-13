@@ -1,8 +1,18 @@
 {% extends 'layouts/page.njk' %}
 
 {% from "not-supplied/macro.njk" import notSupplied %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 
 {% set notSuppliedHtml = notSupplied() %}
+
+{% block beforeContent %}
+  {% if backLinkHref %}
+    {{ govukBackLink({
+      text: "Back",
+      href: backLinkHref
+    }) }}
+  {% endif %}
+{% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">

@@ -113,6 +113,7 @@ describe('animalsOnHoldingController', () => {
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(expect.stringContaining('Animals on holding'))
+    expect(result).not.toEqual(expect.stringContaining('govuk-back-link'))
     expect(result).toEqual(expect.stringContaining('UK 200000 000001'))
     expect(result).toEqual(expect.stringContaining('Date on holding'))
     expect(result).toEqual(
