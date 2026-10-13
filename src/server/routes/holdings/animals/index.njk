@@ -58,7 +58,7 @@
         {% endif %}
 
         {% if totalItems > 0 %}
-          {% set notSuppliedHtml = notSupplied() %}
+          {% set notSuppliedHtml = notSupplied("N/A") if isBackOffice else notSupplied() %}
 
           {%- set rows = [] -%}
           {%- for animal in animals -%}
@@ -82,6 +82,7 @@
 
           {{ sortablePaginatedTable({
             caption: "Cattle search results" if isBackOffice else "Animals on holding",
+            summary: { text: summaryText, position: "below" } if isBackOffice else undefined,
             classes: "lis-sortable-table--no-wrap",
             firstCellIsHeader: isBackOffice,
             columns: columns,

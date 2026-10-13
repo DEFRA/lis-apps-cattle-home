@@ -33,11 +33,22 @@ function isFromBackOffice(request) {
  * @param {boolean} isBackOffice
  * @returns {string} how the hub names the holding: back office leads with the CPH
  */
-export function buildHoldingHeading(holding, isBackOffice) {
+function buildHoldingHeading(holding, isBackOffice) {
   if (isBackOffice) {
     return holding.name ? `${holding.cph} - ${holding.name}` : holding.cph
   }
   return holding.name ?? holding.cph
+}
+
+/**
+ * @param {{ currentPage: number, itemsPerPage: number, totalItems: number }} page
+ * @returns {string} the back-office count below the list, e.g. "Showing 1 to 25 of 34"
+ */
+export function buildRangeSummary({ currentPage, itemsPerPage, totalItems }) {
+  const first = (currentPage - 1) * itemsPerPage + 1
+  const last = Math.min(currentPage * itemsPerPage, totalItems)
+
+  return `Showing ${first} to ${last} of ${totalItems}`
 }
 
 /**
@@ -114,7 +125,9 @@ export const animalsOnHoldingController = {
         direction,
         columns: pageColumns
       }),
+      isBackOffice,
       holdingHeading,
+      summaryText: buildRangeSummary({ currentPage, itemsPerPage, totalItems }),
       columns: pageColumns,
       animals: animals.map((animal) => ({
         eartag: animal.eartag,
