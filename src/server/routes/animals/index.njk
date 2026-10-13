@@ -118,21 +118,25 @@
           {%- endfor -%}
         {%- endset -%}
 
+        {%- set locationRows = [
+          {
+            key: { text: "CPH number" },
+            value: { text: currentLocation.cph }
+          }
+        ] -%}
+        {%- if currentLocation.addressLines !== null -%}
+          {%- set _ = locationRows.push({
+            key: { text: "Address" },
+            value: { html: addressHtml } if currentLocation.addressLines.length else { html: notSuppliedHtml }
+          }) -%}
+        {%- endif -%}
+        {%- set _ = locationRows.push({
+          key: { text: "Moved to holding on" },
+          value: { text: cattle.dateOnCph | formatDate(dateFormat) } if cattle.dateOnCph else { html: notSuppliedHtml }
+        }) -%}
+
         {{ govukSummaryList({
-          rows: [
-            {
-              key: { text: "CPH number" },
-              value: { text: currentLocation.cph }
-            },
-            {
-              key: { text: "Address" },
-              value: { html: addressHtml } if currentLocation.addressLines.length else { html: notSuppliedHtml }
-            },
-            {
-              key: { text: "Moved to holding on" },
-              value: { text: cattle.dateOnCph | formatDate(dateFormat) } if cattle.dateOnCph else { html: notSuppliedHtml }
-            }
-          ]
+          rows: locationRows
         }) }}
       {% endif %}
     </div>

@@ -248,7 +248,7 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(500)
   })
 
-  test('it still renders, with the address not supplied, when the current holding is not found', async () => {
+  test('it still renders, without the address row, when the current holding is not found', async () => {
     // Arrange
     const user = createUser()
     mocks.getCattleDetails.mockResolvedValue(fullRecord)
@@ -271,7 +271,9 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(expect.stringContaining('Current location'))
     expect(result).toEqual(expect.stringContaining('22/001/0001'))
-    expect(result).toEqual(
+    expect(result).toEqual(expect.stringContaining('Moved to holding on'))
+    expect(result).not.toEqual(expect.stringContaining('Address'))
+    expect(result).not.toEqual(
       expect.stringContaining(
         '<strong class="govuk-tag govuk-tag--red">Not supplied</strong>'
       )

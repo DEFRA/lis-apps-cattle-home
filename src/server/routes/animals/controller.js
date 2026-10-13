@@ -20,7 +20,7 @@ function isFromBackOffice(request) {
 
 /**
  * @param {string} cph
- * @returns {Promise<{ cph: string, addressLines: string[] }>} the holding's CPH and address, with no address when the holding is not found
+ * @returns {Promise<{ cph: string, addressLines: string[] | null }>} the holding's CPH and address, with a null address when the holding is not found
  */
 async function getCurrentLocation(cph) {
   try {
@@ -28,7 +28,7 @@ async function getCurrentLocation(cph) {
     return { cph, addressLines: holding.address.filter(Boolean) }
   } catch (error) {
     if (error.statusCode === statusCodes.notFound) {
-      return { cph, addressLines: [] }
+      return { cph, addressLines: null }
     }
     throw error
   }
