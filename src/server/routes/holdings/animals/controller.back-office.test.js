@@ -113,6 +113,9 @@ describe('animalsOnHoldingController (back office)', () => {
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(
+      expect.stringContaining('href="/holdings" class="govuk-back-link"')
+    )
+    expect(result).toEqual(
       expect.stringContaining('<span class="govuk-caption-l">Holding</span>')
     )
     expect(result).toEqual(

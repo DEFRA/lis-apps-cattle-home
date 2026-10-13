@@ -4,6 +4,16 @@
 {% from "search-form/macro.njk" import searchForm %}
 {% from "date/macro.njk" import lisDate %}
 {% from "not-supplied/macro.njk" import notSupplied %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+
+{% block beforeContent %}
+  {% if backLinkHref %}
+    {{ govukBackLink({
+      text: "Back",
+      href: backLinkHref
+    }) }}
+  {% endif %}
+{% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">

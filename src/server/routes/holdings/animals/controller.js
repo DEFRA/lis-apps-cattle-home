@@ -7,6 +7,8 @@ import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 const animalsBasePath = `${getBasePathForModule('cattle-home')}/animals`
 const backOfficeCaller = 'lis-hubs-back-office'
+// the back-office hub's find-a-holding page, which every holding page is reached from
+const backOfficeHoldingsListPath = '/holdings'
 const PAGE_SIZE = 25
 const columns = [
   { text: 'Ear tag number', sortKey: 'ear_tag' },
@@ -126,6 +128,7 @@ export const animalsOnHoldingController = {
         columns: pageColumns
       }),
       isBackOffice,
+      backLinkHref: isBackOffice ? backOfficeHoldingsListPath : undefined,
       holdingHeading,
       summaryText: buildRangeSummary({ currentPage, itemsPerPage, totalItems }),
       columns: pageColumns,
