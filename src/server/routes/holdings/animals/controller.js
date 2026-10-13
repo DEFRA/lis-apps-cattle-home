@@ -1,6 +1,7 @@
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
 import { cphFromParams } from '../details/controller.js'
+import { buildHoldingHeading } from '../holding-heading.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 import { isFromBackOffice } from '#server/common/helpers/hub.js'
 
@@ -18,18 +19,6 @@ const columns = [
 const backOfficeColumns = [{ text: 'Ear tag', sortKey: 'ear_tag' }].concat(
   columns.slice(1)
 )
-
-/**
- * @param {{ name: string|null, cph: string }} holding
- * @param {boolean} isBackOffice
- * @returns {string} how the hub names the holding: back office leads with the CPH
- */
-function buildHoldingHeading(holding, isBackOffice) {
-  if (isBackOffice) {
-    return holding.name ? `${holding.cph} - ${holding.name}` : holding.cph
-  }
-  return holding.name ?? holding.cph
-}
 
 /**
  * @param {{ currentPage: number, itemsPerPage: number, totalItems: number }} page

@@ -16,13 +16,14 @@
 
 {% block content %}
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
-      {% if holding.holdingName %}
-        <span class="govuk-caption-l">{{ holding.holdingName }}</span>
+    <div class="{{ 'govuk-grid-column-two-thirds' if isBackOffice else 'govuk-grid-column-full' }}">
+      {% if isBackOffice %}
+        <span class="govuk-caption-l">Holding</span>
+        <h1 class="govuk-heading-l">{{ holdingHeading }}</h1>
       {% else %}
-        <span class="govuk-caption-l">{{ holding.cphNumber }}</span>
+        <span class="govuk-caption-l">{{ holdingHeading }}</span>
+        <h1 class="govuk-heading-l">Holding details</h1>
       {% endif %}
-      <h1 class="govuk-heading-l">Holding details</h1>
 
       {{ lisSubNavigation({
         label: "Sub navigation",
@@ -35,26 +36,102 @@
         {%- endfor -%}
       {%- endset -%}
 
-      {{ govukSummaryList({
-        rows: [
+      {%- set herdMarksHtml -%}
+        {%- for mark in holding.herdMarks.marks -%}
+          {{ mark }}{% if not loop.last %}<br>{% endif %}
+        {%- endfor -%}
+      {%- endset -%}
+
+      {%- set cphRow = {
+        key: { text: "CPH number" },
+        value: { text: holding.cphNumber } if holding.cphNumber else { html: notSuppliedHtml }
+      } -%}
+      {%- set addressRow = {
+        key: { text: "Address" },
+        value: { html: addressHtml } if holding.addressLines.length else { html: notSuppliedHtml }
+      } -%}
+      {%- set herdMarksRow = {
+        key: { text: holding.herdMarks.key },
+        value: { html: herdMarksHtml } if holding.herdMarks.marks.length else { text: "Not recorded" }
+      } -%}
+
+      {% if isBackOffice %}
+        <h2 class="govuk-heading-m">Holding information</h2>
+
+        {%- set holdingRows = [
+          cphRow,
           {
-            key: { text: "CPH number" },
-            value: { text: holding.cphNumber } if holding.cphNumber else { html: notSuppliedHtml }
+            key: { text: "Holding type" },
+            value: { text: holding.holdingType } if holding.holdingType else { html: notSuppliedHtml }
           },
           {
-            key: { text: "Holding name" },
-            value: { text: holding.holdingName } if holding.holdingName else { html: notSuppliedHtml }
-          },
-          {
-            key: { text: "Address" },
-            value: { html: addressHtml } if holding.addressLines.length else { html: notSuppliedHtml }
-          },
-          {
-            key: { text: "Herd mark" },
-            value: { text: holding.herdMark } if holding.herdMark else { html: notSuppliedHtml }
+            key: { text: "Status" },
+            value: { text: holding.status }
           }
-        ]
-      }) }}
+        ] -%}
+        {%- if holding.holdingName -%}
+          {%- set _ = holdingRows.push({
+            key: { text: "Holding name" },
+            value: { text: holding.holdingName }
+          }) -%}
+        {%- endif -%}
+        {%- set _ = holdingRows.push(addressRow, herdMarksRow) -%}
+
+        {{ govukSummaryList({
+          rows: holdingRows
+        }) }}
+
+        <h2 class="govuk-heading-m">Registered keeper details</h2>
+
+        {% if keeper %}
+          {%- set keeperAddressHtml -%}
+            {%- for line in keeper.addressLines -%}
+              {{ line }}{% if not loop.last %}<br>{% endif %}
+            {%- endfor -%}
+          {%- endset -%}
+          {%- set emailHtml -%}
+            <a class="govuk-link" href="mailto:{{ keeper.email }}">{{ keeper.email }}</a>
+          {%- endset -%}
+          {%- set telephoneHtml -%}
+            <a class="govuk-link" href="{{ keeper.telephone.href }}">{{ keeper.telephone.text }}</a>
+          {%- endset -%}
+
+          {{ govukSummaryList({
+            rows: [
+              {
+                key: { text: "Name" },
+                value: { text: keeper.name } if keeper.name else { html: notSuppliedHtml }
+              },
+              {
+                key: { text: "Email address" },
+                value: { html: emailHtml } if keeper.email else { html: notSuppliedHtml }
+              },
+              {
+                key: { text: "Telephone" },
+                value: { html: telephoneHtml } if keeper.telephone else { html: notSuppliedHtml }
+              },
+              {
+                key: { text: "Address" },
+                value: { html: keeperAddressHtml } if keeper.addressLines.length else { html: notSuppliedHtml }
+              }
+            ]
+          }) }}
+        {% else %}
+          <p class="govuk-body">No registered keeper details are recorded.</p>
+        {% endif %}
+      {% else %}
+        {{ govukSummaryList({
+          rows: [
+            cphRow,
+            {
+              key: { text: "Holding name" },
+              value: { text: holding.holdingName } if holding.holdingName else { html: notSuppliedHtml }
+            },
+            addressRow,
+            herdMarksRow
+          ]
+        }) }}
+      {% endif %}
     </div>
   </div>
 {% endblock %}
