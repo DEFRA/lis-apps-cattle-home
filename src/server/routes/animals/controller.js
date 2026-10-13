@@ -1,48 +1,37 @@
 /** @import { Request } from '@hapi/hapi' */
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
+import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { formatEarTag } from '@defra/lis-infra-ui-services/nunjucks/filters'
 
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
+import { getReferringHoldingCph, getSameHostReferrerPath } from './referrer.js'
 import { buildCattleDetailsViewModel } from './view-model.js'
 
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
+const backOfficeCaller = 'lis-hubs-back-office'
 
 /**
- * The browser sends the hub's public URL as the referrer, and the hub proxy
- * passes the host it was called on as x-forwarded-host, so the two are
- * compared to keep the back link on the current domain.
- *
  * @param {Request} request
- * @returns {string | undefined} the referrer's path and query, when it is on the same host as the request
+ * @returns {boolean} whether the back-office hub made the request
  */
-export function getSameHostReferrerPath(request) {
-  const { referer } = request.headers
-  if (!referer) {
-    return undefined
-  }
+function isFromBackOffice(request) {
+  return request.auth.credentials.caller === backOfficeCaller
+}
 
-  let refererUrl
+/**
+ * @param {string} cph
+ * @returns {Promise<{ cph: string, addressLines: string[] | null }>} the holding's CPH and address, with a null address when the holding is not found
+ */
+async function getCurrentLocation(cph) {
   try {
-    refererUrl = new URL(referer)
-  } catch {
-    return undefined
+    const holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)
+    return { cph, addressLines: holding.address.filter(Boolean) }
+  } catch (error) {
+    if (error.statusCode === statusCodes.notFound) {
+      return { cph, addressLines: null }
+    }
+    throw error
   }
-
-  const requestHost = (
-    request.headers['x-forwarded-host'] ??
-    request.headers.host ??
-    ''
-  )
-    .split(',')[0]
-    .trim()
-
-  // A path starting with // would make the link protocol-relative, i.e.
-  // another site.
-  if (refererUrl.host !== requestHost || refererUrl.pathname.startsWith('//')) {
-    return undefined
-  }
-
-  return `${refererUrl.pathname}${refererUrl.search}`
 }
 
 export const cattleDetailsController = {
@@ -51,6 +40,9 @@ export const cattleDetailsController = {
       request.params.earTag
     )
 
+    // Temporary fallback while the cattle record may have no cph.
+    // Once the record always carries it, use record.cph alone.
+    const cph = record.cph || getReferringHoldingCph(request)
     const cattle = buildCattleDetailsViewModel(record)
     const formattedEarTag = formatEarTag(cattle.eartag)
 
@@ -58,9 +50,11 @@ export const cattleDetailsController = {
       pageTitle: `Cattle details - ${formattedEarTag}`,
       formattedEarTag,
       cattle,
+      currentLocation:
+        isFromBackOffice(request) && cph ? await getCurrentLocation(cph) : null,
       backLinkHref:
         getSameHostReferrerPath(request) ??
-        (record.cph && `${holdingsBasePath}/${record.cph}/animals`)
+        (cph && `${holdingsBasePath}/${cph}/animals`)
     })
   }
 }

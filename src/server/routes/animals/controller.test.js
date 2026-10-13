@@ -17,7 +17,17 @@ vi.mock('#server/services/cattle-home-be4fe-client.js')
 
 const mocks = {
   getCattleDetails: vi.mocked(cattleHomeBe4FeClient.getCattleDetails),
-  getCattleOnHolding: vi.mocked(cattleHomeBe4FeClient.getCattleOnHolding)
+  getCattleOnHolding: vi.mocked(cattleHomeBe4FeClient.getCattleOnHolding),
+  getHoldingDetails: vi.mocked(cattleHomeBe4FeClient.getHoldingDetails)
+}
+
+const holdingRecord = {
+  cph: '22/001/0001',
+  name: 'Oakfield Farm',
+  business_name: null,
+  address: ['Oakfield Farm', 'Mill Lane', null, 'Exeter', 'EX1 1AA'],
+  herd_marks: ['UK200000'],
+  allowed_species: ['cattle']
 }
 
 const fullRecord = {
@@ -116,6 +126,159 @@ describe('cattleDetailsController', () => {
     expect(result).toEqual(expect.stringContaining('Active'))
     expect(result).toEqual(expect.stringContaining('Dam details'))
     expect(result).toEqual(expect.stringContaining('Sire details'))
+    expect(result).toEqual(expect.stringContaining('Date registered'))
+    expect(result).toEqual(expect.stringContaining('Date on holding'))
+    expect(result).toEqual(expect.stringContaining('15 Apr 2023'))
+    expect(result).not.toEqual(expect.stringContaining('Current location'))
+    expect(mocks.getHoldingDetails).not.toHaveBeenCalled()
+  })
+
+  test('it renders the back-office layout, with the current location, for a back-office user', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue(fullRecord)
+    mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user, 'back-office'),
+      headers: fromAnimalsOnHolding()
+    }
+
+    // Act
+    const { result, statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(mocks.getHoldingDetails).toHaveBeenCalledWith('22/001/0001')
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<span class="govuk-caption-l">Registered animal</span>'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<h1 class="govuk-heading-l">UK 200000 000001</h1>'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining('govuk-grid-column-three-quarters')
+    )
+    expect(result).toEqual(expect.stringContaining('Animal details'))
+    expect(result).not.toEqual(expect.stringContaining('Registered on'))
+    expect(result).not.toEqual(expect.stringContaining('Date registered'))
+    expect(result).not.toEqual(expect.stringContaining('18 April 2023'))
+    expect(result).not.toEqual(expect.stringContaining('Date on holding'))
+    expect(result).toEqual(expect.stringContaining('Current location'))
+    expect(result).toEqual(expect.stringContaining('22/001/0001'))
+    expect(result).toEqual(
+      expect.stringContaining('Mill Lane<br>Exeter<br>EX1 1AA')
+    )
+    expect(result).toEqual(expect.stringContaining('Moved to holding on'))
+    expect(result).toEqual(expect.stringContaining('15 April 2023'))
+    expect(result).not.toEqual(expect.stringContaining('15 Apr 2023'))
+  })
+
+  test('it shows "No sire details are recorded." for a back-office user', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue({
+      ...fullRecord,
+      sire_tag: null,
+      sire_name: null
+    })
+    mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user, 'back-office'),
+      headers: fromAnimalsOnHolding()
+    }
+
+    // Act
+    const { result } = await server.inject(request)
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining('No sire details are recorded.')
+    )
+  })
+
+  test('it uses the referring holding for the current location when the animal record has no CPH', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue({ ...fullRecord, cph: null })
+    mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user, 'back-office'),
+      headers: fromAnimalsOnHolding('22/001/0001')
+    }
+
+    // Act
+    const { result, statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(mocks.getHoldingDetails).toHaveBeenCalledWith('22/001/0001')
+    expect(result).toEqual(expect.stringContaining('Current location'))
+    expect(result).toEqual(
+      expect.stringContaining('Mill Lane<br>Exeter<br>EX1 1AA')
+    )
+  })
+
+  test('it returns a server error when the current holding lookup fails', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue(fullRecord)
+    mocks.getHoldingDetails.mockRejectedValueOnce(
+      Object.assign(new Error('Request failed - 500'), { statusCode: 500 })
+    )
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user, 'back-office'),
+      headers: fromAnimalsOnHolding()
+    }
+
+    // Act
+    const { statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(500)
+  })
+
+  test('it still renders, without the address row, when the current holding is not found', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue(fullRecord)
+    mocks.getHoldingDetails.mockRejectedValueOnce(
+      Object.assign(new Error('Request failed - 404'), {
+        statusCode: statusCodes.notFound
+      })
+    )
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user, 'back-office'),
+      headers: fromAnimalsOnHolding()
+    }
+
+    // Act
+    const { result, statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toEqual(expect.stringContaining('Current location'))
+    expect(result).toEqual(expect.stringContaining('22/001/0001'))
+    expect(result).toEqual(expect.stringContaining('Moved to holding on'))
+    expect(result).not.toEqual(expect.stringContaining('Address'))
+    expect(result).not.toEqual(
+      expect.stringContaining(
+        '<strong class="govuk-tag govuk-tag--red">Not supplied</strong>'
+      )
+    )
   })
 
   test('it shows "Not supplied", styled as an error, for missing required fields', async () => {

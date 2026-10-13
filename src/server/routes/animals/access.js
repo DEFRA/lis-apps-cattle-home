@@ -4,30 +4,9 @@ import {
   hasPermission,
   PERMISSIONS
 } from '@defra/lis-hubs-infra-access/authorization'
-import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
-import { getSameHostReferrerPath } from './controller.js'
-
-const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
-const animalsOnHoldingPath = new RegExp(
-  `^${holdingsBasePath}/(\\d{2}/\\d{3}/\\d{4})/animals$`
-)
-
-/**
- * @param {Request} request
- * @returns {string | undefined} the CPH of the animals-on-holding page the request came from, if it came from one on this host
- */
-export function getReferringHoldingCph(request) {
-  const referrerPath = getSameHostReferrerPath(request)
-  if (!referrerPath) {
-    return undefined
-  }
-
-  const { pathname } = new URL(referrerPath, 'https://referrer.invalid')
-
-  return animalsOnHoldingPath.exec(pathname)?.[1]
-}
+import { getReferringHoldingCph } from './referrer.js'
 
 function normaliseEarTag(earTag) {
   return earTag.replaceAll(/\s/g, '').toUpperCase()
