@@ -219,6 +219,22 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
+  test('it limits the search input to 100 characters', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleForCph.mockResolvedValue(page([animal]))
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(result).toMatch(/<input[^>]*type="search"[^>]*maxlength="100"/)
+  })
+
   test('it shows the CPH as the caption when the holding has no name', async () => {
     // Arrange
     const user = createUser()
