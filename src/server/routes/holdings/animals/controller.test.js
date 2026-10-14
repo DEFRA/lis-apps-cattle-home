@@ -200,7 +200,7 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
-  test('it truncates the search term to 100 characters', async () => {
+  test('it passes a 150-character search term to the client in full', async () => {
     // Arrange
     const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(page([animal]))
@@ -215,24 +215,28 @@ describe('animalsOnHoldingController', () => {
     // Assert
     expect(mocks.getCattleForCph).toHaveBeenCalledWith(
       '22/001/0001',
-      expect.objectContaining({ q: 'a'.repeat(100) })
+      expect.objectContaining({ q: 'a'.repeat(150) })
     )
   })
 
-  test('it limits the search input to 100 characters', async () => {
+  test('it uses the first value when search is repeated', async () => {
     // Arrange
     const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(page([animal]))
 
     // Act
-    const { result } = await server.inject({
+    const response = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals',
+      url: '/holdings/22/001/0001/animals?search=a&search=b',
       auth: spokeAuth(user)
     })
 
     // Assert
-    expect(result).toMatch(/<input[^>]*type="search"[^>]*maxlength="100"/)
+    expect(response.statusCode).toBe(200)
+    expect(mocks.getCattleForCph).toHaveBeenCalledWith(
+      '22/001/0001',
+      expect.objectContaining({ q: 'a' })
+    )
   })
 
   test('it shows the CPH as the caption when the holding has no name', async () => {

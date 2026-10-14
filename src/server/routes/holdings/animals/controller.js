@@ -8,7 +8,6 @@ import { isFromBackOffice } from '#server/common/helpers/hub.js'
 const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
 const animalsBasePath = `${getBasePathForModule('cattle-home')}/animals`
 const PAGE_SIZE = 25
-const maxSearchLength = 100
 const columns = [
   { text: 'Ear tag number', sortKey: 'ear_tag' },
   { text: 'Date of birth', sortKey: 'date_of_birth' },
@@ -77,7 +76,7 @@ export const animalsOnHoldingController = {
     const cph = cphFromParams(request.params)
     const isBackOffice = isFromBackOffice(request)
     const pageColumns = isBackOffice ? backOfficeColumns : columns
-    const search = request.query.search?.trim().slice(0, maxSearchLength) || ''
+    const search = [request.query.search].flat()[0]?.trim() || ''
     const sort = request.query.sort || 'ear_tag'
     const direction = request.query.direction === 'desc' ? 'desc' : 'asc'
     const [
