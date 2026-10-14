@@ -1,16 +1,22 @@
 import {
   createAll,
-  Button,
   Checkboxes,
   ErrorSummary,
   Radios,
-  SkipLink,
   Tabs
 } from 'govuk-frontend'
+import { errorPageComponents } from '@defra/lis-infra-ui-services/components/error-pages'
+import { layoutComponents } from '@defra/lis-infra-ui-services/components/layout'
+import { ScrollableTable } from '@defra/lis-infra-ui-services/components/scrollable-table'
 
-createAll(Button)
-createAll(Checkboxes)
-createAll(ErrorSummary)
-createAll(Radios)
-createAll(SkipLink)
-createAll(Tabs)
+for (const component of new Set([
+  ...layoutComponents,
+  ...errorPageComponents,
+  ScrollableTable,
+  Checkboxes,
+  ErrorSummary,
+  Radios,
+  Tabs
+])) {
+  createAll(component)
+}

@@ -134,6 +134,30 @@ describe('holdingDetailsController', () => {
     )
   })
 
+  test('it labels the sub navigation', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValue({
+      cph: '22/001/0001',
+      name: 'Oakfield Farm',
+      business_name: null,
+      address: ['Oakfield Farm', 'SY4 1AB'],
+      herd_marks: [{ mark: 'UK 324537', species: ['cattle'] }]
+    })
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining('aria-label="Holding sections"')
+    )
+  })
+
   test('it shows a single herd mark under the singular key', async () => {
     // Arrange
     const user = createUser()

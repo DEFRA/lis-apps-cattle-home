@@ -31,14 +31,15 @@ export const cattleDetailsController = {
     const cph = record.current_location.identifier
     const cattle = buildCattleDetailsViewModel(record)
     const formattedEarTag = formatEarTag(cattle.eartag)
+    const isBackOffice = isFromBackOffice(request)
 
     return h.view('animals/index', {
-      pageTitle: `Cattle details - ${formattedEarTag}`,
+      pageTitle: isBackOffice
+        ? `${formattedEarTag} - Registered animal`
+        : `Cattle details - ${formattedEarTag}`,
       formattedEarTag,
       cattle,
-      currentLocation: isFromBackOffice(request)
-        ? await getCurrentLocation(cph)
-        : null,
+      currentLocation: isBackOffice ? await getCurrentLocation(cph) : null,
       backLinkHref:
         getSameHostReferrerPath(request) ?? `${holdingsBasePath}/${cph}/animals`
     })

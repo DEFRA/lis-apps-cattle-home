@@ -27,7 +27,7 @@
       {% endif %}
 
       {{ lisSubNavigation({
-        label: "Sub navigation",
+        label: "Holding sections",
         items: tabs
       }) }}
 
@@ -43,6 +43,7 @@
               label: "Search animals on holding" if isBackOffice else "Search animals on your holding",
               hint: "You can use all or part of the animal ear tag number, or search by sex or breed.",
               value: search,
+              maxlength: 100,
               hiddenFields: [{ name: "referrer", value: referrerId }] if referrerId else undefined,
               insetText: undefined if isBackOffice else "Recent changes such as new registrations may take up to 24 hours to appear in your list."
             }) }}
@@ -50,7 +51,7 @@
         </div>
 
         {% if isBackOffice %}
-          <p class="govuk-body">
+          <p class="govuk-body govuk-!-text-break-word">
             {%- if search -%}
               {{ totalItems }} registered cattle record{{ "s match" if totalItems != 1 else " matches" }} <strong>‘{{ search }}’</strong>
             {%- else -%}
@@ -58,7 +59,7 @@
             {%- endif -%}
           </p>
         {% elif search %}
-          <p class="govuk-body">
+          <p class="govuk-body govuk-!-text-break-word">
             {{ totalItems }} result{{ "s" if totalItems != 1 else "" }} for <strong>'{{ search }}'</strong>
           </p>
         {% endif %}

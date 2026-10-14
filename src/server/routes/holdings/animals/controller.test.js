@@ -179,6 +179,62 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
+  test('it labels the sub navigation and breaks long search terms', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleForCph.mockResolvedValue(page([animal]))
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals?search=male',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining('aria-label="Holding sections"')
+    )
+    expect(result).toEqual(
+      expect.stringContaining('<p class="govuk-body govuk-!-text-break-word">')
+    )
+  })
+
+  test('it truncates the search term to 100 characters', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleForCph.mockResolvedValue(page([animal]))
+
+    // Act
+    await server.inject({
+      method: 'GET',
+      url: `/holdings/22/001/0001/animals?search=${'a'.repeat(150)}`,
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(mocks.getCattleForCph).toHaveBeenCalledWith(
+      '22/001/0001',
+      expect.objectContaining({ q: 'a'.repeat(100) })
+    )
+  })
+
+  test('it limits the search input to 100 characters', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleForCph.mockResolvedValue(page([animal]))
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/animals',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(result).toMatch(/<input[^>]*type="search"[^>]*maxlength="100"/)
+  })
+
   test('it shows the CPH as the caption when the holding has no name', async () => {
     // Arrange
     const user = createUser()

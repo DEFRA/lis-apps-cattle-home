@@ -6,6 +6,8 @@ import {
   PERMISSIONS
 } from '@defra/lis-hubs-infra-access/authorization'
 
+import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
+
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
 /**
@@ -19,9 +21,15 @@ import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client
  * @returns {Promise<CattleDetails>} the cattle record, for the handler
  */
 async function demandAnimalAccess(request) {
-  const record = await cattleHomeBe4FeClient.getCattleDetails(
-    request.params.earTag
-  )
+  let record
+  try {
+    record = await cattleHomeBe4FeClient.getCattleDetails(request.params.earTag)
+  } catch (error) {
+    if (error.statusCode === statusCodes.notFound) {
+      throw Boom.notFound()
+    }
+    throw error
+  }
   const { user } = request.auth.credentials
   const cph = record.current_location?.identifier
 
