@@ -27,7 +27,7 @@
       {% endif %}
 
       {{ lisSubNavigation({
-        label: "Sub navigation",
+        label: "Holding sections",
         items: tabs
       }) }}
 
@@ -50,7 +50,7 @@
         </div>
 
         {% if isBackOffice %}
-          <p class="govuk-body">
+          <p class="govuk-body govuk-!-text-break-word">
             {%- if search -%}
               {{ totalItems }} registered cattle record{{ "s match" if totalItems != 1 else " matches" }} <strong>‘{{ search }}’</strong>
             {%- else -%}
@@ -58,7 +58,7 @@
             {%- endif -%}
           </p>
         {% elif search %}
-          <p class="govuk-body">
+          <p class="govuk-body govuk-!-text-break-word">
             {{ totalItems }} result{{ "s" if totalItems != 1 else "" }} for <strong>'{{ search }}'</strong>
           </p>
         {% endif %}

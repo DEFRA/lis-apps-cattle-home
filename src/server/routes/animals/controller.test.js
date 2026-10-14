@@ -206,6 +206,70 @@ describe('cattleDetailsController', () => {
     )
   })
 
+  test('it puts the ear tag first in the title for a back-office user', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue(fullRecord)
+    mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user, 'back-office'),
+      headers: fromAnimalsOnHolding()
+    }
+
+    // Act
+    const { result } = await server.inject(request)
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        'UK 200000 000001 - Registered animal - Cattle - Livestock Information'
+      )
+    )
+  })
+
+  test('it renders page not found when the animal is unknown', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockRejectedValueOnce(
+      Object.assign(new Error('Request failed - 404'), {
+        statusCode: statusCodes.notFound
+      })
+    )
+    const request = {
+      method: 'GET',
+      url: '/animals/UNKNOWN-TAG',
+      auth: spokeAuth(user)
+    }
+
+    // Act
+    const { result, statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.notFound)
+    expect(result).toEqual(expect.stringContaining('Page not found'))
+  })
+
+  test('it returns a server error when the animal lookup fails', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockRejectedValueOnce(
+      Object.assign(new Error('Request failed - 500'), { statusCode: 500 })
+    )
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user)
+    }
+
+    // Act
+    const { statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(500)
+  })
+
   test('it returns a server error when the current holding lookup fails', async () => {
     // Arrange
     const user = createUser()
