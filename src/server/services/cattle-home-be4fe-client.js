@@ -53,6 +53,9 @@ import { paginateAnimals } from '#server/services/animals/paginate.js'
  * @property {string} cph
  * @property {string|null} [name]
  * @property {string} [holding_type] KRDS site type code, e.g. 'AH'
+ * @property {string|null} [start_date]
+ * @property {string|null} [end_date]
+ * @property {boolean|null} [active]
  * @property {string[]} address
  * @property {HerdMark[]} herd_marks
  * @property {string[]} allowed_species

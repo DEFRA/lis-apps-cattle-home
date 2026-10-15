@@ -157,6 +157,33 @@ describe('holdingDetailsController (back office)', () => {
     expect(result).not.toEqual(expect.stringContaining('govuk-tag--red'))
   })
 
+  test('it shows the status as Inactive when the holding is not active', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getHoldingDetails.mockResolvedValueOnce({
+      cph: '22/008/0008',
+      name: 'Cancelled Holding',
+      holding_type: 'AH',
+      address: ['22/008/0008', 'Lavendon', 'Buckinghamshire', 'England'],
+      herd_marks: [],
+      associations: [],
+      start_date: '2005-01-01T00:00:00+00:00',
+      end_date: '2020-06-30T00:00:00+00:00',
+      active: false
+    })
+
+    // Act
+    const { statusCode, result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/008/0008',
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toMatch(/Status\s*<\/dt>\s*<dd[^>]*>\s*Inactive\s*<\/dd>/)
+  })
+
   test('it shows the bare code for an unknown holding type', async () => {
     // Arrange
     const user = createUser()
