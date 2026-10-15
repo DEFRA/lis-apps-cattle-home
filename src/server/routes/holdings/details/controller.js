@@ -40,9 +40,7 @@ export const holdingDetailsController = {
       backLinkHref: listReferrer?.href,
       holdingRows: buildHoldingRows(holding, {
         isBackOffice,
-        // TODO: the BE4FE holding response carries no status yet, so every
-        // holding shows as Active until it does.
-        status: 'Active'
+        status: holding.active === false ? 'Inactive' : 'Active'
       }),
       keeper: keeper ? buildKeeperDetails(keeper) : null,
       tabs: [
