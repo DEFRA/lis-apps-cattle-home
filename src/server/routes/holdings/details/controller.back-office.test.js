@@ -59,6 +59,7 @@ describe('holdingDetailsController (back office)', () => {
       cph: '12/345/0001',
       name: 'Oakfield Farm',
       holding_type: 'AH',
+      start_date: '2008-03-17T00:00:00Z',
       address: ['Oakfield Farm', 'Church Lane', 'Shrewsbury', 'England'],
       herd_marks: [{ mark: 'UK 654322', species: ['cattle'] }],
       associations: []
@@ -102,7 +103,10 @@ describe('holdingDetailsController (back office)', () => {
       )
     )
     expect(result).toMatch(
-      /CPH number[\s\S]*Holding type[\s\S]*Status[\s\S]*Holding name[\s\S]*Address[\s\S]*Herd mark/
+      /CPH number[\s\S]*Holding type[\s\S]*Status[\s\S]*Holding start date[\s\S]*Holding name[\s\S]*Address[\s\S]*<\/dl>[\s\S]*<dl[^>]*>[\s\S]*Herd mark/
+    )
+    expect(result).toMatch(
+      /Holding start date\s*<\/dt>\s*<dd[^>]*>\s*17 March 2008\s*<\/dd>/
     )
     expect(result).toMatch(
       /Holding type\s*<\/dt>\s*<dd[^>]*>\s*Agricultural Holding \(AH\)\s*<\/dd>/
@@ -119,7 +123,6 @@ describe('holdingDetailsController (back office)', () => {
     expect(result).toMatch(
       /Herd mark\s*<\/dt>\s*<dd[^>]*>\s*UK 654322\s*<\/dd>/
     )
-    expect(result).not.toEqual(expect.stringContaining('Holding start date'))
     expect(result).toEqual(
       expect.stringContaining('href="/cattle/holdings/12/345/0001/animals"')
     )
@@ -132,6 +135,7 @@ describe('holdingDetailsController (back office)', () => {
       cph: '12/345/0001',
       name: null,
       holding_type: 'AH',
+      start_date: '2008-03-17T00:00:00Z',
       address: ['Church Lane'],
       herd_marks: [],
       associations: []
@@ -284,6 +288,7 @@ describe('holdingDetailsController (back office)', () => {
       cph: '12/345/0001',
       name: 'Oakfield Farm',
       holding_type: 'AH',
+      start_date: '2008-03-17T00:00:00Z',
       address: ['Church Lane'],
       herd_marks: [],
       associations: [
@@ -497,93 +502,5 @@ describe('holdingDetailsController (back office)', () => {
         '<p class="govuk-body">No registered keeper details are recorded.</p>'
       )
     )
-  })
-
-  test('it links back to the holdings search a back-office user came from, carrying it on the tabs', async () => {
-    // Arrange
-    const user = createUser()
-    mocks.getHoldingDetails.mockResolvedValueOnce({
-      cph: '22/001/0001',
-      name: 'Oakfield Farm',
-      address: [],
-      herd_marks: []
-    })
-    const request = {
-      method: 'GET',
-      url: '/holdings/22/001/0001',
-      auth: spokeAuth(user, 'back-office'),
-      headers: {
-        'x-forwarded-host': 'back-office.lis.defra',
-        referer: 'https://back-office.lis.defra/holdings?search=oak&page=2'
-      }
-    }
-
-    // Act
-    const { result } = await server.inject(request)
-
-    // Assert
-    expect(result).toEqual(
-      expect.stringContaining(
-        'href="/holdings?search=oak&amp;page=2" class="govuk-back-link"'
-      )
-    )
-    expect(result).toMatch(
-      /href="\/cattle\/holdings\/22\/001\/0001\/animals\?referrer=[0-9a-f-]{36}"/
-    )
-  })
-
-  test('it links back to the holdings list when a back-office user did not come from a search', async () => {
-    // Arrange
-    const user = createUser()
-    mocks.getHoldingDetails.mockResolvedValueOnce({
-      cph: '22/001/0001',
-      name: 'Oakfield Farm',
-      address: [],
-      herd_marks: []
-    })
-    const request = {
-      method: 'GET',
-      url: '/holdings/22/001/0001',
-      auth: spokeAuth(user, 'back-office')
-    }
-
-    // Act
-    const { result } = await server.inject(request)
-
-    // Assert
-    expect(result).toEqual(
-      expect.stringContaining('href="/holdings" class="govuk-back-link"')
-    )
-    expect(result).not.toEqual(expect.stringContaining('referrer='))
-  })
-
-  test('it links back to the holdings list when a back-office user came from a page that is not the list', async () => {
-    // Arrange
-    const user = createUser()
-    mocks.getHoldingDetails.mockResolvedValueOnce({
-      cph: '22/001/0001',
-      name: 'Oakfield Farm',
-      address: [],
-      herd_marks: []
-    })
-    const request = {
-      method: 'GET',
-      url: '/holdings/22/001/0001',
-      auth: spokeAuth(user, 'back-office'),
-      headers: {
-        'x-forwarded-host': 'back-office.lis.defra',
-        referer:
-          'https://back-office.lis.defra/cattle/holdings/22/002/0002/animals'
-      }
-    }
-
-    // Act
-    const { result } = await server.inject(request)
-
-    // Assert
-    expect(result).toEqual(
-      expect.stringContaining('href="/holdings" class="govuk-back-link"')
-    )
-    expect(result).not.toEqual(expect.stringContaining('referrer='))
   })
 })

@@ -4,6 +4,7 @@ import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client
 import { isFromBackOffice } from '#server/common/helpers/hub.js'
 import { buildHoldingHeading } from '../holding-heading.js'
 import {
+  buildHerdMarksRow,
   buildHoldingRows,
   buildKeeperDetails,
   findRegisteredKeeper
@@ -42,6 +43,7 @@ export const holdingDetailsController = {
         isBackOffice,
         status: holding.active === false ? 'Inactive' : 'Active'
       }),
+      herdMarksRow: isBackOffice ? buildHerdMarksRow(holding) : null,
       keeper: keeper ? buildKeeperDetails(keeper) : null,
       tabs: [
         {

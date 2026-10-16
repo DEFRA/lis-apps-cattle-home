@@ -30,30 +30,38 @@
         items: tabs
       }) }}
 
-      {%- set summaryRows = [] -%}
-      {%- for row in holdingRows -%}
-        {%- set linesHtml -%}
-          {%- for line in row.lines -%}
-            {{ line }}{% if not loop.last %}<br>{% endif %}
-          {%- endfor -%}
-        {%- endset -%}
-        {%- if row.lines.length or row.text -%}
-          {%- set value = { html: linesHtml } if row.lines.length else { text: row.text } -%}
-        {%- elif row.emptyText -%}
-          {%- set value = { text: row.emptyText } -%}
-        {%- else -%}
-          {%- set value = { html: notSuppliedHtml } -%}
-        {%- endif -%}
-        {%- set _ = summaryRows.push({ key: { text: row.key }, value: value }) -%}
-      {%- endfor -%}
+      {#- Turns the controller's rows into govukSummaryList rows: lines joined
+          with <br>, a single text, the row's own empty text, or the "Not
+          supplied" tag. -#}
+      {%- macro summaryRowsFor(rows) -%}
+        {%- set out = [] -%}
+        {%- for row in rows -%}
+          {%- set linesHtml -%}
+            {%- for line in row.lines -%}
+              {{ line }}{% if not loop.last %}<br>{% endif %}
+            {%- endfor -%}
+          {%- endset -%}
+          {%- if row.lines.length or row.text -%}
+            {%- set value = { html: linesHtml } if row.lines.length else { text: row.text } -%}
+          {%- elif row.emptyText -%}
+            {%- set value = { text: row.emptyText } -%}
+          {%- else -%}
+            {%- set value = { html: notSuppliedHtml } -%}
+          {%- endif -%}
+          {%- set _ = out.push({ key: { text: row.key }, value: value }) -%}
+        {%- endfor -%}
+        {{ govukSummaryList({ rows: out }) }}
+      {%- endmacro -%}
 
       {% if isBackOffice %}
         <h2 class="govuk-heading-m">Holding information</h2>
       {% endif %}
 
-      {{ govukSummaryList({
-        rows: summaryRows
-      }) }}
+      {{ summaryRowsFor(holdingRows) }}
+
+      {% if herdMarksRow %}
+        {{ summaryRowsFor([herdMarksRow]) }}
+      {% endif %}
 
       {% if isBackOffice %}
         <h2 class="govuk-heading-m">Registered keeper details</h2>

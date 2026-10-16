@@ -1,6 +1,10 @@
 /** @import { HerdMark, HoldingAssociation, HoldingDetails } from '#server/services/cattle-home-be4fe-client.js' */
 
+import { formatDate } from '@defra/lis-infra-ui-services/nunjucks/filters'
+
 import { formatHoldingType } from '#server/services/holding-types.js'
+
+const backOfficeDateFormat = 'd MMMM yyyy'
 
 const registeredKeeperRole = 'KEEPER'
 const ukMobileNumber = /^07\d{9}$/
@@ -31,38 +35,64 @@ export function buildHerdMarks(herdMarks) {
 }
 
 /**
+ * @param {string|null} [startDate] ISO date-time from KRDS
+ * @returns {string|null} e.g. "17 March 2008", or null when missing or
+ *   unparsable so the row shows "Not supplied" rather than failing the page
+ */
+export function formatStartDate(startDate) {
+  if (!startDate) {
+    return null
+  }
+  try {
+    return formatDate(startDate, backOfficeDateFormat)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * @param {HoldingDetails} holding
+ * @returns {SummaryRow} the herd marks row, one line per mark, reading
+ *   "Not recorded" when there are none
+ */
+export function buildHerdMarksRow(holding) {
+  const herdMarks = buildHerdMarks(holding.herd_marks)
+  return {
+    key: herdMarks.key,
+    lines: herdMarks.marks,
+    emptyText: 'Not recorded'
+  }
+}
+
+/**
  * @param {HoldingDetails} holding
  * @param {object} options
  * @param {boolean} options.isBackOffice
  * @param {string} options.status the holding's operational status
- * @returns {SummaryRow[]} the holding rows in display order; back office adds
- *   type and status and leaves out the name row when no name is recorded
+ * @returns {SummaryRow[]} the holding rows in display order. Back office adds
+ *   type, status and start date, leaves out the name row when no name is
+ *   recorded, and shows the herd marks in their own list (see
+ *   buildHerdMarksRow) rather than here.
  */
 export function buildHoldingRows(holding, { isBackOffice, status }) {
-  const herdMarks = buildHerdMarks(holding.herd_marks)
   const cphRow = { key: 'CPH number', text: holding.cph }
   const nameRow = { key: 'Holding name', text: holding.name || null }
   const addressRow = {
     key: 'Address',
     lines: (holding.address ?? []).filter(Boolean)
   }
-  const herdMarksRow = {
-    key: herdMarks.key,
-    lines: herdMarks.marks,
-    emptyText: 'Not recorded'
-  }
 
   if (!isBackOffice) {
-    return [cphRow, nameRow, addressRow, herdMarksRow]
+    return [cphRow, nameRow, addressRow, buildHerdMarksRow(holding)]
   }
 
   return [
     cphRow,
     { key: 'Holding type', text: formatHoldingType(holding.holding_type) },
     { key: 'Status', text: status },
+    { key: 'Holding start date', text: formatStartDate(holding.start_date) },
     ...(holding.name ? [nameRow] : []),
-    addressRow,
-    herdMarksRow
+    addressRow
   ]
 }
 

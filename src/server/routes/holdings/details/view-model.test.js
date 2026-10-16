@@ -1,7 +1,9 @@
 import {
   keeperNameLabel,
   buildHerdMarks,
+  buildHerdMarksRow,
   buildHoldingRows,
+  formatStartDate,
   buildKeeperDetails,
   buildTelephoneHref,
   findRegisteredKeeper,
@@ -304,12 +306,13 @@ describe('buildHoldingRows()', () => {
     ])
   })
 
-  test('it builds the back-office rows in order', () => {
+  test('it builds the back-office rows in order, with the start date and without the herd marks', () => {
     // Arrange
     const holding = {
       cph: '12/345/0001',
       name: 'Oakfield Farm',
       holding_type: 'ah',
+      start_date: '2008-03-17T00:00:00Z',
       address: ['Oakfield Farm'],
       herd_marks: [
         { mark: 'UK 654322', species: ['cattle'] },
@@ -328,14 +331,31 @@ describe('buildHoldingRows()', () => {
       { key: 'CPH number', text: '12/345/0001' },
       { key: 'Holding type', text: 'Agricultural Holding (AH)' },
       { key: 'Status', text: 'Active' },
+      { key: 'Holding start date', text: '17 March 2008' },
       { key: 'Holding name', text: 'Oakfield Farm' },
-      { key: 'Address', lines: ['Oakfield Farm'] },
-      {
-        key: 'Herd marks',
-        lines: ['UK 654322', 'UK 654323'],
-        emptyText: 'Not recorded'
-      }
+      { key: 'Address', lines: ['Oakfield Farm'] }
     ])
+  })
+
+  test('it leaves the start date empty for back office when none is recorded', () => {
+    // Arrange
+    const holding = {
+      cph: '12/345/0001',
+      name: 'Oakfield Farm',
+      holding_type: 'AH',
+      start_date: null,
+      address: [],
+      herd_marks: []
+    }
+
+    // Act
+    const rows = buildHoldingRows(holding, {
+      isBackOffice: true,
+      status: 'Active'
+    })
+
+    // Assert
+    expect(rows[3]).toEqual({ key: 'Holding start date', text: null })
   })
 
   test('it leaves out the holding name row for back office when no name is recorded', () => {
@@ -358,10 +378,48 @@ describe('buildHoldingRows()', () => {
       'CPH number',
       'Holding type',
       'Status',
-      'Address',
-      'Herd mark'
+      'Holding start date',
+      'Address'
     ])
     expect(rows[1]).toEqual({ key: 'Holding type', text: null })
+  })
+})
+
+describe('buildHerdMarksRow()', () => {
+  test('it builds a plural row with one line per mark', () => {
+    // Arrange
+    const holding = {
+      cph: '12/345/0001',
+      herd_marks: [
+        { mark: 'UK 654322', species: ['cattle'] },
+        { mark: 'UK 654323', species: ['sheep'] }
+      ]
+    }
+
+    // Act
+    const row = buildHerdMarksRow(holding)
+
+    // Assert
+    expect(row).toEqual({
+      key: 'Herd marks',
+      lines: ['UK 654322', 'UK 654323'],
+      emptyText: 'Not recorded'
+    })
+  })
+
+  test('it builds a singular row reading "Not recorded" when there are no marks', () => {
+    // Arrange
+    const holding = { cph: '12/345/0001', herd_marks: null }
+
+    // Act
+    const row = buildHerdMarksRow(holding)
+
+    // Assert
+    expect(row).toEqual({
+      key: 'Herd mark',
+      lines: [],
+      emptyText: 'Not recorded'
+    })
   })
 })
 
@@ -497,5 +555,40 @@ describe('buildKeeperDetails()', () => {
       telephone: null,
       addressLines: []
     })
+  })
+})
+
+describe('formatStartDate()', () => {
+  test('it formats an ISO date-time as day, month and year', () => {
+    // Arrange
+    const startDate = '2008-03-17T00:00:00Z'
+
+    // Act
+    const result = formatStartDate(startDate)
+
+    // Assert
+    expect(result).toBe('17 March 2008')
+  })
+
+  test('it returns null when the date is missing', () => {
+    // Arrange
+    const startDates = [null, undefined, '']
+
+    // Act
+    const results = startDates.map((startDate) => formatStartDate(startDate))
+
+    // Assert
+    expect(results).toEqual([null, null, null])
+  })
+
+  test('it returns null rather than throwing for an unparsable date', () => {
+    // Arrange
+    const startDate = 'not-a-date'
+
+    // Act
+    const result = formatStartDate(startDate)
+
+    // Assert
+    expect(result).toBeNull()
   })
 })
