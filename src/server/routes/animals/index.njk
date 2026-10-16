@@ -68,6 +68,15 @@
 
       <h2 class="govuk-heading-m">Dam details</h2>
 
+      {#- A dam on the same holding links to its record in the back office -#}
+      {%- macro damTagValue(tag, href) -%}
+        {%- if href -%}
+          <a class="govuk-link" href="{{ href }}">{{ tag | formatEarTag }}</a>
+        {%- else -%}
+          {{ tag | formatEarTag }}
+        {%- endif -%}
+      {%- endmacro -%}
+
       {%- set damRows = [
         {
           key: { text: "Dam type" },
@@ -75,13 +84,13 @@
         },
         {
           key: { text: "Genetic dam ear tag" },
-          value: { text: cattle.dam.geneticDamTag | formatEarTag } if cattle.dam.geneticDamTag else { html: notSuppliedHtml }
+          value: { html: damTagValue(cattle.dam.geneticDamTag, damHrefs.genetic) } if cattle.dam.geneticDamTag else { html: notSuppliedHtml }
         }
       ] -%}
       {%- if cattle.dam.showSurrogateRow -%}
         {%- set _ = damRows.push({
           key: { text: "Surrogate dam ear tag" },
-          value: { text: cattle.dam.surrogateTag | formatEarTag }
+          value: { html: damTagValue(cattle.dam.surrogateTag, damHrefs.surrogate) }
         }) -%}
       {%- endif -%}
 
@@ -95,7 +104,7 @@
         {{ govukSummaryList({
           rows: [
             {
-              key: { text: "Sire ear tag" },
+              key: { text: "Sire ear tag number" if isBackOffice else "Sire ear tag" },
               value: { text: "Not required" } if cattle.sire.tagNotRequired else { text: cattle.sire.tag | formatEarTag }
             },
             {

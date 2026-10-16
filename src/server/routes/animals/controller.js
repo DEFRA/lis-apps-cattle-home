@@ -7,7 +7,48 @@ import { isFromBackOffice } from '#server/common/helpers/hub.js'
 import { getSameHostReferrerPath } from './referrer.js'
 import { buildCattleDetailsViewModel } from './view-model.js'
 
-const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
+const basePath = getBasePathForModule('cattle-home')
+const holdingsBasePath = `${basePath}/holdings`
+const animalsBasePath = `${basePath}/animals`
+
+/**
+ * The back office links a dam to its own record when the dam is currently
+ * on the same holding as the animal (BO-597-08). A dam elsewhere, or not
+ * known to CADS, is shown as plain text.
+ *
+ * @param {string | null} damTag
+ * @param {string} cph the animal's current holding
+ * @returns {Promise<string | null>} the dam's detail path, or null
+ */
+async function getDamHref(damTag, cph) {
+  if (!damTag || !cph) {
+    return null
+  }
+  try {
+    const dam = await cattleHomeBe4FeClient.getCattleDetails(damTag)
+    return dam.current_location?.identifier === cph
+      ? `${animalsBasePath}/${encodeURIComponent(damTag)}`
+      : null
+  } catch (error) {
+    if (error.statusCode === statusCodes.notFound) {
+      return null
+    }
+    throw error
+  }
+}
+
+/**
+ * @param {{ geneticDamTag: string | null, surrogateTag: string | null }} dam
+ * @param {string} cph
+ * @returns {Promise<{ genetic: string | null, surrogate: string | null }>}
+ */
+async function getDamHrefs(dam, cph) {
+  const [genetic, surrogate] = await Promise.all([
+    getDamHref(dam.geneticDamTag, cph),
+    getDamHref(dam.surrogateTag, cph)
+  ])
+  return { genetic, surrogate }
+}
 
 /**
  * @param {string} cph
@@ -40,6 +81,9 @@ export const cattleDetailsController = {
       formattedEarTag,
       cattle,
       currentLocation: isBackOffice ? await getCurrentLocation(cph) : null,
+      damHrefs: isBackOffice
+        ? await getDamHrefs(cattle.dam, cph)
+        : { genetic: null, surrogate: null },
       backLinkHref:
         getSameHostReferrerPath(request) ?? `${holdingsBasePath}/${cph}/animals`
     })
