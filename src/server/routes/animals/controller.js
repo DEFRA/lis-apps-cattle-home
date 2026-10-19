@@ -1,3 +1,4 @@
+import { logger } from '@defra/lis-hubs-infra-core'
 import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { formatEarTag } from '@defra/lis-infra-ui-services/nunjucks/filters'
@@ -14,7 +15,9 @@ const animalsBasePath = `${basePath}/animals`
 /**
  * The back office links a dam to its own record when the dam is currently
  * on the same holding as the animal (BO-597-08). A dam elsewhere, or not
- * known to CADS, is shown as plain text.
+ * known, is shown as plain text. The link is a convenience, so any lookup
+ * failure is logged and leaves the dam as plain text rather than failing
+ * the page.
  *
  * @param {string | null} damTag
  * @param {string} cph the animal's current holding
@@ -33,7 +36,18 @@ async function getDamHref(damTag, cph) {
     if (error.statusCode === statusCodes.notFound) {
       return null
     }
-    throw error
+    if (error.statusCode) {
+      logger.info(
+        { damTag, statusCode: error.statusCode },
+        'Dam lookup failed; showing the dam ear tag without a link'
+      )
+    } else {
+      logger.warn(
+        { err: error, damTag },
+        'Dam lookup failed; showing the dam ear tag without a link'
+      )
+    }
+    return null
   }
 }
 

@@ -205,9 +205,7 @@ describe('cattleDetailsController parentage', () => {
     expect(result).toMatch(
       /Genetic dam ear tag\s*<\/dt>\s*<dd[^>]*>\s*UK 200000 000098\s*<\/dd>/
     )
-    expect(result).not.toEqual(
-      expect.stringContaining('href="/cattle/animals/UK200000000098"')
-    )
+    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
   })
 
   test('it shows a dam that is not found as plain text for a back-office user', async () => {
@@ -237,9 +235,7 @@ describe('cattleDetailsController parentage', () => {
     expect(result).toMatch(
       /Genetic dam ear tag\s*<\/dt>\s*<dd[^>]*>\s*UK 200000 000098\s*<\/dd>/
     )
-    expect(result).not.toEqual(
-      expect.stringContaining('href="/cattle/animals/UK200000000098"')
-    )
+    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
   })
 
   test('it links both dams of a surrogate birth that are on the holding for a back-office user', async () => {
@@ -277,7 +273,7 @@ describe('cattleDetailsController parentage', () => {
     )
   })
 
-  test('it returns a server error when the dam lookup fails for a reason other than not found', async () => {
+  test('it still renders, with the dam as plain text, when the dam lookup fails for a reason other than not found', async () => {
     // Arrange
     const user = createUser()
     mocks.getCattleDetails.mockImplementation(async (earTag) => {
@@ -297,10 +293,42 @@ describe('cattleDetailsController parentage', () => {
     }
 
     // Act
-    const { statusCode } = await server.inject(request)
+    const { result, statusCode } = await server.inject(request)
 
     // Assert
-    expect(statusCode).toBe(statusCodes.internalServerError)
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toMatch(
+      /Genetic dam ear tag\s*<\/dt>\s*<dd[^>]*>\s*UK 200000 000098\s*<\/dd>/
+    )
+    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
+  })
+
+  test('it still renders, with the dam as plain text, when the dam lookup throws without a status', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockImplementation(async (earTag) => {
+      if (earTag === 'UK200000000001') {
+        return fullRecord
+      }
+      throw new TypeError('fetch failed')
+    })
+    mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
+    const request = {
+      method: 'GET',
+      url: '/animals/UK200000000001',
+      auth: spokeAuth(user, 'back-office'),
+      headers: fromAnimalsOnHolding()
+    }
+
+    // Act
+    const { result, statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toMatch(
+      /Genetic dam ear tag\s*<\/dt>\s*<dd[^>]*>\s*UK 200000 000098\s*<\/dd>/
+    )
+    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
   })
 
   test('it does not link a dam whose location is unknown', async () => {
@@ -335,9 +363,7 @@ describe('cattleDetailsController parentage', () => {
 
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
-    expect(result).not.toEqual(
-      expect.stringContaining('href="/cattle/animals/UK200000000098"')
-    )
+    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
   })
 
   test('it links only the surrogate dam when no genetic dam tag is recorded', async () => {
@@ -391,8 +417,6 @@ describe('cattleDetailsController parentage', () => {
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
     expect(mocks.getCattleDetails).toHaveBeenCalledTimes(1)
-    expect(result).not.toEqual(
-      expect.stringContaining('href="/cattle/animals/UK200000000098"')
-    )
+    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
   })
 })
