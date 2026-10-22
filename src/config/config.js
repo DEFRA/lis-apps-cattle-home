@@ -128,12 +128,6 @@ export const config = convict({
     default: null,
     env: 'HTTP_PROXY'
   },
-  isSecureContextEnabled: {
-    doc: 'Enable Secure Context',
-    format: Boolean,
-    default: isProduction,
-    env: 'ENABLE_SECURE_CONTEXT'
-  },
   session: {
     cache: {
       engine: {
@@ -254,39 +248,6 @@ export const config = convict({
         format: String,
         default: 'livestock-spokes',
         env: 'HUB_JWT_AUDIENCE'
-      }
-    },
-    oidc: {
-      discoveryUrl: {
-        doc: 'OpenID Connect discovery document used by the hub',
-        format: String,
-        default: '',
-        env: 'OIDC_DISCOVERY_URL'
-      },
-      clientId: {
-        doc: 'OpenID Connect client identifier for the hub',
-        format: String,
-        default: '',
-        env: 'OIDC_CLIENT_ID'
-      },
-      clientSecret: {
-        doc: 'OpenID Connect client secret for the hub',
-        format: String,
-        default: '',
-        env: 'OIDC_CLIENT_SECRET',
-        sensitive: true
-      },
-      serviceId: {
-        doc: 'Defra CI service identifier used during sign in',
-        format: String,
-        default: '',
-        env: 'OIDC_SERVICE_ID'
-      },
-      redirectPath: {
-        doc: 'Callback path used for the authorization code flow',
-        format: String,
-        default: '/auth/callback',
-        env: 'OIDC_REDIRECT_PATH'
       }
     }
   }
