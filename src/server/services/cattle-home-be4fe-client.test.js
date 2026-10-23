@@ -22,6 +22,7 @@ describe('CattleHomeBe4FeClient', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    vi.unstubAllEnvs()
   })
 
   test('Sends the configured BE4FE API key', async () => {
@@ -36,6 +37,23 @@ describe('CattleHomeBe4FeClient', () => {
     // Assert
     expect(reloadedClient._apiKey).toBe('test-api-key')
     vi.unstubAllEnvs()
+  })
+
+  test.each([
+    ['default', undefined, 5000],
+    ['environment override', '12000', 12000],
+    ['zero', '0', 0]
+  ])('Passes the %s timeout to the base client', async (_, value, expected) => {
+    // Arrange
+    vi.stubEnv('CATTLE_HOME_API_TIMEOUT', value)
+    vi.resetModules()
+
+    // Act
+    const { cattleHomeBe4FeClient: reloadedClient } =
+      await import('./cattle-home-be4fe-client.js')
+
+    // Assert
+    expect(reloadedClient._timeout).toBe(expected)
   })
 
   test('Gets CPHs for an encoded user ID', async () => {
