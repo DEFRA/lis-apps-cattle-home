@@ -38,13 +38,13 @@ async function getDamHref(damTag, cph) {
     }
     if (error.statusCode) {
       logger.info(
-        { damTag, statusCode: error.statusCode },
-        'Dam lookup failed; showing the dam ear tag without a link'
+        error,
+        `Dam lookup for  failed with status ; showing the dam ear tag without a link`
       )
     } else {
       logger.warn(
-        { err: error, damTag },
-        'Dam lookup failed; showing the dam ear tag without a link'
+        error,
+        `Dam lookup for  failed; showing the dam ear tag without a link`
       )
     }
     return null
