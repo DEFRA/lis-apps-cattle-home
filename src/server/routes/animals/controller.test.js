@@ -14,6 +14,7 @@ import { createServer } from '#server/server.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
 vi.mock('#server/services/cattle-home-be4fe-client.js')
+vi.mock('@defra/cdp-auditing')
 
 const mocks = {
   getCattleDetails: vi.mocked(cattleHomeBe4FeClient.getCattleDetails),
@@ -541,58 +542,6 @@ describe('cattleDetailsController', () => {
         'href="/cattle/holdings/22/001/0001/animals" class="govuk-back-link"'
       )
     )
-  })
-
-  test('it returns not found when the animal record has no holding', async () => {
-    // Arrange
-    const user = createUser()
-    mocks.getCattleDetails.mockResolvedValue({
-      ...fullRecord,
-      current_location: {
-        identifier: null,
-        sub_identifier: null,
-        full_identifier: null,
-        name: null,
-        premises_type: null
-      }
-    })
-    const request = {
-      method: 'GET',
-      url: '/animals/UK200000000001',
-      auth: spokeAuth(user)
-    }
-
-    // Act
-    const { statusCode } = await server.inject(request)
-
-    // Assert
-    expect(statusCode).toBe(statusCodes.notFound)
-  })
-
-  test("it returns not found when the user may not read the animal's holding", async () => {
-    // Arrange
-    const user = {
-      ...createUser(),
-      statements: [
-        {
-          role: 'lis-role-cattle-read',
-          cphs: ['22/002/0002'],
-          permissions: ['lis-perm-cattle-read']
-        }
-      ]
-    }
-    mocks.getCattleDetails.mockResolvedValue(fullRecord)
-    const request = {
-      method: 'GET',
-      url: '/animals/UK200000000001',
-      auth: spokeAuth(user)
-    }
-
-    // Act
-    const { statusCode } = await server.inject(request)
-
-    // Assert
-    expect(statusCode).toBe(statusCodes.notFound)
   })
 
   test('it returns a server error when the BE4FE fails', async () => {

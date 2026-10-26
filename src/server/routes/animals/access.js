@@ -1,6 +1,8 @@
 /** @import { Request } from '@hapi/hapi' */
 /** @import { CattleDetails } from '#server/services/cattle-home-be4fe-client.js' */
 import Boom from '@hapi/boom'
+import { audit } from '@defra/cdp-auditing'
+import { logger } from '@defra/lis-hubs-infra-core'
 import {
   hasPermission,
   PERMISSIONS
@@ -15,7 +17,8 @@ import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client
  * the animal's current holding. Not found rather than forbidden, so an
  * animal's existence isn't confirmed to someone not entitled to it. Access
  * via one of the animal's previous holdings waits on a CADS location history
- * endpoint.
+ * endpoint. Each decision goes to the CDP audit stream and to the application
+ * log.
  *
  * @param {Request} request
  * @returns {Promise<CattleDetails>} the cattle record, for the handler
@@ -31,9 +34,17 @@ async function demandAnimalAccess(request) {
     throw error
   }
   const { user } = request.auth.credentials
+  const { earTag } = request.params
   const cph = record.current_location?.identifier
+  const granted = Boolean(
+    cph && hasPermission(user, { permission: PERMISSIONS.cattleRead, cph })
+  )
+  const outcome = granted ? 'granted' : 'denied'
 
-  if (cph && hasPermission(user, { permission: PERMISSIONS.cattleRead, cph })) {
+  audit({ event: 'animal-access', outcome, earTag, cph, user: user.sub })
+  logger.warn({ earTag, outcome }, `Animal access ${outcome}`)
+
+  if (granted) {
     return record
   }
 

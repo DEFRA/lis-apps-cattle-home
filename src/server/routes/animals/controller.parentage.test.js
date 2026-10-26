@@ -14,6 +14,7 @@ import { createServer } from '#server/server.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 
 vi.mock('#server/services/cattle-home-be4fe-client.js')
+vi.mock('@defra/cdp-auditing')
 
 const mocks = {
   getCattleDetails: vi.mocked(cattleHomeBe4FeClient.getCattleDetails),
