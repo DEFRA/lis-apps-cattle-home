@@ -116,6 +116,12 @@ hub JWT cookie, so without the hub you are redirected to sign in. Data pages als
 Configuration is in `src/config/config.js`. Values marked secret must be set as secrets in the
 CDP portal for every deployed environment. Required values have no default.
 
+The service refuses to start if `HUB_JWT_SECRET` is unset or shorter than 32 characters. In a
+deployed environment (any `ENVIRONMENT` other than `local` or `docker_compose`) it also refuses
+the public local development value from `.env.example` and lis-dev. Set `LOG_HASH_SECRET` in
+every deployed environment too: without it the hashed log values (such as `user_email_hash`)
+are dropped, with a warning each time one is set, so they can no longer be searched.
+
 | Variable                    | Description                                                                 | Default                                                 |
 | --------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------- |
 | `SERVICE_VERSION`           | Deployed version, for logs. CDP sets it                                     | none                                                    |
@@ -142,7 +148,7 @@ CDP portal for every deployed environment. Required values have no default.
 | `CATTLE_HOME_API_TIMEOUT`   | Timeout for `lis-be4fe-cattle-home` requests (ms)                           | `5000`                                                  |
 | `HUB_ORIGINS`               | Hub origins allowed to use this spoke                                       | front-office and back-office hubs and their local ports |
 | `HUB_JWT_COOKIE_NAME`       | Cookie that carries the hub JWT                                             | `livestock_hub_jwt`                                     |
-| `HUB_JWT_SECRET`            | Secret, required. Verifies hub JWTs. Must match the hubs                    | none                                                    |
+| `HUB_JWT_SECRET`            | Secret, required, 32+ chars. Verifies hub JWTs. Must match the hubs         | none                                                    |
 | `HUB_JWT_TTL_SECONDS`       | Hub JWT cookie TTL (seconds)                                                | `14400`                                                 |
 | `HUB_JWT_AUDIENCE`          | Hub JWT audience                                                            | `livestock-spokes`                                      |
 

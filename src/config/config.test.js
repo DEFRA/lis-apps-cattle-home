@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
+const publicHubJwtSecret =
+  'local-dev-hub-jwt-signing-secret-please-change-1234567890'
+
+async function importConfig() {
+  vi.resetModules()
+  return import('./config.js')
+}
+
 describe('configuration environment defaults', () => {
   afterEach(() => {
     vi.unstubAllEnvs()
@@ -16,5 +24,83 @@ describe('configuration environment defaults', () => {
 
     expect(config.get('log.format')).toBe('ecs')
     expect(config.get('session.cache.engine')).toBe('redis')
+  })
+})
+
+describe('hub JWT secret', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
+  test('refuses to start when HUB_JWT_SECRET is unset', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('HUB_JWT_SECRET', undefined)
+
+    await expect(importConfig()).rejects.toThrow('HUB_JWT_SECRET must be set')
+  })
+
+  test('refuses to start when HUB_JWT_SECRET is empty', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('HUB_JWT_SECRET', '')
+
+    await expect(importConfig()).rejects.toThrow('HUB_JWT_SECRET must be set')
+  })
+
+  test('refuses to start when HUB_JWT_SECRET is shorter than 32 characters', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('HUB_JWT_SECRET', 'a'.repeat(31))
+
+    await expect(importConfig()).rejects.toThrow(
+      'HUB_JWT_SECRET must be at least 32 characters'
+    )
+  })
+
+  test.each(['dev', 'test', 'ext-test', 'perf-test', 'prod'])(
+    'refuses the public local value in the %s environment',
+    async (environment) => {
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('ENVIRONMENT', environment)
+      vi.stubEnv('HUB_JWT_SECRET', publicHubJwtSecret)
+
+      await expect(importConfig()).rejects.toThrow(
+        'HUB_JWT_SECRET is the public local development value'
+      )
+    }
+  )
+
+  test.each(['local', 'docker_compose'])(
+    'accepts the public local value in the %s environment',
+    async (environment) => {
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('ENVIRONMENT', environment)
+      vi.stubEnv('HUB_JWT_SECRET', publicHubJwtSecret)
+
+      const { config } = await importConfig()
+
+      expect(config.get('auth.hubJwt.secret')).toBe(publicHubJwtSecret)
+    }
+  )
+
+  test('starts with a real secret in a deployed environment', async () => {
+    const secret = 'b'.repeat(32)
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('ENVIRONMENT', 'prod')
+    vi.stubEnv('HUB_JWT_SECRET', secret)
+
+    const { config } = await importConfig()
+
+    expect(config.get('auth.hubJwt.secret')).toBe(secret)
+  })
+
+  test('does not include the secret in the error message', async () => {
+    const secret = 'short-but-secret'
+    vi.stubEnv('HUB_JWT_SECRET', secret)
+
+    await expect(importConfig()).rejects.toThrow(
+      expect.objectContaining({
+        message: expect.not.stringContaining(secret)
+      })
+    )
   })
 })

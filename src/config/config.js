@@ -19,8 +19,27 @@ const trustedHubOrigins = [
   'http://localhost:3101',
   'http://localhost:3102'
 ]
+// Published in this repo's history and in lis-dev, so a deployed service must
+// never accept it.
+const publicHubJwtSecret =
+  'local-dev-hub-jwt-signing-secret-please-change-1234567890'
+const minimumHubJwtSecretLength = 32
+const localEnvironments = new Set(['local', 'docker_compose'])
 
 convict.addFormats(convictFormatWithValidator)
+convict.addFormat({
+  name: 'hub-jwt-secret',
+  validate(value) {
+    if (typeof value !== 'string' || value.length === 0) {
+      throw new Error('HUB_JWT_SECRET must be set')
+    }
+    if (value.length < minimumHubJwtSecretLength) {
+      throw new Error(
+        `HUB_JWT_SECRET must be at least ${minimumHubJwtSecretLength} characters`
+      )
+    }
+  }
+})
 
 export const config = convict({
   serviceVersion: {
@@ -232,7 +251,7 @@ export const config = convict({
       },
       secret: {
         doc: 'Shared secret used to sign and verify hub-issued JWTs',
-        format: String,
+        format: 'hub-jwt-secret',
         default: null,
         env: 'HUB_JWT_SECRET',
         sensitive: true
@@ -254,3 +273,12 @@ export const config = convict({
 })
 
 config.validate({ allowed: 'strict' })
+
+if (
+  !localEnvironments.has(config.get('environment')) &&
+  config.get('auth.hubJwt.secret') === publicHubJwtSecret
+) {
+  throw new Error(
+    'HUB_JWT_SECRET is the public local development value; set a real secret for this environment'
+  )
+}
