@@ -18,13 +18,13 @@ import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client
 vi.mock('#server/services/cattle-home-be4fe-client.js')
 vi.mock('@defra/cdp-auditing')
 
-const logInfo = vi.fn()
-vi.spyOn(logger, 'info', 'get').mockReturnValue(logInfo)
+const logWarn = vi.fn()
+vi.spyOn(logger, 'warn', 'get').mockReturnValue(logWarn)
 
 const mocks = {
   getCattleDetails: vi.mocked(cattleHomeBe4FeClient.getCattleDetails),
   audit: vi.mocked(audit),
-  logInfo
+  logWarn
 }
 
 const record = {
@@ -108,7 +108,7 @@ describe('animal access', () => {
       cph: '22/001/0001',
       user: 'test-user'
     })
-    expect(mocks.logInfo).toHaveBeenCalledWith(
+    expect(mocks.logWarn).toHaveBeenCalledWith(
       { earTag: 'UK200000000001', outcome: 'granted' },
       'Animal access granted'
     )
@@ -135,7 +135,7 @@ describe('animal access', () => {
       cph: '22/001/0001',
       user: 'test-user'
     })
-    expect(mocks.logInfo).toHaveBeenCalledWith(
+    expect(mocks.logWarn).toHaveBeenCalledWith(
       { earTag: 'UK200000000001', outcome: 'denied' },
       'Animal access denied'
     )
