@@ -10,7 +10,7 @@ export default defineConfig({
     env: {
       CDP_JWT_ISSUER: 'https://fake-sts.test',
       CDP_JWT_JWKS_URI: 'https://fake-sts.test/.well-known/jwks.json',
-      HUB_JWT_SECRET: 'test-hub-jwt-secret'
+      HUB_JWT_SECRET: 'test-hub-jwt-secret-at-least-32-characters'
     },
     coverage: {
       provider: 'v8',
