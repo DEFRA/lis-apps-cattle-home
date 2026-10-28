@@ -4,6 +4,10 @@ import { fileURLToPath } from 'node:url'
 
 import convictFormatWithValidator from 'convict-format-with-validator'
 
+import {
+  positiveInteger,
+  secret
+} from '@defra/lis-infra-ui-services/config-formats'
 import { milliseconds } from '@defra/lis-infra-ui-services/duration'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -23,23 +27,11 @@ const trustedHubOrigins = [
 // never accept it.
 const publicHubJwtSecret =
   'local-dev-hub-jwt-signing-secret-please-change-1234567890'
-const minimumHubJwtSecretLength = 32
 const localEnvironments = new Set(['local', 'docker_compose'])
 
 convict.addFormats(convictFormatWithValidator)
-convict.addFormat({
-  name: 'hub-jwt-secret',
-  validate(value) {
-    if (typeof value !== 'string' || value.length === 0) {
-      throw new Error('HUB_JWT_SECRET must be set')
-    }
-    if (value.length < minimumHubJwtSecretLength) {
-      throw new Error(
-        `HUB_JWT_SECRET must be at least ${minimumHubJwtSecretLength} characters`
-      )
-    }
-  }
-})
+convict.addFormat(positiveInteger)
+convict.addFormat(secret)
 
 export const config = convict({
   serviceVersion: {
@@ -77,7 +69,7 @@ export const config = convict({
   },
   staticCacheTimeout: {
     doc: 'Static cache timeout in milliseconds',
-    format: Number,
+    format: positiveInteger.name,
     default: milliseconds.oneWeek,
     env: 'STATIC_CACHE_TIMEOUT'
   },
@@ -163,7 +155,7 @@ export const config = convict({
       },
       ttl: {
         doc: 'server side session cache ttl',
-        format: Number,
+        format: positiveInteger.name,
         default: milliseconds.fourHours,
         env: 'SESSION_CACHE_TTL'
       }
@@ -230,20 +222,20 @@ export const config = convict({
     },
     timeout: {
       doc: 'Total milliseconds allowed for a cattle-home BE4FE API response, headers and body',
-      format: 'nat',
+      format: positiveInteger.name,
       default: 5000,
       env: 'CATTLE_HOME_API_TIMEOUT'
     },
     circuitBreaker: {
       failureThreshold: {
         doc: 'Consecutive cattle-home BE4FE transport failures (connection refused, timeout) that open its circuit breaker',
-        format: 'nat',
+        format: positiveInteger.name,
         default: 5,
         env: 'CATTLE_HOME_API_CIRCUIT_BREAKER_FAILURE_THRESHOLD'
       },
       resetTimeout: {
         doc: 'Milliseconds the cattle-home BE4FE circuit breaker stays open before letting a probe request through',
-        format: 'nat',
+        format: positiveInteger.name,
         default: 30000,
         env: 'CATTLE_HOME_API_CIRCUIT_BREAKER_RESET_TIMEOUT'
       }
@@ -265,14 +257,14 @@ export const config = convict({
       },
       secret: {
         doc: 'Shared secret used to sign and verify hub-issued JWTs',
-        format: 'hub-jwt-secret',
+        format: secret.name,
         default: null,
         env: 'HUB_JWT_SECRET',
         sensitive: true
       },
       ttlSeconds: {
         doc: 'Hub-issued JWT time to live in seconds',
-        format: Number,
+        format: positiveInteger.name,
         default: 14400,
         env: 'HUB_JWT_TTL_SECONDS'
       },
