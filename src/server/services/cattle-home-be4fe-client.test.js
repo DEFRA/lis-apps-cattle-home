@@ -41,8 +41,7 @@ describe('CattleHomeBe4FeClient', () => {
 
   test.each([
     ['default', undefined, 5000],
-    ['environment override', '12000', 12000],
-    ['zero', '0', 0]
+    ['environment override', '12000', 12000]
   ])('Passes the %s timeout to the base client', async (_, value, expected) => {
     // Arrange
     vi.stubEnv('CATTLE_HOME_API_TIMEOUT', value)
@@ -54,6 +53,25 @@ describe('CattleHomeBe4FeClient', () => {
 
     // Assert
     expect(reloadedClient._timeout).toBe(expected)
+  })
+
+  test('Refuses a zero timeout, which would be a 1 millisecond body budget', async () => {
+    // Arrange
+    vi.stubEnv('CATTLE_HOME_API_TIMEOUT', '0')
+    vi.resetModules()
+
+    // Act
+    let error
+    try {
+      await import('./cattle-home-be4fe-client.js')
+    } catch (e) {
+      error = e
+    }
+
+    // Assert
+    expect(error.message).toContain(
+      'cattleHomeApi.timeout: must be a positive integer'
+    )
   })
 
   test('Gets CPHs for an encoded user ID', async () => {
@@ -256,5 +274,25 @@ describe('CattleHomeBe4FeClient', () => {
     // Assert
     expect(get).toHaveBeenCalledWith('api/cattle/UK%20123%2F456')
     expect(result).toEqual(payload.data)
+  })
+})
+
+describe('CattleHomeBe4FeClient circuit breaker', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  test('uses the configured failure threshold', async () => {
+    // Arrange
+    vi.stubEnv('CATTLE_HOME_API_CIRCUIT_BREAKER_FAILURE_THRESHOLD', '1')
+    vi.resetModules()
+    const { cattleHomeBe4FeClient: reloadedClient } =
+      await import('./cattle-home-be4fe-client.js')
+
+    // Act
+    reloadedClient._circuitBreaker.recordFailure()
+
+    // Assert
+    expect(reloadedClient._circuitBreaker.state).toBe('open')
   })
 })

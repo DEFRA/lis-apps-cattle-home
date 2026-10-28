@@ -39,12 +39,12 @@ async function getDamHref(damTag, cph) {
     if (error.statusCode) {
       logger.info(
         error,
-        `Dam lookup for  failed with status ; showing the dam ear tag without a link`
+        `Dam lookup for ${damTag} failed with status ${error.statusCode}; showing the dam ear tag without a link`
       )
     } else {
       logger.warn(
         error,
-        `Dam lookup for  failed; showing the dam ear tag without a link`
+        `Dam lookup for ${damTag} failed; showing the dam ear tag without a link`
       )
     }
     return null

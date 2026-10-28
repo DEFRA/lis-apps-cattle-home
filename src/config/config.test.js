@@ -37,14 +37,18 @@ describe('hub JWT secret', () => {
     vi.stubEnv('NODE_ENV', 'production')
     vi.stubEnv('HUB_JWT_SECRET', undefined)
 
-    await expect(importConfig()).rejects.toThrow('HUB_JWT_SECRET must be set')
+    await expect(importConfig()).rejects.toThrow(
+      'auth.hubJwt.secret: must be set'
+    )
   })
 
   test('refuses to start when HUB_JWT_SECRET is empty', async () => {
     vi.stubEnv('NODE_ENV', 'production')
     vi.stubEnv('HUB_JWT_SECRET', '')
 
-    await expect(importConfig()).rejects.toThrow('HUB_JWT_SECRET must be set')
+    await expect(importConfig()).rejects.toThrow(
+      'auth.hubJwt.secret: must be set'
+    )
   })
 
   test('refuses to start when HUB_JWT_SECRET is shorter than 32 characters', async () => {
@@ -52,7 +56,7 @@ describe('hub JWT secret', () => {
     vi.stubEnv('HUB_JWT_SECRET', 'a'.repeat(31))
 
     await expect(importConfig()).rejects.toThrow(
-      'HUB_JWT_SECRET must be at least 32 characters'
+      'auth.hubJwt.secret: must be at least 32 characters'
     )
   })
 

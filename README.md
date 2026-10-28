@@ -122,35 +122,37 @@ the public local development value from `.env.example` and lis-dev. Set `LOG_HAS
 every deployed environment too: without it the hashed log values (such as `user_email_hash`)
 are dropped, with a warning each time one is set, so they can no longer be searched.
 
-| Variable                    | Description                                                                 | Default                                                 |
-| --------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `SERVICE_VERSION`           | Deployed version, for logs. CDP sets it                                     | none                                                    |
-| `ENVIRONMENT`               | `local`, `docker_compose`, `dev`, `test`, `ext-test`, `perf-test` or `prod` | `local`                                                 |
-| `HOST`                      | Address to bind                                                             | `0.0.0.0`                                               |
-| `PORT`                      | Port to bind                                                                | `8085`                                                  |
-| `STATIC_CACHE_TIMEOUT`      | Static asset cache timeout (ms)                                             | `604800000`                                             |
-| `ASSET_PATH`                | Base path for static assets                                                 | `/public`                                               |
-| `LOG_ENABLED`               | Whether logging is on                                                       | `true` (`false` in tests)                               |
-| `LOG_LEVEL`                 | Log level                                                                   | `info`                                                  |
-| `LOG_FORMAT`                | `ecs` or `pretty`                                                           | `ecs` in production, else `pretty`                      |
-| `LOG_HASH_SECRET`           | Secret. Key for hashing sensitive values in logs                            | none                                                    |
-| `HTTP_PROXY`                | Outbound HTTP proxy                                                         | none                                                    |
-| `SESSION_CACHE_ENGINE`      | `redis` or `memory`                                                         | `redis` in production, else `memory`                    |
-| `SESSION_CACHE_NAME`        | Server-side cache name                                                      | `home-cattle-session`                                   |
-| `SESSION_CACHE_TTL`         | Server-side cache TTL (ms)                                                  | `14400000`                                              |
-| `REDIS_HOST`                | Redis host                                                                  | `127.0.0.1`                                             |
-| `REDIS_USERNAME`            | Redis username                                                              | empty                                                   |
-| `REDIS_PASSWORD`            | Secret. Redis password                                                      | empty                                                   |
-| `REDIS_KEY_PREFIX`          | Redis key prefix                                                            | `home-cattle:`                                          |
-| `USE_SINGLE_INSTANCE_CACHE` | Single Redis instance rather than a cluster                                 | `false` in production, else `true`                      |
-| `REDIS_TLS`                 | Connect to Redis over TLS                                                   | `true` in production, else `false`                      |
-| `CATTLE_HOME_API_KEY`       | Secret. API key sent to `lis-be4fe-cattle-home` as `x-api-key`              | empty                                                   |
-| `CATTLE_HOME_API_TIMEOUT`   | Timeout for `lis-be4fe-cattle-home` requests (ms)                           | `5000`                                                  |
-| `HUB_ORIGINS`               | Hub origins allowed to use this spoke                                       | front-office and back-office hubs and their local ports |
-| `HUB_JWT_COOKIE_NAME`       | Cookie that carries the hub JWT                                             | `livestock_hub_jwt`                                     |
-| `HUB_JWT_SECRET`            | Secret, required, 32+ chars. Verifies hub JWTs. Must match the hubs         | none                                                    |
-| `HUB_JWT_TTL_SECONDS`       | Hub JWT cookie TTL (seconds)                                                | `14400`                                                 |
-| `HUB_JWT_AUDIENCE`          | Hub JWT audience                                                            | `livestock-spokes`                                      |
+| Variable                                            | Description                                                                      | Default                                                 |
+| --------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `SERVICE_VERSION`                                   | Deployed version, for logs. CDP sets it                                          | none                                                    |
+| `ENVIRONMENT`                                       | `local`, `docker_compose`, `dev`, `test`, `ext-test`, `perf-test` or `prod`      | `local`                                                 |
+| `HOST`                                              | Address to bind                                                                  | `0.0.0.0`                                               |
+| `PORT`                                              | Port to bind                                                                     | `8085`                                                  |
+| `STATIC_CACHE_TIMEOUT`                              | Static asset cache timeout (ms)                                                  | `604800000`                                             |
+| `ASSET_PATH`                                        | Base path for static assets                                                      | `/public`                                               |
+| `LOG_ENABLED`                                       | Whether logging is on                                                            | `true` (`false` in tests)                               |
+| `LOG_LEVEL`                                         | Log level                                                                        | `info`                                                  |
+| `LOG_FORMAT`                                        | `ecs` or `pretty`                                                                | `ecs` in production, else `pretty`                      |
+| `LOG_HASH_SECRET`                                   | Secret. Key for hashing sensitive values in logs                                 | none                                                    |
+| `HTTP_PROXY`                                        | Outbound HTTP proxy                                                              | none                                                    |
+| `SESSION_CACHE_ENGINE`                              | `redis` or `memory`                                                              | `redis` in production, else `memory`                    |
+| `SESSION_CACHE_NAME`                                | Server-side cache name                                                           | `home-cattle-session`                                   |
+| `SESSION_CACHE_TTL`                                 | Server-side cache TTL (ms)                                                       | `14400000`                                              |
+| `REDIS_HOST`                                        | Redis host                                                                       | `127.0.0.1`                                             |
+| `REDIS_USERNAME`                                    | Redis username                                                                   | empty                                                   |
+| `REDIS_PASSWORD`                                    | Secret. Redis password                                                           | empty                                                   |
+| `REDIS_KEY_PREFIX`                                  | Redis key prefix                                                                 | `home-cattle:`                                          |
+| `USE_SINGLE_INSTANCE_CACHE`                         | Single Redis instance rather than a cluster                                      | `false` in production, else `true`                      |
+| `REDIS_TLS`                                         | Connect to Redis over TLS                                                        | `true` in production, else `false`                      |
+| `CATTLE_HOME_API_KEY`                               | Secret. API key sent to `lis-be4fe-cattle-home` as `x-api-key`                   | empty                                                   |
+| `CATTLE_HOME_API_TIMEOUT`                           | Total time allowed for a `lis-be4fe-cattle-home` response, headers and body (ms) | `5000`                                                  |
+| `CATTLE_HOME_API_CIRCUIT_BREAKER_FAILURE_THRESHOLD` | Consecutive transport failures before the `lis-be4fe-cattle-home` circuit opens  | `5`                                                     |
+| `CATTLE_HOME_API_CIRCUIT_BREAKER_RESET_TIMEOUT`     | Time the `lis-be4fe-cattle-home` circuit stays open before a probe request (ms)  | `30000`                                                 |
+| `HUB_ORIGINS`                                       | Hub origins allowed to use this spoke                                            | front-office and back-office hubs and their local ports |
+| `HUB_JWT_COOKIE_NAME`                               | Cookie that carries the hub JWT                                                  | `livestock_hub_jwt`                                     |
+| `HUB_JWT_SECRET`                                    | Secret, required, 32+ chars. Verifies hub JWTs. Must match the hubs              | none                                                    |
+| `HUB_JWT_TTL_SECONDS`                               | Hub JWT cookie TTL (seconds)                                                     | `14400`                                                 |
+| `HUB_JWT_AUDIENCE`                                  | Hub JWT audience                                                                 | `livestock-spokes`                                      |
 
 Service tokens need `CDP_JWT_ISSUER` and `CDP_JWT_JWKS_URI` (set by CDP, and by lis-dev for the
 fake STS). On CDP the platform also sets `AWS_REGION`. In lis-dev, the compose files set
