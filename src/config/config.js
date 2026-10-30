@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import convictFormatWithValidator from 'convict-format-with-validator'
 
 import {
+  duration,
   positiveInteger,
   secret
 } from '@defra/lis-infra-ui-services/config-formats'
@@ -29,7 +30,12 @@ const publicHubJwtSecret =
   'local-dev-hub-jwt-signing-secret-please-change-1234567890'
 const localEnvironments = new Set(['local', 'docker_compose'])
 
+// Fails fast on a misconfigured ttl; ui-services' cache engine also clamps
+// every write to the same limit, so both layers are needed.
+const sessionTtl = duration({ max: 'P7D' })
+
 convict.addFormats(convictFormatWithValidator)
+convict.addFormat(sessionTtl)
 convict.addFormat(positiveInteger)
 convict.addFormat(secret)
 
@@ -155,7 +161,7 @@ export const config = convict({
       },
       ttl: {
         doc: 'server side session cache ttl',
-        format: positiveInteger.name,
+        format: sessionTtl.name,
         default: milliseconds.fourHours,
         env: 'SESSION_CACHE_TTL'
       }
