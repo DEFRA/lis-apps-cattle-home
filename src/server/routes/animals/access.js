@@ -42,7 +42,7 @@ async function demandAnimalAccess(request) {
   const outcome = granted ? 'granted' : 'denied'
 
   audit({ event: 'animal-access', outcome, earTag, cph, user: user.sub })
-  logger.warn({ earTag, outcome }, `Animal access ${outcome}`)
+  logger.info({ earTag, outcome }, `Animal access ${outcome}`)
 
   if (granted) {
     return record
