@@ -1,5 +1,5 @@
 import { logger } from '@defra/lis-hubs-infra-core'
-import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
+import { getMountPath } from '@defra/lis-hubs-infra-registry'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { formatEarTag } from '@defra/lis-infra-ui-services/nunjucks/filters'
 
@@ -8,9 +8,7 @@ import { isFromBackOffice } from '#server/common/helpers/hub.js'
 import { getSameHostReferrerPath } from './referrer.js'
 import { buildCattleDetailsViewModel } from './view-model.js'
 
-const basePath = getBasePathForModule('cattle-home')
-const holdingsBasePath = `${basePath}/holdings`
-const animalsBasePath = `${basePath}/animals`
+const animalsBasePath = getMountPath('cattle-home', 'animal')
 
 /**
  * The back office links a dam to its own record when the dam is currently
@@ -99,7 +97,8 @@ export const cattleDetailsController = {
         ? await getDamHrefs(cattle.dam, cph)
         : { genetic: null, surrogate: null },
       backLinkHref:
-        getSameHostReferrerPath(request) ?? `${holdingsBasePath}/${cph}/animals`
+        getSameHostReferrerPath(request) ??
+        `${getMountPath('cattle-home', 'holding', { cph })}/animals`
     })
   }
 }

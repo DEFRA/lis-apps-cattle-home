@@ -1,12 +1,10 @@
-import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
+import { getMountPath } from '@defra/lis-hubs-infra-registry'
 
-import { cphFromParams } from '../details/controller.js'
 import { buildHoldingHeading } from '../holding-heading.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 import { isFromBackOffice } from '#server/common/helpers/hub.js'
 
-const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
-const animalsBasePath = `${getBasePathForModule('cattle-home')}/animals`
+const animalsBasePath = getMountPath('cattle-home', 'animal')
 const PAGE_SIZE = 25
 const columns = [
   { text: 'Ear tag number', sortKey: 'ear_tag' },
@@ -73,7 +71,7 @@ function buildPageTitle({
 
 export const animalsOnHoldingController = {
   async handler(request, h) {
-    const cph = cphFromParams(request.params)
+    const cph = request.params.cph
     const isBackOffice = isFromBackOffice(request)
     const pageColumns = isBackOffice ? backOfficeColumns : columns
     const search = [request.query.search].flat()[0]?.trim() || ''
@@ -95,7 +93,7 @@ export const animalsOnHoldingController = {
     const holdingHeading = buildHoldingHeading(holding, isBackOffice)
     const { listReferrer } = request.pre
     const { link } = request.server.app.listReferrer
-    const baseHref = `${holdingsBasePath}/${cph}/animals`
+    const holdingPath = getMountPath('cattle-home', 'holding', { cph })
 
     return h.view('holdings/animals/index', {
       pageTitle: buildPageTitle({
@@ -126,8 +124,8 @@ export const animalsOnHoldingController = {
       totalItems,
       sort,
       direction,
-      baseHref,
-      clearSearchHref: link(baseHref, listReferrer?.id),
+      baseHref: `${holdingPath}/animals`,
+      clearSearchHref: link(`${holdingPath}/animals`, listReferrer?.id),
       animalsBasePath,
       pagination: {
         currentPage,
@@ -138,11 +136,11 @@ export const animalsOnHoldingController = {
       tabs: [
         {
           text: 'Holding details',
-          href: link(`${holdingsBasePath}/${cph}`, listReferrer?.id)
+          href: link(holdingPath, listReferrer?.id)
         },
         {
           text: 'Animals on holding',
-          href: link(baseHref, listReferrer?.id),
+          href: link(`${holdingPath}/animals`, listReferrer?.id),
           active: true
         }
       ]

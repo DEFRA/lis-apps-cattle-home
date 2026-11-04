@@ -72,7 +72,7 @@ describe('holdings CPH access', () => {
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     })
 
@@ -87,7 +87,7 @@ describe('holdings CPH access', () => {
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     })
 
@@ -103,7 +103,7 @@ describe('holdings CPH access', () => {
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals',
+      url: '/holdings/22/001/0001/cattle/animals',
       auth: spokeAuth(user)
     })
 
@@ -118,7 +118,7 @@ describe('holdings CPH access', () => {
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals',
+      url: '/holdings/22/001/0001/cattle/animals',
       auth: spokeAuth(user)
     })
 

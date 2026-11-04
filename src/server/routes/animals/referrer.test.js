@@ -8,7 +8,7 @@ describe('getSameHostReferrerPath()', () => {
     const request = {
       headers: {
         referer:
-          'https://front-office.lis.defra/cattle/holdings/22/002/0002/animals?page=2&sort=sex',
+          'https://front-office.lis.defra/holdings/22/002/0002/cattle/animals?page=2&sort=sex',
         'x-forwarded-host': 'front-office.lis.defra',
         host: 'localhost:3221'
       }
@@ -18,7 +18,7 @@ describe('getSameHostReferrerPath()', () => {
     const result = getSameHostReferrerPath(request)
 
     // Assert
-    expect(result).toBe('/cattle/holdings/22/002/0002/animals?page=2&sort=sex')
+    expect(result).toBe('/holdings/22/002/0002/cattle/animals?page=2&sort=sex')
   })
 
   test('it uses the first forwarded host when there are several', () => {
@@ -41,7 +41,7 @@ describe('getSameHostReferrerPath()', () => {
     // Arrange
     const request = {
       headers: {
-        referer: 'http://localhost:3221/cattle/holdings/22/002/0002/animals',
+        referer: 'http://localhost:3221/holdings/22/002/0002/cattle/animals',
         host: 'localhost:3221'
       }
     }
@@ -50,14 +50,14 @@ describe('getSameHostReferrerPath()', () => {
     const result = getSameHostReferrerPath(request)
 
     // Assert
-    expect(result).toBe('/cattle/holdings/22/002/0002/animals')
+    expect(result).toBe('/holdings/22/002/0002/cattle/animals')
   })
 
   test('it ignores a referrer on another host', () => {
     // Arrange
     const request = {
       headers: {
-        referer: 'https://evil.example/cattle/holdings/22/002/0002/animals',
+        referer: 'https://evil.example/holdings/22/002/0002/cattle/animals',
         'x-forwarded-host': 'front-office.lis.defra'
       }
     }

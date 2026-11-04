@@ -16,7 +16,7 @@ describe('holdings plugin', () => {
       expect.arrayContaining([
         expect.objectContaining({
           method: 'GET',
-          path: '/holdings/{county}/{parish}/{holding}'
+          path: '/holdings/{cph*3}/cattle'
         })
       ])
     )
@@ -35,7 +35,7 @@ describe('holdings plugin', () => {
       expect.arrayContaining([
         expect.objectContaining({
           method: 'GET',
-          path: '/holdings/{county}/{parish}/{holding}/animals'
+          path: '/holdings/{cph*3}/cattle/animals'
         })
       ])
     )

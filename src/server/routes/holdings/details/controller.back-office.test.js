@@ -68,7 +68,7 @@ describe('holdingDetailsController (back office)', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/12/345/0001',
+      url: '/holdings/12/345/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -124,7 +124,7 @@ describe('holdingDetailsController (back office)', () => {
       /Herd mark\s*<\/dt>\s*<dd[^>]*>\s*UK 654322\s*<\/dd>/
     )
     expect(result).toEqual(
-      expect.stringContaining('href="/cattle/holdings/12/345/0001/animals"')
+      expect.stringContaining('href="/holdings/12/345/0001/cattle/animals"')
     )
   })
 
@@ -144,7 +144,7 @@ describe('holdingDetailsController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/12/345/0001',
+      url: '/holdings/12/345/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -179,7 +179,7 @@ describe('holdingDetailsController (back office)', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/008/0008',
+      url: '/holdings/22/008/0008/cattle',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -203,7 +203,7 @@ describe('holdingDetailsController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/12/345/0001',
+      url: '/holdings/12/345/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -247,7 +247,7 @@ describe('holdingDetailsController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/12/345/0001',
+      url: '/holdings/12/345/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -303,7 +303,7 @@ describe('holdingDetailsController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/12/345/0001',
+      url: '/holdings/12/345/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -342,7 +342,7 @@ describe('holdingDetailsController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/12/345/0001',
+      url: '/holdings/12/345/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -391,7 +391,7 @@ describe('holdingDetailsController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/12/345/0001',
+      url: '/holdings/12/345/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -424,7 +424,7 @@ describe('holdingDetailsController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/12/345/0001',
+      url: '/holdings/12/345/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -466,7 +466,7 @@ describe('holdingDetailsController (back office)', () => {
     })
     const request = {
       method: 'GET',
-      url: '/holdings/12/345/0001',
+      url: '/holdings/12/345/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     }
 
@@ -492,7 +492,7 @@ describe('holdingDetailsController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/12/345/0001',
+      url: '/holdings/12/345/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     })
 

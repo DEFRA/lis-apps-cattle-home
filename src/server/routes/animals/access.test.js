@@ -95,7 +95,7 @@ describe('animal access', () => {
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -122,7 +122,7 @@ describe('animal access', () => {
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -158,7 +158,7 @@ describe('animal access', () => {
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -185,7 +185,7 @@ describe('animal access', () => {
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
-      url: '/animals/UK999999999999',
+      url: '/animals/cattle/UK999999999999',
       auth: spokeAuth(user)
     })
 

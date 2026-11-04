@@ -12,7 +12,6 @@ import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { spokeAuth } from '#test-helpers/spoke-auth.js'
 import { createServer } from '#server/server.js'
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
-import { cphFromParams } from './controller.js'
 
 const mocks = {
   getHoldingDetails: vi.spyOn(cattleHomeBe4FeClient, 'getHoldingDetails')
@@ -35,38 +34,6 @@ function createUser() {
   }
 }
 
-describe('cphFromParams()', () => {
-  test('it builds a CPH from the three route segments', () => {
-    // Arrange
-    const params = { county: '22', parish: '001', holding: '0001' }
-
-    // Act
-    const cph = cphFromParams(params)
-
-    // Assert
-    expect(cph).toBe('22/001/0001')
-  })
-
-  test('it returns null when a segment is missing', () => {
-    // Arrange
-    const params = { county: '22', parish: '001' }
-
-    // Act
-    const cph = cphFromParams(params)
-
-    // Assert
-    expect(cph).toBeNull()
-  })
-
-  test('it returns null when no params are given', () => {
-    // Act
-    const cph = cphFromParams()
-
-    // Assert
-    expect(cph).toBeNull()
-  })
-})
-
 describe('holdingDetailsController', () => {
   let server
 
@@ -88,7 +55,7 @@ describe('holdingDetailsController', () => {
     const user = createUser()
     const request = {
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     }
     mocks.getHoldingDetails.mockResolvedValue({
@@ -130,7 +97,7 @@ describe('holdingDetailsController', () => {
     expect(result).toEqual(expect.stringContaining('UK 324537'))
     expect(result).not.toEqual(expect.stringContaining('Registered keeper'))
     expect(result).toEqual(
-      expect.stringContaining('href="/cattle/holdings/22/001/0001"')
+      expect.stringContaining('href="/holdings/22/001/0001/cattle"')
     )
   })
 
@@ -148,7 +115,7 @@ describe('holdingDetailsController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     })
 
@@ -173,7 +140,7 @@ describe('holdingDetailsController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     })
 
@@ -201,7 +168,7 @@ describe('holdingDetailsController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     })
 
@@ -223,7 +190,7 @@ describe('holdingDetailsController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     })
 
@@ -256,7 +223,7 @@ describe('holdingDetailsController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     })
 
@@ -283,7 +250,7 @@ describe('holdingDetailsController', () => {
     // Arrange
     const request = {
       method: 'GET',
-      url: '/holdings/22/001/0001'
+      url: '/holdings/22/001/0001/cattle'
     }
 
     // Act
@@ -300,7 +267,7 @@ describe('holdingDetailsController', () => {
     const user = createUser()
     const request = {
       method: 'GET',
-      url: '/holdings/99/999/9999',
+      url: '/holdings/99/999/9999/cattle',
       auth: spokeAuth(user)
     }
     const notFoundError = new Error('Request failed - 404')
@@ -319,7 +286,7 @@ describe('holdingDetailsController', () => {
     const user = createUser()
     const request = {
       method: 'GET',
-      url: '/holdings/22/098/0098',
+      url: '/holdings/22/098/0098/cattle',
       auth: spokeAuth(user)
     }
     mocks.getHoldingDetails.mockResolvedValue({
@@ -357,7 +324,7 @@ describe('holdingDetailsController', () => {
     const user = createUser()
     const request = {
       method: 'GET',
-      url: '/holdings/22/098/0098',
+      url: '/holdings/22/098/0098/cattle',
       auth: spokeAuth(user)
     }
     mocks.getHoldingDetails.mockResolvedValue({
@@ -396,7 +363,7 @@ describe('holdingDetailsController', () => {
     const user = createUser()
     const request = {
       method: 'GET',
-      url: '/holdings/22/097/0097',
+      url: '/holdings/22/097/0097/cattle',
       auth: spokeAuth(user)
     }
     mocks.getHoldingDetails.mockResolvedValue({
@@ -431,7 +398,7 @@ describe('holdingDetailsController', () => {
     })
     const request = {
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user),
       headers: {
         'x-forwarded-host': 'front-office.lis.defra',

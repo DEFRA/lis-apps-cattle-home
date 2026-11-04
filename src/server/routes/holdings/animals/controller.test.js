@@ -106,7 +106,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals',
+      url: '/holdings/22/001/0001/cattle/animals',
       auth: spokeAuth(user)
     })
 
@@ -122,7 +122,7 @@ describe('animalsOnHoldingController', () => {
     expect(result).toEqual(expect.stringContaining('aria-sort="ascending"'))
     expect(result).toEqual(
       expect.stringContaining(
-        '<a class="govuk-link" href="/cattle/animals/UK200000000001">UK 200000 000001</a>'
+        '<a class="govuk-link" href="/animals/cattle/UK200000000001">UK 200000 000001</a>'
       )
     )
     expect(result).toEqual(
@@ -137,7 +137,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -167,7 +167,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=male&sort=age&direction=desc',
+      url: '/holdings/22/001/0001/cattle/animals?search=male&sort=age&direction=desc',
       auth: spokeAuth(user)
     })
 
@@ -187,7 +187,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=male',
+      url: '/holdings/22/001/0001/cattle/animals?search=male',
       auth: spokeAuth(user)
     })
 
@@ -208,7 +208,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     await server.inject({
       method: 'GET',
-      url: `/holdings/22/001/0001/animals?search=${'a'.repeat(150)}`,
+      url: `/holdings/22/001/0001/cattle/animals?search=${'a'.repeat(150)}`,
       auth: spokeAuth(user)
     })
 
@@ -227,7 +227,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const response = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=a&search=b',
+      url: '/holdings/22/001/0001/cattle/animals?search=a&search=b',
       auth: spokeAuth(user)
     })
 
@@ -247,7 +247,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/098/0098/animals',
+      url: '/holdings/22/098/0098/cattle/animals',
       auth: spokeAuth(user)
     })
 
@@ -269,7 +269,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals',
+      url: '/holdings/22/001/0001/cattle/animals',
       auth: spokeAuth(user)
     })
 
@@ -288,7 +288,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=male',
+      url: '/holdings/22/001/0001/cattle/animals?search=male',
       auth: spokeAuth(user)
     })
 
@@ -303,7 +303,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -322,7 +322,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -342,7 +342,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -365,7 +365,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?page=2',
+      url: '/holdings/22/001/0001/cattle/animals?page=2',
       auth: spokeAuth(user)
     })
 
@@ -390,7 +390,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?sort=date_of_birth&direction=desc',
+      url: '/holdings/22/001/0001/cattle/animals?sort=date_of_birth&direction=desc',
       auth: spokeAuth(user)
     })
 
@@ -410,7 +410,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -433,7 +433,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=not-a-real-animal',
+      url: '/holdings/22/001/0001/cattle/animals?search=not-a-real-animal',
       auth: spokeAuth(user)
     })
 
@@ -455,7 +455,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/095/0095/animals',
+      url: '/holdings/22/095/0095/cattle/animals',
       auth: spokeAuth(user)
     })
 
@@ -484,7 +484,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/096/0096/animals',
+      url: '/holdings/22/096/0096/cattle/animals',
       auth: spokeAuth(user)
     })
 
@@ -510,7 +510,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
-      url: '/holdings/99/999/9999/animals',
+      url: '/holdings/99/999/9999/cattle/animals',
       auth: spokeAuth(user)
     })
 
@@ -534,7 +534,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals',
+      url: '/holdings/22/001/0001/cattle/animals',
       auth: spokeAuth(user)
     })
 
@@ -550,7 +550,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals'
+      url: '/holdings/22/001/0001/cattle/animals'
     })
 
     // Assert
