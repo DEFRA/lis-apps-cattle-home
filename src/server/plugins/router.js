@@ -3,7 +3,6 @@ import {
   createSpokeAuth,
   getHubJwtCookieOptions
 } from '@defra/lis-hubs-infra-access/authentication'
-import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
 
 import { holdings } from '../routes/holdings/index.js'
 import { animals } from '../routes/animals/index.js'
@@ -21,7 +20,6 @@ const spokeAuth = createSpokeAuth({
     ttlSeconds: config.get('auth.hubJwt.ttlSeconds')
   }),
   port: config.get('port'),
-  basePath: getBasePathForModule('cattle-home'),
   secret: config.get('auth.hubJwt.secret'),
   audience: config.get('auth.hubJwt.audience'),
   moduleAccess

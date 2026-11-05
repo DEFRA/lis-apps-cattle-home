@@ -58,7 +58,7 @@ const hubHost = 'front-office.lis.defra'
 function fromAnimalsOnHolding(cph = '22/001/0001', query = '') {
   return {
     'x-forwarded-host': hubHost,
-    referer: `https://${hubHost}/cattle/holdings/${cph}/animals${query}`
+    referer: `https://${hubHost}/holdings/${cph}/cattle/animals${query}`
   }
 }
 
@@ -101,7 +101,7 @@ describe('cattleDetailsController', () => {
     mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user),
       headers: fromAnimalsOnHolding()
     }
@@ -122,7 +122,7 @@ describe('cattleDetailsController', () => {
     )
     expect(result).toEqual(
       expect.stringContaining(
-        'href="/cattle/holdings/22/001/0001/animals" class="govuk-back-link"'
+        'href="/holdings/22/001/0001/cattle/animals" class="govuk-back-link"'
       )
     )
     expect(result).toEqual(expect.stringContaining('Holstein Friesian (HF)'))
@@ -143,7 +143,7 @@ describe('cattleDetailsController', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -193,7 +193,7 @@ describe('cattleDetailsController', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -214,7 +214,7 @@ describe('cattleDetailsController', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -240,7 +240,7 @@ describe('cattleDetailsController', () => {
     )
     const request = {
       method: 'GET',
-      url: '/animals/UNKNOWN-TAG',
+      url: '/animals/cattle/UNKNOWN-TAG',
       auth: spokeAuth(user)
     }
 
@@ -260,7 +260,7 @@ describe('cattleDetailsController', () => {
     )
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user)
     }
 
@@ -280,7 +280,7 @@ describe('cattleDetailsController', () => {
     )
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -303,7 +303,7 @@ describe('cattleDetailsController', () => {
     )
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -334,7 +334,7 @@ describe('cattleDetailsController', () => {
     })
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user),
       headers: fromAnimalsOnHolding()
     }
@@ -361,7 +361,7 @@ describe('cattleDetailsController', () => {
     })
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user),
       headers: fromAnimalsOnHolding()
     }
@@ -383,7 +383,7 @@ describe('cattleDetailsController', () => {
     })
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user),
       headers: fromAnimalsOnHolding()
     }
@@ -412,7 +412,7 @@ describe('cattleDetailsController', () => {
     })
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user),
       headers: fromAnimalsOnHolding()
     }
@@ -435,7 +435,7 @@ describe('cattleDetailsController', () => {
     )
     const request = {
       method: 'GET',
-      url: '/animals/UK999999999999',
+      url: '/animals/cattle/UK999999999999',
       auth: spokeAuth(user),
       headers: fromAnimalsOnHolding()
     }
@@ -453,7 +453,7 @@ describe('cattleDetailsController', () => {
     mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user),
       headers: fromAnimalsOnHolding('22/001/0001', '?page=2')
     }
@@ -465,7 +465,7 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(
       expect.stringContaining(
-        'href="/cattle/holdings/22/001/0001/animals?page=2" class="govuk-back-link"'
+        'href="/holdings/22/001/0001/cattle/animals?page=2" class="govuk-back-link"'
       )
     )
   })
@@ -476,11 +476,11 @@ describe('cattleDetailsController', () => {
     mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user),
       headers: {
         'x-forwarded-host': hubHost,
-        referer: `https://${hubHost}/cattle/holdings/22/001/0001`
+        referer: `https://${hubHost}/holdings/22/001/0001/cattle`
       }
     }
 
@@ -491,7 +491,7 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(
       expect.stringContaining(
-        'href="/cattle/holdings/22/001/0001" class="govuk-back-link"'
+        'href="/holdings/22/001/0001/cattle" class="govuk-back-link"'
       )
     )
   })
@@ -502,7 +502,7 @@ describe('cattleDetailsController', () => {
     mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user)
     }
 
@@ -513,7 +513,7 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(
       expect.stringContaining(
-        'href="/cattle/holdings/22/001/0001/animals" class="govuk-back-link"'
+        'href="/holdings/22/001/0001/cattle/animals" class="govuk-back-link"'
       )
     )
   })
@@ -524,11 +524,11 @@ describe('cattleDetailsController', () => {
     mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user),
       headers: {
         'x-forwarded-host': hubHost,
-        referer: 'https://elsewhere.example/cattle/holdings/22/001/0001/animals'
+        referer: 'https://elsewhere.example/holdings/22/001/0001/cattle/animals'
       }
     }
 
@@ -539,7 +539,7 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(
       expect.stringContaining(
-        'href="/cattle/holdings/22/001/0001/animals" class="govuk-back-link"'
+        'href="/holdings/22/001/0001/cattle/animals" class="govuk-back-link"'
       )
     )
   })
@@ -552,7 +552,7 @@ describe('cattleDetailsController', () => {
     )
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user),
       headers: fromAnimalsOnHolding()
     }
@@ -568,7 +568,7 @@ describe('cattleDetailsController', () => {
     // Arrange
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001'
+      url: '/animals/cattle/UK200000000001'
     }
 
     // Act

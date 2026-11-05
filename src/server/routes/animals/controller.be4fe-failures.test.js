@@ -59,7 +59,7 @@ const hubHost = 'front-office.lis.defra'
 function fromAnimalsOnHolding(cph = '22/001/0001') {
   return {
     'x-forwarded-host': hubHost,
-    referer: `https://${hubHost}/cattle/holdings/${cph}/animals`
+    referer: `https://${hubHost}/holdings/${cph}/cattle/animals`
   }
 }
 
@@ -110,7 +110,7 @@ describe('cattleDetailsController when the BE4FE fails', () => {
     mocks.getHoldingDetails.mockResolvedValue(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -122,7 +122,7 @@ describe('cattleDetailsController when the BE4FE fails', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(expect.stringContaining('UK 200000 000098'))
     expect(result).not.toEqual(
-      expect.stringContaining('/animals/UK200000000098')
+      expect.stringContaining('/animals/cattle/UK200000000098')
     )
     expect(infoSpy).toHaveBeenCalledWith(
       damError,
@@ -142,7 +142,7 @@ describe('cattleDetailsController when the BE4FE fails', () => {
     mocks.getHoldingDetails.mockResolvedValue(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -178,7 +178,7 @@ describe('cattleDetailsController when the BE4FE fails', () => {
       )
       const request = {
         method: 'GET',
-        url: '/animals/UK200000000001',
+        url: '/animals/cattle/UK200000000001',
         auth: spokeAuth(user),
         headers: fromAnimalsOnHolding()
       }

@@ -106,7 +106,7 @@ describe('animalsOnHoldingController (back office)', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals',
+      url: '/holdings/22/001/0001/cattle/animals',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -155,7 +155,7 @@ describe('animalsOnHoldingController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/096/0096/animals',
+      url: '/holdings/22/096/0096/cattle/animals',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -182,7 +182,7 @@ describe('animalsOnHoldingController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals',
+      url: '/holdings/22/001/0001/cattle/animals',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -205,7 +205,7 @@ describe('animalsOnHoldingController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/095/0095/animals',
+      url: '/holdings/22/095/0095/cattle/animals',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -233,7 +233,7 @@ describe('animalsOnHoldingController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -254,7 +254,7 @@ describe('animalsOnHoldingController (back office)', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/animals?search=not-a-real-animal',
+      url: '/holdings/22/001/0001/cattle/animals?search=not-a-real-animal',
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -276,7 +276,7 @@ describe('animalsOnHoldingController (back office)', () => {
     )
     const fromSearch = {
       method: 'GET',
-      url: '/holdings/22/001/0001/animals',
+      url: '/holdings/22/001/0001/cattle/animals',
       auth: spokeAuth(user, 'back-office'),
       headers: {
         'x-forwarded-host': 'back-office.lis.defra',
@@ -289,7 +289,7 @@ describe('animalsOnHoldingController (back office)', () => {
     const referrerId = first.result.match(/referrer=([0-9a-f-]{36})/)?.[1]
     const second = await server.inject({
       method: 'GET',
-      url: `/holdings/22/001/0001/animals?search=male&referrer=${referrerId}`,
+      url: `/holdings/22/001/0001/cattle/animals?search=male&referrer=${referrerId}`,
       auth: spokeAuth(user, 'back-office')
     })
 
@@ -307,7 +307,7 @@ describe('animalsOnHoldingController (back office)', () => {
     )
     expect(first.result).toEqual(
       expect.stringContaining(
-        `href="/cattle/holdings/22/001/0001?referrer=${referrerId}"`
+        `href="/holdings/22/001/0001/cattle?referrer=${referrerId}"`
       )
     )
     expect(first.result).toMatch(
@@ -323,7 +323,7 @@ describe('animalsOnHoldingController (back office)', () => {
     )
     expect(second.result).toEqual(
       expect.stringContaining(
-        `href="/cattle/holdings/22/001/0001/animals?referrer=${referrerId}">Clear search</a>`
+        `href="/holdings/22/001/0001/cattle/animals?referrer=${referrerId}">Clear search</a>`
       )
     )
   })
@@ -334,7 +334,7 @@ describe('animalsOnHoldingController (back office)', () => {
     const otherUser = { ...createUser(), sub: 'someone-else' }
     const fromSearch = {
       method: 'GET',
-      url: '/holdings/22/001/0001/animals',
+      url: '/holdings/22/001/0001/cattle/animals',
       auth: spokeAuth(user, 'back-office'),
       headers: {
         'x-forwarded-host': 'back-office.lis.defra',
@@ -347,7 +347,7 @@ describe('animalsOnHoldingController (back office)', () => {
     const referrerId = first.result.match(/referrer=([0-9a-f-]{36})/)?.[1]
     const second = await server.inject({
       method: 'GET',
-      url: `/holdings/22/001/0001/animals?referrer=${referrerId}`,
+      url: `/holdings/22/001/0001/cattle/animals?referrer=${referrerId}`,
       auth: spokeAuth(otherUser, 'back-office')
     })
 

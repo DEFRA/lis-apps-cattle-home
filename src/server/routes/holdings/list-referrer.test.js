@@ -26,7 +26,7 @@ describe('isHubHoldingsList()', () => {
       '/holdingsx',
       '/holdings/22/001/0001',
       '/animals',
-      '/cattle/holdings'
+      '/holdings/22/001/0001/cattle'
     ]
 
     // Act

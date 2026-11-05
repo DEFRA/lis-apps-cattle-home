@@ -8,7 +8,7 @@ export const animals = {
       server.route([
         {
           method: 'GET',
-          path: '/animals/{earTag}',
+          path: '/animals/cattle/{earTag}',
           ...cattleDetailsController,
           options: animalAccess
         }

@@ -5,10 +5,7 @@ import {
   hasPermission
 } from '@defra/lis-hubs-infra-access/authorization'
 
-import {
-  cphFromParams,
-  holdingDetailsController
-} from './details/controller.js'
+import { holdingDetailsController } from './details/controller.js'
 import { animalsOnHoldingController } from './animals/controller.js'
 import { createListReferrer } from './list-referrer.js'
 
@@ -18,7 +15,7 @@ import { createListReferrer } from './list-referrer.js'
  * @returns {symbol | Boom.Boom} h.continue when access is allowed, otherwise a 404
  */
 function demandHoldingAccess(request, h) {
-  const cph = cphFromParams(request.params)
+  const cph = request.params.cph
 
   if (
     hasPermission(request.auth.credentials.user, {
@@ -53,13 +50,13 @@ export const holdings = {
       server.route([
         {
           method: 'GET',
-          path: '/holdings/{county}/{parish}/{holding}',
+          path: '/holdings/{cph*3}/cattle',
           ...holdingDetailsController,
           options: holdingPage
         },
         {
           method: 'GET',
-          path: '/holdings/{county}/{parish}/{holding}/animals',
+          path: '/holdings/{cph*3}/cattle/animals',
           ...animalsOnHoldingController,
           options: holdingPage
         }

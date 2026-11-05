@@ -15,7 +15,7 @@ describe('animals plugin', () => {
       expect.arrayContaining([
         expect.objectContaining({
           method: 'GET',
-          path: '/animals/{earTag}'
+          path: '/animals/cattle/{earTag}'
         })
       ])
     )

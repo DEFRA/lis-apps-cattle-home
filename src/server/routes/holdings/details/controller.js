@@ -1,4 +1,4 @@
-import { getBasePathForModule } from '@defra/lis-hubs-infra-registry'
+import { getMountPath } from '@defra/lis-hubs-infra-registry'
 
 import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
 import { isFromBackOffice } from '#server/common/helpers/hub.js'
@@ -10,21 +10,9 @@ import {
   findRegisteredKeeper
 } from './view-model.js'
 
-const holdingsBasePath = `${getBasePathForModule('cattle-home')}/holdings`
-
-/**
- * @param {{ county?: string, parish?: string, holding?: string }} params route parameters
- * @returns {string|null} slash-separated CPH
- */
-export function cphFromParams({ county, parish, holding: holdingNumber } = {}) {
-  return county && parish && holdingNumber
-    ? `${county}/${parish}/${holdingNumber}`
-    : null
-}
-
 export const holdingDetailsController = {
   async handler(request, h) {
-    const cph = cphFromParams(request.params)
+    const cph = request.params.cph
     const holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)
     const isBackOffice = isFromBackOffice(request)
     const holdingHeading = buildHoldingHeading(holding, isBackOffice)
@@ -48,12 +36,18 @@ export const holdingDetailsController = {
       tabs: [
         {
           text: 'Holding details',
-          href: link(`${holdingsBasePath}/${cph}`, listReferrer?.id),
+          href: link(
+            getMountPath('cattle-home', 'holding', { cph }),
+            listReferrer?.id
+          ),
           active: true
         },
         {
           text: 'Animals on holding',
-          href: link(`${holdingsBasePath}/${cph}/animals`, listReferrer?.id)
+          href: link(
+            `${getMountPath('cattle-home', 'holding', { cph })}/animals`,
+            listReferrer?.id
+          )
         }
       ]
     })

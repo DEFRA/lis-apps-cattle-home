@@ -58,7 +58,7 @@ const hubHost = 'front-office.lis.defra'
 function fromAnimalsOnHolding(cph = '22/001/0001', query = '') {
   return {
     'x-forwarded-host': hubHost,
-    referer: `https://${hubHost}/cattle/holdings/${cph}/animals${query}`
+    referer: `https://${hubHost}/holdings/${cph}/cattle/animals${query}`
   }
 }
 
@@ -102,7 +102,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -123,7 +123,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'front-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -155,7 +155,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -168,7 +168,7 @@ describe('cattleDetailsController parentage', () => {
     expect(mocks.getCattleDetails).toHaveBeenCalledWith('UK200000000098')
     expect(result).toEqual(
       expect.stringContaining(
-        '<a class="govuk-link" href="/cattle/animals/UK200000000098">UK 200000 000098</a>'
+        '<a class="govuk-link" href="/animals/cattle/UK200000000098">UK 200000 000098</a>'
       )
     )
   })
@@ -193,7 +193,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -206,7 +206,7 @@ describe('cattleDetailsController parentage', () => {
     expect(result).toMatch(
       /Genetic dam ear tag\s*<\/dt>\s*<dd[^>]*>\s*UK 200000 000098\s*<\/dd>/
     )
-    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
+    expect(result).not.toContain('href="/animals/cattle/UK200000000098"')
   })
 
   test('it shows a dam that is not found as plain text for a back-office user', async () => {
@@ -223,7 +223,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -236,7 +236,7 @@ describe('cattleDetailsController parentage', () => {
     expect(result).toMatch(
       /Genetic dam ear tag\s*<\/dt>\s*<dd[^>]*>\s*UK 200000 000098\s*<\/dd>/
     )
-    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
+    expect(result).not.toContain('href="/animals/cattle/UK200000000098"')
   })
 
   test('it links both dams of a surrogate birth that are on the holding for a back-office user', async () => {
@@ -256,7 +256,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -267,10 +267,10 @@ describe('cattleDetailsController parentage', () => {
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(
-      expect.stringContaining('href="/cattle/animals/UK200000000098"')
+      expect.stringContaining('href="/animals/cattle/UK200000000098"')
     )
     expect(result).toEqual(
-      expect.stringContaining('href="/cattle/animals/UK200000000097"')
+      expect.stringContaining('href="/animals/cattle/UK200000000097"')
     )
   })
 
@@ -288,7 +288,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -301,7 +301,7 @@ describe('cattleDetailsController parentage', () => {
     expect(result).toMatch(
       /Genetic dam ear tag\s*<\/dt>\s*<dd[^>]*>\s*UK 200000 000098\s*<\/dd>/
     )
-    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
+    expect(result).not.toContain('href="/animals/cattle/UK200000000098"')
   })
 
   test('it still renders, with the dam as plain text, when the dam lookup throws without a status', async () => {
@@ -316,7 +316,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -329,7 +329,7 @@ describe('cattleDetailsController parentage', () => {
     expect(result).toMatch(
       /Genetic dam ear tag\s*<\/dt>\s*<dd[^>]*>\s*UK 200000 000098\s*<\/dd>/
     )
-    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
+    expect(result).not.toContain('href="/animals/cattle/UK200000000098"')
   })
 
   test('it does not link a dam whose location is unknown', async () => {
@@ -354,7 +354,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -364,7 +364,7 @@ describe('cattleDetailsController parentage', () => {
 
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
-    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
+    expect(result).not.toContain('href="/animals/cattle/UK200000000098"')
   })
 
   test('it links only the surrogate dam when no genetic dam tag is recorded', async () => {
@@ -385,7 +385,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'back-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -397,7 +397,7 @@ describe('cattleDetailsController parentage', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(mocks.getCattleDetails).toHaveBeenCalledTimes(2)
     expect(result).toEqual(
-      expect.stringContaining('href="/cattle/animals/UK200000000097"')
+      expect.stringContaining('href="/animals/cattle/UK200000000097"')
     )
   })
 
@@ -407,7 +407,7 @@ describe('cattleDetailsController parentage', () => {
     mocks.getCattleDetails.mockResolvedValue(fullRecord)
     const request = {
       method: 'GET',
-      url: '/animals/UK200000000001',
+      url: '/animals/cattle/UK200000000001',
       auth: spokeAuth(user, 'front-office'),
       headers: fromAnimalsOnHolding()
     }
@@ -418,6 +418,6 @@ describe('cattleDetailsController parentage', () => {
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
     expect(mocks.getCattleDetails).toHaveBeenCalledTimes(1)
-    expect(result).not.toContain('href="/cattle/animals/UK200000000098"')
+    expect(result).not.toContain('href="/animals/cattle/UK200000000098"')
   })
 })

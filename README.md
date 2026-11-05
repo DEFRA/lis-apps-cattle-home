@@ -14,10 +14,11 @@ environments, deployments, logs and metrics.
 ## Architecture
 
 ```text
-hub (front-office or back-office) → /cattle → this app → lis-be4fe-cattle-home → lis-api-cattle
+hub (front-office or back-office) → /holdings/<cph>/cattle → this app → lis-be4fe-cattle-home → lis-api-cattle
 ```
 
-The hubs mount this app at `/cattle` and proxy requests to it, with the path prefix removed. The
+The hubs proxy this app at its registry mounts (`/holdings/<cph>/cattle`, `/animals/cattle`) and
+forward the path unchanged. Assets are served at `/assets/cattle-home`. The
 module list is in
 [lis-hubs-infra-registry](https://github.com/DEFRA/lis-hubs-infra-registry).
 
@@ -39,14 +40,16 @@ hub and spoke design.
 
 ### Routes
 
-Paths are relative to the `/cattle` mount.
+Routes carry the full pattern of their registry mount, so the app answers the URL the browser asked
+for whether it is reached through a hub or directly.
 
-| Path                                            | Purpose                                     |
-| ----------------------------------------------- | ------------------------------------------- |
-| `/holdings/{county}/{parish}/{holding}`         | Holding details                             |
-| `/holdings/{county}/{parish}/{holding}/animals` | Cattle on the holding, with search and sort |
-| `/animals/{earTag}`                             | Details of one animal                       |
-| `/health`                                       | Health check                                |
+| Path                               | Purpose                                     |
+| ---------------------------------- | ------------------------------------------- |
+| `/holdings/{cph*3}/cattle`         | Holding details                             |
+| `/holdings/{cph*3}/cattle/animals` | Cattle on the holding, with search and sort |
+| `/animals/cattle/{earTag}`         | Details of one animal                       |
+| `/assets/cattle-home/{param*}`     | Built CSS and JavaScript                    |
+| `/health`                          | Health check                                |
 
 ## Prerequisites
 
@@ -94,7 +97,7 @@ swap its container for a local server with hot reload while the rest of the stac
 .bin/sideload restore    # when done: back to the container
 ```
 
-Then open <https://front-office.lis.defra/cattle> and sign in through the fake identity provider.
+Then open <https://front-office.lis.defra/holdings/22/001/0001/cattle> and sign in through the fake identity provider.
 Service tokens come from the fake STS in lis-dev (`lis-fake-sts`), which the compose files point
 to with `AWS_ENDPOINT_URL_STS`.
 

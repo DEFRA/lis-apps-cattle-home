@@ -62,7 +62,7 @@ describe('holdingDetailsController (back office) back link', () => {
     })
     const request = {
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user, 'back-office'),
       headers: {
         'x-forwarded-host': 'back-office.lis.defra',
@@ -80,7 +80,7 @@ describe('holdingDetailsController (back office) back link', () => {
       )
     )
     expect(result).toMatch(
-      /href="\/cattle\/holdings\/22\/001\/0001\/animals\?referrer=[0-9a-f-]{36}"/
+      /href="\/holdings\/22\/001\/0001\/cattle\/animals\?referrer=[0-9a-f-]{36}"/
     )
   })
 
@@ -95,7 +95,7 @@ describe('holdingDetailsController (back office) back link', () => {
     })
     const request = {
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user, 'back-office')
     }
 
@@ -120,12 +120,12 @@ describe('holdingDetailsController (back office) back link', () => {
     })
     const request = {
       method: 'GET',
-      url: '/holdings/22/001/0001',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user, 'back-office'),
       headers: {
         'x-forwarded-host': 'back-office.lis.defra',
         referer:
-          'https://back-office.lis.defra/cattle/holdings/22/002/0002/animals'
+          'https://back-office.lis.defra/holdings/22/002/0002/cattle/animals'
       }
     }
 
