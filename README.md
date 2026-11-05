@@ -22,8 +22,8 @@ forward the path unchanged. Assets are served at `/assets/cattle-home`. The
 module list is in
 [lis-hubs-infra-registry](https://github.com/DEFRA/lis-hubs-infra-registry).
 
-- Authentication: users sign in through the hub. This app verifies the hub JWT cookie
-  (`livestock_hub_jwt`) with `@defra/lis-hubs-infra-access`. Each page also checks that the user has
+- Authentication: users sign in through the hub. The hub proxy passes the signed-in user's JWT in the
+  `x-lis-jwt-assertion` header, which this app verifies after the service token with `@defra/lis-hubs-infra-access`. Each page also checks that the user has
   cattle read access, and holding and animal pages check access to that holding's CPH.
 - Downstream calls: holding and cattle data comes from `lis-be4fe-cattle-home`, through `BaseClient`
   from `@defra/lis-hubs-infra-core`. Each call carries an AWS STS service token and the
@@ -103,8 +103,8 @@ to with `AWS_ENDPOINT_URL_STS`.
 
 ## Running standalone
 
-You can also run the server on its own with `npm run dev`, using the values in `.env`. Pages need a
-hub JWT cookie, so without the hub you are redirected to sign in. Data pages also need
+You can also run the server on its own with `npm run dev`, using the values in `.env`. Pages need the
+`x-lis-jwt-assertion` header from the hub proxy, so without the hub you are redirected to sign in. Data pages also need
 `lis-be4fe-cattle-home` running on port 8087, because the client finds it by environment name
 (`ENVIRONMENT`) and not by a URL setting.
 
@@ -152,9 +152,7 @@ are dropped, with a warning each time one is set, so they can no longer be searc
 | `CATTLE_HOME_API_CIRCUIT_BREAKER_FAILURE_THRESHOLD` | Consecutive transport failures before the `lis-be4fe-cattle-home` circuit opens  | `5`                                                     |
 | `CATTLE_HOME_API_CIRCUIT_BREAKER_RESET_TIMEOUT`     | Time the `lis-be4fe-cattle-home` circuit stays open before a probe request (ms)  | `30000`                                                 |
 | `HUB_ORIGINS`                                       | Hub origins allowed to use this spoke                                            | front-office and back-office hubs and their local ports |
-| `HUB_JWT_COOKIE_NAME`                               | Cookie that carries the hub JWT                                                  | `livestock_hub_jwt`                                     |
 | `HUB_JWT_SECRET`                                    | Secret, required, 32+ chars. Verifies hub JWTs. Must match the hubs              | none                                                    |
-| `HUB_JWT_TTL_SECONDS`                               | Hub JWT cookie TTL (seconds)                                                     | `14400`                                                 |
 | `HUB_JWT_AUDIENCE`                                  | Hub JWT audience                                                                 | `livestock-spokes`                                      |
 
 Service tokens need `CDP_JWT_ISSUER` and `CDP_JWT_JWKS_URI` (set by CDP, and by lis-dev for the
