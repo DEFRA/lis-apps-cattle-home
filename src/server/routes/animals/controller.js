@@ -3,7 +3,7 @@ import { getMountPath } from '@defra/lis-hubs-infra-registry'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 import { formatEarTag } from '@defra/lis-infra-ui-services/nunjucks/filters'
 
-import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
+import * as cattleHomeBe4FeClient from '#server/services/cattle-home-be4fe-client.js'
 import { isFromBackOffice } from '#server/common/helpers/hub.js'
 import { getSameHostReferrerPath } from './referrer.js'
 import { buildCattleDetailsViewModel } from './view-model.js'

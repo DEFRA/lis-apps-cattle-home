@@ -1,7 +1,7 @@
 import { getMountPath } from '@defra/lis-hubs-infra-registry'
 
 import { buildHoldingHeading } from '../holding-heading.js'
-import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
+import * as cattleHomeBe4FeClient from '#server/services/cattle-home-be4fe-client.js'
 import { isFromBackOffice } from '#server/common/helpers/hub.js'
 
 const animalsBasePath = getMountPath('cattle-home', 'animal')
