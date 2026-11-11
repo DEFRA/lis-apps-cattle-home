@@ -1,4 +1,4 @@
-import { BaseClient } from '@defra/lis-hubs-infra-core'
+import { createServiceClient } from '@defra/lis-hubs-infra-core'
 
 import { config } from '#config/config.js'
 import { searchAnimals } from '#server/services/animals/search.js'
@@ -112,99 +112,81 @@ const localPort = 8087
 
 const cphPattern = /^(\d{2})\/(\d{3})\/(\d{4})$/
 
-class CattleHomeBe4FeClient extends BaseClient {
-  /**
-   * @param {object} options
-   * @param {string} options.environment 'local' | 'docker_compose' | 'dev' | 'test' | 'ext-test' | 'perf-test' | 'prod'
-   * @param {string} [options.apiKey] API key sent to the cattle-home BE4FE as x-api-key
-   * @param {number} [options.timeout] total milliseconds allowed for the response headers and body
-   * @param {{ failureThreshold?: number, resetTimeout?: number }} [options.circuitBreaker] circuit breaker settings; see BaseClient for the defaults
-   */
-  constructor({ environment, apiKey, timeout, circuitBreaker }) {
-    super({
-      environment,
-      serviceName: 'lis-be4fe-cattle-home',
-      port: localPort,
-      apiKey,
-      timeout,
-      circuitBreaker
-    })
-  }
-
-  /**
-   * @param {string} userId
-   * @returns {Promise<UserCph[]>} the CPHs held by this user
-   */
-  async getCphsForUser(userId) {
-    const { payload } = await this._get(
-      `api/users/${encodeURIComponent(userId)}/cphs`
-    )
-    return payload.data
-  }
-
-  /**
-   * @param {string} cph holding identifier, e.g. '10/081/1234'
-   * @returns {string} the CPH re-encoded as three URL path segments
-   */
-  #encodeCphSegments(cph) {
-    if (!cphPattern.test(cph)) {
-      throw new TypeError('CPH must contain county, parish and holding')
-    }
-
-    return cph
-  }
-
-  /**
-   * @param {string} cph holding identifier, e.g. '10/081/1234'
-   * @returns {Promise<HoldingDetails>} the holding's details
-   */
-  async getHoldingDetails(cph) {
-    const encodedCph = this.#encodeCphSegments(cph)
-    const { payload } = await this._get(`api/cphs/${encodedCph}`)
-    return payload.data
-  }
-
-  /**
-   * @param {string} cph holding identifier, e.g. '10/081/1234'
-   * @param {object} [options]
-   * @param {string} [options.q] free-text match against ear tag, sex or breed
-   * @param {string} [options.orderBy] column to sort by, see sortFields
-   * @param {'asc'|'desc'} [options.direction]
-   * @param {number} [options.page] 1-indexed page number
-   * @param {number} [options.pageSize]
-   * @returns {Promise<{ animals: CattleSummary[], totalItems: number, totalPages: number, currentPage: number, itemsPerPage: number }>}
-   */
-  async getCattleOnHolding(cph, options = {}) {
-    const encodedCph = this.#encodeCphSegments(cph)
-
-    const { payload } = await this._get(`api/cphs/${encodedCph}/cattle`)
-    let animals = payload.data
-    if (options.q) {
-      animals = searchAnimals(animals, options.q)
-    }
-    return paginateAnimals(animals, {
-      orderBy: options.orderBy,
-      direction: options.direction,
-      page: options.page,
-      pageSize: options.pageSize
-    })
-  }
-
-  /**
-   * @param {string} cattleId the animal's ear tag, e.g. 'UK 200000 000013'
-   * @returns {Promise<CattleDetails>} the cattle's details
-   */
-  async getCattleDetails(cattleId) {
-    const { payload } = await this._get(
-      `api/cattle/${encodeURIComponent(cattleId)}`
-    )
-    return payload.data
-  }
-}
-
-export const cattleHomeBe4FeClient = new CattleHomeBe4FeClient({
+const be4fe = createServiceClient({
   environment: config.get('environment'),
+  serviceName: 'lis-be4fe-cattle-home',
+  port: localPort,
   apiKey: config.get('cattleHomeApi.apiKey'),
   timeout: config.get('cattleHomeApi.timeout'),
   circuitBreaker: config.get('cattleHomeApi.circuitBreaker')
 })
+
+/**
+ * @param {string} userId
+ * @returns {Promise<UserCph[]>} the CPHs held by this user
+ */
+export async function getCphsForUser(userId) {
+  const { payload } = await be4fe.get(
+    `api/users/${encodeURIComponent(userId)}/cphs`
+  )
+  return payload.data
+}
+
+/**
+ * @param {string} cph holding identifier, e.g. '10/081/1234'
+ * @returns {string} the CPH re-encoded as three URL path segments
+ */
+function encodeCphSegments(cph) {
+  if (!cphPattern.test(cph)) {
+    throw new TypeError('CPH must contain county, parish and holding')
+  }
+
+  return cph
+}
+
+/**
+ * @param {string} cph holding identifier, e.g. '10/081/1234'
+ * @returns {Promise<HoldingDetails>} the holding's details
+ */
+export async function getHoldingDetails(cph) {
+  const encodedCph = encodeCphSegments(cph)
+  const { payload } = await be4fe.get(`api/cphs/${encodedCph}`)
+  return payload.data
+}
+
+/**
+ * @param {string} cph holding identifier, e.g. '10/081/1234'
+ * @param {object} [options]
+ * @param {string} [options.q] free-text match against ear tag, sex or breed
+ * @param {string} [options.orderBy] column to sort by, see sortFields
+ * @param {'asc'|'desc'} [options.direction]
+ * @param {number} [options.page] 1-indexed page number
+ * @param {number} [options.pageSize]
+ * @returns {Promise<{ animals: CattleSummary[], totalItems: number, totalPages: number, currentPage: number, itemsPerPage: number }>}
+ */
+export async function getCattleOnHolding(cph, options = {}) {
+  const encodedCph = encodeCphSegments(cph)
+
+  const { payload } = await be4fe.get(`api/cphs/${encodedCph}/cattle`)
+  let animals = payload.data
+  if (options.q) {
+    animals = searchAnimals(animals, options.q)
+  }
+  return paginateAnimals(animals, {
+    orderBy: options.orderBy,
+    direction: options.direction,
+    page: options.page,
+    pageSize: options.pageSize
+  })
+}
+
+/**
+ * @param {string} cattleId the animal's ear tag, e.g. 'UK 200000 000013'
+ * @returns {Promise<CattleDetails>} the cattle's details
+ */
+export async function getCattleDetails(cattleId) {
+  const { payload } = await be4fe.get(
+    `api/cattle/${encodeURIComponent(cattleId)}`
+  )
+  return payload.data
+}

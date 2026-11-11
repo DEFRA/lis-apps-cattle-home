@@ -1,9 +1,22 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
+import { createServiceClient } from '@defra/lis-hubs-infra-core'
+
 import { searchAnimals } from '#server/services/animals/search.js'
 import { paginateAnimals } from '#server/services/animals/paginate.js'
-import { cattleHomeBe4FeClient as client } from './cattle-home-be4fe-client.js'
+import * as client from './cattle-home-be4fe-client.js'
 
+const service = vi.hoisted(() => ({
+  get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  patch: vi.fn(),
+  delete: vi.fn()
+}))
+
+vi.mock('@defra/lis-hubs-infra-core', () => ({
+  createServiceClient: vi.fn(() => service)
+}))
 vi.mock('#server/services/animals/search.js')
 vi.mock('#server/services/animals/paginate.js')
 
@@ -13,15 +26,16 @@ const mocks = {
 }
 
 describe('CattleHomeBe4FeClient', () => {
-  // beforeEach rather than beforeAll: this file restores mocks after each
+  // beforeEach rather than beforeAll: this file resets mocks after each
   // test, which clears implementations as well as call history.
   beforeEach(() => {
+    vi.mocked(createServiceClient).mockReturnValue(service)
     mocks.searchAnimals.mockReturnValue([])
     mocks.paginateAnimals.mockReturnValue({ animals: [] })
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    vi.resetAllMocks()
     vi.unstubAllEnvs()
   })
 
@@ -31,29 +45,34 @@ describe('CattleHomeBe4FeClient', () => {
     vi.resetModules()
 
     // Act
-    const { cattleHomeBe4FeClient: reloadedClient } =
-      await import('./cattle-home-be4fe-client.js')
+    await import('./cattle-home-be4fe-client.js')
 
     // Assert
-    expect(reloadedClient._apiKey).toBe('test-api-key')
+    expect(vi.mocked(createServiceClient)).toHaveBeenLastCalledWith(
+      expect.objectContaining({ apiKey: 'test-api-key' })
+    )
     vi.unstubAllEnvs()
   })
 
   test.each([
     ['default', undefined, 5000],
     ['environment override', '12000', 12000]
-  ])('Passes the %s timeout to the base client', async (_, value, expected) => {
-    // Arrange
-    vi.stubEnv('CATTLE_HOME_API_TIMEOUT', value)
-    vi.resetModules()
+  ])(
+    'Passes the %s timeout to the service client',
+    async (_, value, expected) => {
+      // Arrange
+      vi.stubEnv('CATTLE_HOME_API_TIMEOUT', value)
+      vi.resetModules()
 
-    // Act
-    const { cattleHomeBe4FeClient: reloadedClient } =
+      // Act
       await import('./cattle-home-be4fe-client.js')
 
-    // Assert
-    expect(reloadedClient._timeout).toBe(expected)
-  })
+      // Assert
+      expect(vi.mocked(createServiceClient)).toHaveBeenLastCalledWith(
+        expect.objectContaining({ timeout: expected })
+      )
+    }
+  )
 
   test('Refuses a zero timeout, which would be a 1 millisecond body budget', async () => {
     // Arrange
@@ -77,15 +96,13 @@ describe('CattleHomeBe4FeClient', () => {
   test('Gets CPHs for an encoded user ID', async () => {
     // Arrange
     const payload = { data: [{ cph: '10/081/1234' }] }
-    const get = vi
-      .spyOn(client, '_get')
-      .mockResolvedValue({ res: { statusCode: 200 }, payload })
+    service.get.mockResolvedValueOnce({ res: { statusCode: 200 }, payload })
 
     // Act
     const result = await client.getCphsForUser('test.user+home@example.com')
 
     // Assert
-    expect(get).toHaveBeenCalledWith(
+    expect(service.get).toHaveBeenCalledWith(
       'api/users/test.user%2Bhome%40example.com/cphs'
     )
     expect(result).toEqual(payload.data)
@@ -93,22 +110,23 @@ describe('CattleHomeBe4FeClient', () => {
 
   test('Gets cattle using the three CPH route segments', async () => {
     // Arrange
-    const get = vi
-      .spyOn(client, '_get')
-      .mockResolvedValue({ res: { statusCode: 200 }, payload: { data: [] } })
+    service.get.mockResolvedValueOnce({
+      res: { statusCode: 200 },
+      payload: { data: [] }
+    })
 
     // Act
     await client.getCattleOnHolding('10/081/1234')
 
     // Assert
-    expect(get).toHaveBeenCalledWith('api/cphs/10/081/1234/cattle')
+    expect(service.get).toHaveBeenCalledWith('api/cphs/10/081/1234/cattle')
   })
 
   test('Passes the fetched animals and the search term to searchAnimals', async () => {
     // Arrange
     const animals = [{ eartag: 'UK123' }, { eartag: 'UK999' }]
     const searched = [{ eartag: 'UK123' }]
-    vi.spyOn(client, '_get').mockResolvedValue({
+    service.get.mockResolvedValueOnce({
       res: { statusCode: 200 },
       payload: { data: animals }
     })
@@ -129,7 +147,7 @@ describe('CattleHomeBe4FeClient', () => {
   test('Skips searchAnimals when no search term is given', async () => {
     // Arrange
     const animals = [{ eartag: 'UK123' }]
-    vi.spyOn(client, '_get').mockResolvedValue({
+    service.get.mockResolvedValueOnce({
       res: { statusCode: 200 },
       payload: { data: animals }
     })
@@ -149,7 +167,7 @@ describe('CattleHomeBe4FeClient', () => {
   test('Passes the sort and paging options through to paginateAnimals', async () => {
     // Arrange
     const animals = [{ eartag: 'UK123' }]
-    vi.spyOn(client, '_get').mockResolvedValue({
+    service.get.mockResolvedValueOnce({
       res: { statusCode: 200 },
       payload: { data: animals }
     })
@@ -181,7 +199,7 @@ describe('CattleHomeBe4FeClient', () => {
       currentPage: 2,
       itemsPerPage: 25
     }
-    vi.spyOn(client, '_get').mockResolvedValue({
+    service.get.mockResolvedValueOnce({
       res: { statusCode: 200 },
       payload: { data: [{ eartag: 'UK123' }] }
     })
@@ -196,8 +214,6 @@ describe('CattleHomeBe4FeClient', () => {
 
   test('Rejects malformed CPH values without making a request', async () => {
     // Arrange
-    const get = vi.spyOn(client, '_get')
-
     // Act
     let error
     try {
@@ -209,13 +225,11 @@ describe('CattleHomeBe4FeClient', () => {
     // Assert
     expect(error).toBeInstanceOf(TypeError)
     expect(error.message).toBe('CPH must contain county, parish and holding')
-    expect(get).not.toHaveBeenCalled()
+    expect(service.get).not.toHaveBeenCalled()
   })
 
   test('Rejects a CPH containing an empty segment', async () => {
     // Arrange
-    const get = vi.spyOn(client, '_get')
-
     // Act
     let error
     try {
@@ -226,28 +240,24 @@ describe('CattleHomeBe4FeClient', () => {
 
     // Assert
     expect(error).toBeInstanceOf(TypeError)
-    expect(get).not.toHaveBeenCalled()
+    expect(service.get).not.toHaveBeenCalled()
   })
 
   test('Gets holding details using the three CPH route segments', async () => {
     // Arrange
     const payload = { data: { cph: '10/081/1234', name: 'Oakfield Farm' } }
-    const get = vi
-      .spyOn(client, '_get')
-      .mockResolvedValue({ res: { statusCode: 200 }, payload })
+    service.get.mockResolvedValueOnce({ res: { statusCode: 200 }, payload })
 
     // Act
     const result = await client.getHoldingDetails('10/081/1234')
 
     // Assert
-    expect(get).toHaveBeenCalledWith('api/cphs/10/081/1234')
+    expect(service.get).toHaveBeenCalledWith('api/cphs/10/081/1234')
     expect(result).toEqual(payload.data)
   })
 
   test('Rejects a malformed CPH for holding details without making a request', async () => {
     // Arrange
-    const get = vi.spyOn(client, '_get')
-
     // Act
     let error
     try {
@@ -258,41 +268,43 @@ describe('CattleHomeBe4FeClient', () => {
 
     // Assert
     expect(error).toBeInstanceOf(TypeError)
-    expect(get).not.toHaveBeenCalled()
+    expect(service.get).not.toHaveBeenCalled()
   })
 
   test('Gets details using an encoded cattle ID', async () => {
     // Arrange
     const payload = { data: { cattle_id: 'UK 123/456' } }
-    const get = vi
-      .spyOn(client, '_get')
-      .mockResolvedValue({ res: { statusCode: 200 }, payload })
+    service.get.mockResolvedValueOnce({ res: { statusCode: 200 }, payload })
 
     // Act
     const result = await client.getCattleDetails('UK 123/456')
 
     // Assert
-    expect(get).toHaveBeenCalledWith('api/cattle/UK%20123%2F456')
+    expect(service.get).toHaveBeenCalledWith('api/cattle/UK%20123%2F456')
     expect(result).toEqual(payload.data)
   })
 })
 
 describe('CattleHomeBe4FeClient circuit breaker', () => {
   afterEach(() => {
+    vi.resetAllMocks()
     vi.unstubAllEnvs()
   })
 
   test('uses the configured failure threshold', async () => {
     // Arrange
+    vi.mocked(createServiceClient).mockReturnValue(service)
     vi.stubEnv('CATTLE_HOME_API_CIRCUIT_BREAKER_FAILURE_THRESHOLD', '1')
     vi.resetModules()
-    const { cattleHomeBe4FeClient: reloadedClient } =
-      await import('./cattle-home-be4fe-client.js')
 
     // Act
-    reloadedClient._circuitBreaker.recordFailure()
+    await import('./cattle-home-be4fe-client.js')
 
     // Assert
-    expect(reloadedClient._circuitBreaker.state).toBe('open')
+    expect(vi.mocked(createServiceClient)).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        circuitBreaker: expect.objectContaining({ failureThreshold: 1 })
+      })
+    )
   })
 })

@@ -11,7 +11,7 @@ import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
 import { spokeAuth } from '#test-helpers/spoke-auth.js'
 import { createServer } from '#server/server.js'
-import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
+import * as cattleHomeBe4FeClient from '#server/services/cattle-home-be4fe-client.js'
 
 vi.mock('#server/services/cattle-home-be4fe-client.js')
 

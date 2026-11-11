@@ -10,7 +10,7 @@ import {
 
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
 
-import { cattleHomeBe4FeClient } from '#server/services/cattle-home-be4fe-client.js'
+import * as cattleHomeBe4FeClient from '#server/services/cattle-home-be4fe-client.js'
 
 /**
  * Fetches the animal and allows the request when the user may read cattle on
