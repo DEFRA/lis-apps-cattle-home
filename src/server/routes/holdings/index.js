@@ -1,4 +1,4 @@
-/** @import { Request, ResponseToolkit } from '@hapi/hapi' */
+/** @import { Request, ResponseToolkit, Server } from '@hapi/hapi' */
 import Boom from '@hapi/boom'
 import {
   PERMISSIONS,
@@ -34,6 +34,11 @@ function demandHoldingAccess(request, h) {
 export const holdings = {
   plugin: {
     name: 'holdings',
+    /**
+     * Registers the routes with the server.
+     *
+     * @param {Server} server - the Hapi server
+     */
     register(server) {
       const listReferrer = createListReferrer(server)
       server.app.listReferrer = listReferrer

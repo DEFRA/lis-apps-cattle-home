@@ -1,3 +1,5 @@
+/** @import { Request, ResponseObject, ResponseToolkit } from '@hapi/hapi' */
+
 import { getMountPath } from '@defra/lis-hubs-infra-registry'
 
 import { buildHoldingHeading } from '../holding-heading.js'
@@ -70,6 +72,13 @@ function buildPageTitle({
 }
 
 export const animalsOnHoldingController = {
+  /**
+   * Handles the request and returns the response.
+   *
+   * @param {Request} request - the Hapi request
+   * @param {ResponseToolkit} h - the Hapi response toolkit
+   * @returns {Promise<ResponseObject>} the response
+   */
   async handler(request, h) {
     const cph = request.params.cph
     const isBackOffice = isFromBackOffice(request)
