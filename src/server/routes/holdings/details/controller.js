@@ -1,3 +1,5 @@
+/** @import { Request, ResponseObject, ResponseToolkit } from '@hapi/hapi' */
+
 import { getMountPath } from '@defra/lis-hubs-infra-registry'
 
 import * as cattleHomeBe4FeClient from '#server/services/cattle-home-be4fe-client.js'
@@ -11,6 +13,13 @@ import {
 } from './view-model.js'
 
 export const holdingDetailsController = {
+  /**
+   * Handles the request and returns the response.
+   *
+   * @param {Request} request - the Hapi request
+   * @param {ResponseToolkit} h - the Hapi response toolkit
+   * @returns {Promise<ResponseObject>} the response
+   */
   async handler(request, h) {
     const cph = request.params.cph
     const holding = await cattleHomeBe4FeClient.getHoldingDetails(cph)

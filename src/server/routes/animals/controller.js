@@ -1,3 +1,5 @@
+/** @import { Request, ResponseObject, ResponseToolkit } from '@hapi/hapi' */
+
 import { logger } from '@defra/lis-hubs-infra-core'
 import { getMountPath } from '@defra/lis-hubs-infra-registry'
 import { statusCodes } from '@defra/lis-infra-ui-services/status-codes'
@@ -79,6 +81,13 @@ async function getCurrentLocation(cph) {
 }
 
 export const cattleDetailsController = {
+  /**
+   * Handles the request and returns the response.
+   *
+   * @param {Request} request - the Hapi request
+   * @param {ResponseToolkit} h - the Hapi response toolkit
+   * @returns {Promise<ResponseObject>} the response
+   */
   async handler(request, h) {
     const { record } = request.pre
     const cph = record.current_location.identifier
