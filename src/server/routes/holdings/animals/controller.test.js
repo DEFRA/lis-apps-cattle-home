@@ -536,7 +536,7 @@ describe('animalsOnHoldingController', () => {
     expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
   })
 
-  test('it shows the no-animals empty state when the holding has none recorded', async () => {
+  test('it shows the no-cattle empty state, with the 24 hours notice, when the holding has none recorded', async () => {
     // Arrange
     const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(page([]))
@@ -551,7 +551,12 @@ describe('animalsOnHoldingController', () => {
     // Assert
     expect(result).toEqual(
       expect.stringContaining(
-        'There are no animals currently registered on your holding.'
+        'There are no cattle currently registered on your holding.'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<div class="govuk-inset-text">Changes may take up to 24 hours'
       )
     )
     expect(result).toEqual(
@@ -560,7 +565,7 @@ describe('animalsOnHoldingController', () => {
       )
     )
     expect(result).not.toEqual(
-      expect.stringContaining('Search animals on your holding')
+      expect.stringContaining('Search cattle on your holding')
     )
     expect(result).not.toEqual(expect.stringContaining('govuk-table__body'))
   })

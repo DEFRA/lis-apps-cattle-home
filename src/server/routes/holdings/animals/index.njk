@@ -16,6 +16,7 @@
 {% endblock %}
 
 {% block content %}
+  {% set insetText = "Changes may take up to 24 hours to move from ‘In progress’ to ‘Cattle on holding’, and to flag any issues in your Animal error record." %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
       {% if isBackOffice %}
@@ -33,7 +34,12 @@
       {% endif %}
 
       {% if not search and totalItems == 0 %}
-        <p class="govuk-body">There are no animals currently registered on your holding.</p>
+        {% if isBackOffice %}
+          <p class="govuk-body">There are no animals currently registered on your holding.</p>
+        {% else %}
+          <div class="govuk-inset-text">{{ insetText }}</div>
+          <p class="govuk-body">There are no cattle currently registered on your holding.</p>
+        {% endif %}
         <p class="govuk-body">
           If you believe this is incorrect, contact the <a class="govuk-link" href="https://www.gov.uk/government/organisations/british-cattle-movement-service#:~:text=guidance%20and%20regulation-,Contact%20BCMS,-British%20Cattle%20Movement">British Cattle Movement Service (BCMS)</a>.
         </p>
@@ -45,7 +51,7 @@
               hint: "You can use all or part of the animal ear tag number, or search by sex or breed." if isBackOffice else "Use all or part of the animal ear tag number for example the last 3 digits, or search by sex or breed.",
               value: search,
               hiddenFields: [{ name: "referrer", value: referrerId }] if referrerId else undefined,
-              insetText: undefined if isBackOffice else "Changes may take up to 24 hours to move from ‘In progress’ to ‘Cattle on holding’, and to flag any issues in your Animal error record."
+              insetText: undefined if isBackOffice else insetText
             }) }}
           </div>
         </div>
