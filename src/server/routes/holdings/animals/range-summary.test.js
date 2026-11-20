@@ -35,4 +35,15 @@ describe('buildRangeSummary()', () => {
     // Assert
     expect(result).toBe('Showing 1 to 25 of 50')
   })
+
+  test('it adds the wording given after the total', () => {
+    // Arrange
+    const page = { currentPage: 1, itemsPerPage: 25, totalItems: 35 }
+
+    // Act
+    const result = buildRangeSummary(page, ' results')
+
+    // Assert
+    expect(result).toBe('Showing 1 to 25 of 35 results')
+  })
 })

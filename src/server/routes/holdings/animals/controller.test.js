@@ -106,14 +106,37 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     })
 
     // Assert
     expect(statusCode).toBe(statusCodes.ok)
-    expect(result).toEqual(expect.stringContaining('Animals on holding'))
-    expect(result).not.toEqual(expect.stringContaining('govuk-back-link'))
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<h1 class="govuk-heading-l">Cattle on holding</h1>'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'href="/holdings/22/001/0001" class="govuk-back-link"'
+      )
+    )
+    expect(result).not.toEqual(expect.stringContaining('govuk-caption-l'))
+    expect(result).not.toEqual(expect.stringContaining('lis-sub-navigation'))
+    expect(result).toEqual(
+      expect.stringContaining('Search cattle on your holding')
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'Use all or part of the animal ear tag number for example the last 3 digits, or search by sex or breed.'
+      )
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        'Changes may take up to 24 hours to move from ‘In progress’ to ‘Cattle on holding’, and to flag any issues in your Animal error record.'
+      )
+    )
     expect(result).toEqual(expect.stringContaining('UK 200000 000001'))
     expect(result).toEqual(expect.stringContaining('Date on holding'))
     expect(result).toEqual(
@@ -126,7 +149,7 @@ describe('animalsOnHoldingController', () => {
       )
     )
     expect(result).toEqual(
-      expect.stringContaining('Animals on holding (page 1 of 2)')
+      expect.stringContaining('Cattle on holding (page 1 of 2)')
     )
   })
 
@@ -137,7 +160,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle?search=UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -167,19 +190,19 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?search=male&sort=age&direction=desc',
+      url: '/holdings/22/001/0001/cattle?search=male&sort=age&direction=desc',
       auth: spokeAuth(user)
     })
 
     // Assert
     expect(result).toEqual(
       expect.stringContaining(
-        '15 results for &#39;male&#39; - Animals on holding, sorted by age descending - Oakfield Farm - Cattle - Livestock Information'
+        '15 results for &#39;male&#39; - Cattle on holding, sorted by age descending - Oakfield Farm - Cattle - Livestock Information'
       )
     )
   })
 
-  test('it labels the sub navigation and breaks long search terms', async () => {
+  test('it shows no sub navigation and breaks long search terms', async () => {
     // Arrange
     const user = createUser()
     mocks.getCattleForCph.mockResolvedValue(page([animal]))
@@ -187,12 +210,12 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?search=male',
+      url: '/holdings/22/001/0001/cattle?search=male',
       auth: spokeAuth(user)
     })
 
     // Assert
-    expect(result).toEqual(
+    expect(result).not.toEqual(
       expect.stringContaining('aria-label="Holding sections"')
     )
     expect(result).toEqual(
@@ -208,7 +231,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     await server.inject({
       method: 'GET',
-      url: `/holdings/22/001/0001/cattle/animals?search=${'a'.repeat(150)}`,
+      url: `/holdings/22/001/0001/cattle?search=${'a'.repeat(150)}`,
       auth: spokeAuth(user)
     })
 
@@ -227,7 +250,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const response = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?search=a&search=b',
+      url: '/holdings/22/001/0001/cattle?search=a&search=b',
       auth: spokeAuth(user)
     })
 
@@ -239,7 +262,7 @@ describe('animalsOnHoldingController', () => {
     )
   })
 
-  test('it shows the CPH as the caption when the holding has no name', async () => {
+  test('it shows no caption when the holding has no name', async () => {
     // Arrange
     const user = createUser()
     mocks.getHoldingDetails.mockResolvedValue({ cph: '22/098/0098' })
@@ -247,14 +270,15 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/098/0098/cattle/animals',
+      url: '/holdings/22/098/0098/cattle',
       auth: spokeAuth(user)
     })
 
     // Assert
+    expect(result).not.toEqual(expect.stringContaining('govuk-caption-l'))
     expect(result).toEqual(
       expect.stringContaining(
-        '<span class="govuk-caption-l">22/098/0098</span>'
+        '<h1 class="govuk-heading-l">Cattle on holding</h1>'
       )
     )
   })
@@ -269,14 +293,14 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     })
 
     // Assert
     expect(result).toEqual(
       expect.stringContaining(
-        'Animals on holding (page 1 of 2) - Oakfield Farm - Cattle - Livestock Information'
+        'Cattle on holding (page 1 of 2) - Oakfield Farm - Cattle - Livestock Information'
       )
     )
   })
@@ -288,7 +312,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?search=male',
+      url: '/holdings/22/001/0001/cattle?search=male',
       auth: spokeAuth(user)
     })
 
@@ -303,7 +327,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle?search=UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -322,7 +346,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle?search=UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -342,7 +366,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle?search=UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -365,7 +389,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?page=2',
+      url: '/holdings/22/001/0001/cattle?page=2',
       auth: spokeAuth(user)
     })
 
@@ -379,8 +403,71 @@ describe('animalsOnHoldingController', () => {
       expect.stringContaining('Showing 26 to 34 of 34 results')
     )
     expect(result).toEqual(
-      expect.stringContaining('Animals on holding (page 2 of 2)')
+      expect.stringContaining('Cattle on holding (page 2 of 2)')
     )
+  })
+
+  test('it points the sort, page and clear search links at the holding path', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleForCph.mockResolvedValue(
+      page([animal], { totalItems: 34, totalPages: 2 })
+    )
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/cattle?search=male',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining('href="/holdings/22/001/0001/cattle?')
+    )
+    expect(result).toEqual(
+      expect.stringContaining(
+        '<a class="govuk-link" href="/holdings/22/001/0001/cattle">Clear search</a>'
+      )
+    )
+    expect(result).not.toEqual(expect.stringContaining('/cattle/animals'))
+  })
+
+  test('it states the plural count for a search with several matches', async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleForCph.mockResolvedValue(page([animal], { totalItems: 15 }))
+
+    // Act
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/cattle?search=male',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(result).toEqual(
+      expect.stringContaining(
+        '15 registered cattle records match <strong>‘male’</strong>'
+      )
+    )
+  })
+
+  test('it returns not found for the separate animals list', async () => {
+    // Arrange
+    const user = createUser()
+
+    // Act
+    const { statusCode, result } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/cattle/animals',
+      auth: spokeAuth(user)
+    })
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.notFound)
+    expect(result).toEqual(expect.stringContaining('Page not found'))
+    expect(mocks.getCattleForCph).not.toHaveBeenCalled()
   })
 
   test('it passes the requested sort column and direction to the client', async () => {
@@ -390,7 +477,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?sort=date_of_birth&direction=desc',
+      url: '/holdings/22/001/0001/cattle?sort=date_of_birth&direction=desc',
       auth: spokeAuth(user)
     })
 
@@ -410,7 +497,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?search=UK200000000001',
+      url: '/holdings/22/001/0001/cattle?search=UK200000000001',
       auth: spokeAuth(user)
     })
 
@@ -420,7 +507,9 @@ describe('animalsOnHoldingController', () => {
       expect.objectContaining({ q: 'UK200000000001' })
     )
     expect(result).toEqual(
-      expect.stringContaining("1 result for <strong>'UK200000000001'</strong>")
+      expect.stringContaining(
+        '1 registered cattle record matches <strong>‘UK200000000001’</strong>'
+      )
     )
     expect(result).toEqual(expect.stringContaining('UK 200000 000001'))
   })
@@ -433,14 +522,14 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals?search=not-a-real-animal',
+      url: '/holdings/22/001/0001/cattle?search=not-a-real-animal',
       auth: spokeAuth(user)
     })
 
     // Assert
     expect(result).toEqual(
       expect.stringContaining(
-        "0 results for <strong>'not-a-real-animal'</strong>"
+        '0 registered cattle records match <strong>‘not-a-real-animal’</strong>'
       )
     )
     expect(result).toEqual(expect.stringContaining('Clear search'))
@@ -455,7 +544,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/095/0095/cattle/animals',
+      url: '/holdings/22/095/0095/cattle',
       auth: spokeAuth(user)
     })
 
@@ -484,7 +573,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/096/0096/cattle/animals',
+      url: '/holdings/22/096/0096/cattle',
       auth: spokeAuth(user)
     })
 
@@ -510,7 +599,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { statusCode } = await server.inject({
       method: 'GET',
-      url: '/holdings/99/999/9999/cattle/animals',
+      url: '/holdings/99/999/9999/cattle',
       auth: spokeAuth(user)
     })
 
@@ -534,7 +623,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals',
+      url: '/holdings/22/001/0001/cattle',
       auth: spokeAuth(user)
     })
 
@@ -550,7 +639,7 @@ describe('animalsOnHoldingController', () => {
     // Act
     const { statusCode, result } = await server.inject({
       method: 'GET',
-      url: '/holdings/22/001/0001/cattle/animals'
+      url: '/holdings/22/001/0001/cattle'
     })
 
     // Assert

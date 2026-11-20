@@ -503,4 +503,23 @@ describe('holdingDetailsController (back office)', () => {
       )
     )
   })
+
+  test('it returns not found when the BE4FE has no matching holding', async () => {
+    // Arrange
+    const user = createUser()
+    const request = {
+      method: 'GET',
+      url: '/holdings/99/999/9999/cattle',
+      auth: spokeAuth(user, 'back-office')
+    }
+    const notFoundError = new Error('Request failed - 404')
+    notFoundError.statusCode = statusCodes.notFound
+    mocks.getHoldingDetails.mockRejectedValueOnce(notFoundError)
+
+    // Act
+    const { statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.notFound)
+  })
 })

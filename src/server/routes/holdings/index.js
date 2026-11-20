@@ -7,6 +7,7 @@ import {
 
 import { holdingDetailsController } from './details/controller.js'
 import { animalsOnHoldingController } from './animals/controller.js'
+import { isFromBackOffice } from '#server/common/helpers/hub.js'
 import { createListReferrer } from './list-referrer.js'
 
 /**
@@ -29,6 +30,17 @@ function demandHoldingAccess(request, h) {
   // Not found rather than forbidden, so a holding's existence isn't
   // confirmed to someone not entitled to it.
   return Boom.notFound()
+}
+
+/**
+ * Front office lists cattle at the holding's own path, so the separate
+ * animals URL belongs to back office alone.
+ * @param {Request} request
+ * @param {ResponseToolkit} h
+ * @returns {symbol | Boom.Boom} h.continue for back office, otherwise a 404
+ */
+function demandBackOffice(request, h) {
+  return isFromBackOffice(request) ? h.continue : Boom.notFound()
 }
 
 export const holdings = {
@@ -56,14 +68,19 @@ export const holdings = {
         {
           method: 'GET',
           path: '/holdings/{cph*3}/cattle',
-          ...holdingDetailsController,
+          handler: (request, h) =>
+            isFromBackOffice(request)
+              ? holdingDetailsController.handler(request, h)
+              : animalsOnHoldingController.handler(request, h),
           options: holdingPage
         },
         {
           method: 'GET',
           path: '/holdings/{cph*3}/cattle/animals',
           ...animalsOnHoldingController,
-          options: holdingPage
+          options: {
+            pre: [...holdingPage.pre, { method: demandBackOffice }]
+          }
         }
       ])
     }
