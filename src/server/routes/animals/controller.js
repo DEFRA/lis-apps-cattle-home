@@ -80,6 +80,18 @@ async function getCurrentLocation(cph) {
   }
 }
 
+/**
+ * Where the animal's holding lists its cattle: back office at the animals
+ * URL under the holding, front office at the holding path itself.
+ * @param {string} cph
+ * @param {boolean} isBackOffice
+ * @returns {string} the list's path under the hub
+ */
+function holdingListPath(cph, isBackOffice) {
+  const holdingPath = getMountPath('cattle-home', 'holding', { cph })
+  return isBackOffice ? `${holdingPath}/animals` : holdingPath
+}
+
 export const cattleDetailsController = {
   /**
    * Handles the request and returns the response.
@@ -106,8 +118,7 @@ export const cattleDetailsController = {
         ? await getDamHrefs(cattle.dam, cph)
         : { genetic: null, surrogate: null },
       backLinkHref:
-        getSameHostReferrerPath(request) ??
-        `${getMountPath('cattle-home', 'holding', { cph })}/animals`
+        getSameHostReferrerPath(request) ?? holdingListPath(cph, isBackOffice)
     })
   }
 }

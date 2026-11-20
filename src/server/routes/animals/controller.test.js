@@ -58,7 +58,7 @@ const hubHost = 'front-office.lis.defra'
 function fromAnimalsOnHolding(cph = '22/001/0001', query = '') {
   return {
     'x-forwarded-host': hubHost,
-    referer: `https://${hubHost}/holdings/${cph}/cattle/animals${query}`
+    referer: `https://${hubHost}/holdings/${cph}/cattle${query}`
   }
 }
 
@@ -122,7 +122,7 @@ describe('cattleDetailsController', () => {
     )
     expect(result).toEqual(
       expect.stringContaining(
-        'href="/holdings/22/001/0001/cattle/animals" class="govuk-back-link"'
+        'href="/holdings/22/001/0001/cattle" class="govuk-back-link"'
       )
     )
     expect(result).toEqual(expect.stringContaining('Holstein Friesian (HF)'))
@@ -465,7 +465,7 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(
       expect.stringContaining(
-        'href="/holdings/22/001/0001/cattle/animals?page=2" class="govuk-back-link"'
+        'href="/holdings/22/001/0001/cattle?page=2" class="govuk-back-link"'
       )
     )
   })
@@ -513,6 +513,29 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(
       expect.stringContaining(
+        'href="/holdings/22/001/0001/cattle" class="govuk-back-link"'
+      )
+    )
+  })
+
+  test("it links a back-office user back to the holding's animals list when there is no referrer", async () => {
+    // Arrange
+    const user = createUser()
+    mocks.getCattleDetails.mockResolvedValue(fullRecord)
+    mocks.getHoldingDetails.mockResolvedValueOnce(holdingRecord)
+    const request = {
+      method: 'GET',
+      url: '/animals/cattle/UK200000000001',
+      auth: spokeAuth(user, 'back-office')
+    }
+
+    // Act
+    const { result, statusCode } = await server.inject(request)
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(result).toEqual(
+      expect.stringContaining(
         'href="/holdings/22/001/0001/cattle/animals" class="govuk-back-link"'
       )
     )
@@ -528,7 +551,7 @@ describe('cattleDetailsController', () => {
       auth: spokeAuth(user),
       headers: {
         'x-forwarded-host': hubHost,
-        referer: 'https://elsewhere.example/holdings/22/001/0001/cattle/animals'
+        referer: 'https://elsewhere.example/holdings/22/001/0001/cattle'
       }
     }
 
@@ -539,7 +562,7 @@ describe('cattleDetailsController', () => {
     expect(statusCode).toBe(statusCodes.ok)
     expect(result).toEqual(
       expect.stringContaining(
-        'href="/holdings/22/001/0001/cattle/animals" class="govuk-back-link"'
+        'href="/holdings/22/001/0001/cattle" class="govuk-back-link"'
       )
     )
   })

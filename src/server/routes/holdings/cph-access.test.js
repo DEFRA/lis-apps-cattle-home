@@ -65,7 +65,7 @@ describe('holdings CPH access', () => {
     vi.clearAllMocks()
   })
 
-  test('it shows holding details for a CPH the user is granted', async () => {
+  test('it shows the cattle list at the holding path for a CPH the user is granted', async () => {
     // Arrange
     const user = createUser(['22/001/0001'])
 
@@ -80,7 +80,7 @@ describe('holdings CPH access', () => {
     expect(statusCode).toBe(statusCodes.ok)
   })
 
-  test('it returns not found for holding details on a CPH the user is not granted', async () => {
+  test('it returns not found for the cattle list at the holding path on a CPH the user is not granted', async () => {
     // Arrange
     const user = createUser(['22/002/0002'])
 
@@ -96,7 +96,70 @@ describe('holdings CPH access', () => {
     expect(cattleHomeBe4FeClient.getHoldingDetails).not.toHaveBeenCalled()
   })
 
-  test('it shows animals on holding for a CPH the user is granted', async () => {
+  test('it shows animals on holding for a back-office user granted the CPH', async () => {
+    // Arrange
+    const user = createUser(['22/001/0001'])
+
+    // Act
+    const { statusCode } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/cattle/animals',
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+  })
+
+  test('it returns not found for animals on holding on a CPH a back-office user is not granted', async () => {
+    // Arrange
+    const user = createUser(['22/002/0002'])
+
+    // Act
+    const { statusCode } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/cattle/animals',
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.notFound)
+    expect(cattleHomeBe4FeClient.getCattleOnHolding).not.toHaveBeenCalled()
+  })
+
+  test('it shows holding details at the holding path for a back-office user granted the CPH', async () => {
+    // Arrange
+    const user = createUser(['22/001/0001'])
+
+    // Act
+    const { statusCode } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/cattle',
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.ok)
+    expect(cattleHomeBe4FeClient.getCattleOnHolding).not.toHaveBeenCalled()
+  })
+
+  test('it returns not found for holding details on a CPH a back-office user is not granted', async () => {
+    // Arrange
+    const user = createUser(['22/002/0002'])
+
+    // Act
+    const { statusCode } = await server.inject({
+      method: 'GET',
+      url: '/holdings/22/001/0001/cattle',
+      auth: spokeAuth(user, 'back-office')
+    })
+
+    // Assert
+    expect(statusCode).toBe(statusCodes.notFound)
+    expect(cattleHomeBe4FeClient.getHoldingDetails).not.toHaveBeenCalled()
+  })
+
+  test('it returns not found for animals on holding for a front-office user granted the CPH', async () => {
     // Arrange
     const user = createUser(['22/001/0001'])
 
@@ -108,10 +171,11 @@ describe('holdings CPH access', () => {
     })
 
     // Assert
-    expect(statusCode).toBe(statusCodes.ok)
+    expect(statusCode).toBe(statusCodes.notFound)
+    expect(cattleHomeBe4FeClient.getCattleOnHolding).not.toHaveBeenCalled()
   })
 
-  test('it returns not found for animals on holding on a CPH the user is not granted', async () => {
+  test('it returns not found for animals on holding on a CPH a front-office user is not granted', async () => {
     // Arrange
     const user = createUser(['22/002/0002'])
 

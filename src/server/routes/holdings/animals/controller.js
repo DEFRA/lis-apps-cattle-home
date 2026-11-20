@@ -22,13 +22,17 @@ const backOfficeColumns = [{ text: 'Ear tag', sortKey: 'ear_tag' }].concat(
 
 /**
  * @param {{ currentPage: number, itemsPerPage: number, totalItems: number }} page
- * @returns {string} the back-office count below the list, e.g. "Showing 1 to 25 of 34"
+ * @param {string} [suffix] wording after the total, e.g. " results"
+ * @returns {string} the count below the list, e.g. "Showing 1 to 25 of 34"
  */
-export function buildRangeSummary({ currentPage, itemsPerPage, totalItems }) {
+export function buildRangeSummary(
+  { currentPage, itemsPerPage, totalItems },
+  suffix = ''
+) {
   const first = (currentPage - 1) * itemsPerPage + 1
   const last = Math.min(currentPage * itemsPerPage, totalItems)
 
-  return `Showing ${first} to ${last} of ${totalItems}`
+  return `Showing ${first} to ${last} of ${totalItems}${suffix}`
 }
 
 /**
@@ -36,6 +40,7 @@ export function buildRangeSummary({ currentPage, itemsPerPage, totalItems }) {
  * what tells a screen reader user what they have landed on.
  * @param {object} state
  * @param {string} state.holdingHeading
+ * @param {string} state.listName what the list is called, e.g. "Animals on holding"
  * @param {string} state.search
  * @param {number} state.totalItems
  * @param {number} state.totalPages
@@ -47,6 +52,7 @@ export function buildRangeSummary({ currentPage, itemsPerPage, totalItems }) {
  */
 function buildPageTitle({
   holdingHeading,
+  listName,
   search,
   totalItems,
   totalPages,
@@ -68,7 +74,66 @@ function buildPageTitle({
     ? `, sorted by ${sortColumn.text.toLowerCase()} ${directionText}`
     : ''
 
-  return `${results}Animals on holding${page}${sorted} - ${holdingHeading}`
+  return `${results}${listName}${page}${sorted} - ${holdingHeading}`
+}
+
+/**
+ * Back office keeps the animals list at its own URL under the holding;
+ * front office lists cattle at the holding path itself.
+ * @param {object} settings
+ * @param {boolean} settings.isBackOffice
+ * @param {string} settings.cph
+ * @param {string} settings.holdingPath
+ * @param {{ href: string }} [settings.listReferrer]
+ * @returns {{ name: string, path: string, backLinkHref?: string, rangeSuffix: string }}
+ */
+function buildListSettings({ isBackOffice, cph, holdingPath, listReferrer }) {
+  return isBackOffice
+    ? {
+        name: 'Animals on holding',
+        path: `${holdingPath}/animals`,
+        backLinkHref: listReferrer?.href,
+        rangeSuffix: ''
+      }
+    : {
+        name: 'Cattle on holding',
+        path: holdingPath,
+        backLinkHref: `/holdings/${cph}`,
+        rangeSuffix: ' results'
+      }
+}
+
+/**
+ * @param {object} animal an animal as the BE4FE returns it
+ * @returns {object} the animal as the template reads it
+ */
+function toAnimalRow(animal) {
+  return {
+    eartag: animal.eartag,
+    dateOfBirth: animal.date_of_birth,
+    dateOnCph: animal.date_on_cph,
+    sex: animal.sex,
+    breedCode: animal.breed_code,
+    breedName: animal.breed_name
+  }
+}
+
+/**
+ * @param {object} state
+ * @param {string} state.holdingPath
+ * @param {(path: string, referrerId?: string) => string} state.link
+ * @param {string} [state.referrerId]
+ * @returns {Array<{ text: string, href: string, active?: boolean }>} the back-office sub navigation
+ */
+function buildTabs({ holdingPath, link, referrerId }) {
+  return [
+    { text: 'Holding details', href: link(holdingPath, referrerId) },
+    {
+      text: 'Animals on holding',
+      href: link(`${holdingPath}/animals`, referrerId),
+      active: true
+    }
+  ]
 }
 
 export const animalsOnHoldingController = {
@@ -103,10 +168,17 @@ export const animalsOnHoldingController = {
     const { listReferrer } = request.pre
     const { link } = request.server.app.listReferrer
     const holdingPath = getMountPath('cattle-home', 'holding', { cph })
+    const list = buildListSettings({
+      isBackOffice,
+      cph,
+      holdingPath,
+      listReferrer
+    })
 
     return h.view('holdings/animals/index', {
       pageTitle: buildPageTitle({
         holdingHeading,
+        listName: list.name,
         search,
         totalItems,
         totalPages,
@@ -116,25 +188,22 @@ export const animalsOnHoldingController = {
         columns: pageColumns
       }),
       isBackOffice,
-      backLinkHref: listReferrer?.href,
+      backLinkHref: list.backLinkHref,
       referrerId: listReferrer?.id,
       holdingHeading,
-      summaryText: buildRangeSummary({ currentPage, itemsPerPage, totalItems }),
+      listName: list.name,
+      summaryText: buildRangeSummary(
+        { currentPage, itemsPerPage, totalItems },
+        list.rangeSuffix
+      ),
       columns: pageColumns,
-      animals: animals.map((animal) => ({
-        eartag: animal.eartag,
-        dateOfBirth: animal.date_of_birth,
-        dateOnCph: animal.date_on_cph,
-        sex: animal.sex,
-        breedCode: animal.breed_code,
-        breedName: animal.breed_name
-      })),
+      animals: animals.map(toAnimalRow),
       search,
       totalItems,
       sort,
       direction,
-      baseHref: `${holdingPath}/animals`,
-      clearSearchHref: link(`${holdingPath}/animals`, listReferrer?.id),
+      baseHref: list.path,
+      clearSearchHref: link(list.path, listReferrer?.id),
       animalsBasePath,
       pagination: {
         currentPage,
@@ -142,17 +211,9 @@ export const animalsOnHoldingController = {
         totalItems,
         itemsPerPage
       },
-      tabs: [
-        {
-          text: 'Holding details',
-          href: link(holdingPath, listReferrer?.id)
-        },
-        {
-          text: 'Animals on holding',
-          href: link(`${holdingPath}/animals`, listReferrer?.id),
-          active: true
-        }
-      ]
+      tabs: isBackOffice
+        ? buildTabs({ holdingPath, link, referrerId: listReferrer?.id })
+        : undefined
     })
   }
 }

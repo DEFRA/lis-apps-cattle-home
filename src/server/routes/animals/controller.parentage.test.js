@@ -58,7 +58,7 @@ const hubHost = 'front-office.lis.defra'
 function fromAnimalsOnHolding(cph = '22/001/0001', query = '') {
   return {
     'x-forwarded-host': hubHost,
-    referer: `https://${hubHost}/holdings/${cph}/cattle/animals${query}`
+    referer: `https://${hubHost}/holdings/${cph}/cattle${query}`
   }
 }
 
