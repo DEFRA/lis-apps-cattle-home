@@ -167,7 +167,7 @@ describe('animalsOnHoldingController', () => {
     // Assert
     expect(result).toEqual(
       expect.stringContaining(
-        '<table class="govuk-table lis-sortable-table--no-wrap">'
+        '<table class="govuk-table lis-sortable-table lis-sortable-table--no-wrap">'
       )
     )
     expect(result).toEqual(
@@ -177,7 +177,7 @@ describe('animalsOnHoldingController', () => {
     )
     expect(result).toEqual(
       expect.stringContaining(
-        'tabindex="0" role="region" aria-label="Animals on holding table"'
+        'role="region" tabindex="0" aria-label="Animals on holding table"'
       )
     )
   })
